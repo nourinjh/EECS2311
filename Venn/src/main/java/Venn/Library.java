@@ -6,6 +6,6 @@ package Venn;
 public class Library {
     public boolean someLibraryMethod() {
         return true;
-        // chnage
+        // example
     }
 }
