@@ -9,6 +9,7 @@ public class VennDiagram {
 
 	// Backend Framework for a VennDiagram
 	// Nabi Khalid, 216441677
+	// VennDiagram is composed of Circles and String values 
 	
 	String name;
 	public static int counter;
