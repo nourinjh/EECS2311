@@ -5,7 +5,6 @@ package Venn;
 
 public class Library {
     public boolean someLibraryMethod() {
-    	
     	//test
         return true;
     }
