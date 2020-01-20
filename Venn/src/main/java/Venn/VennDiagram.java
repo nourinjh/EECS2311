@@ -12,23 +12,26 @@ public class VennDiagram {
 	// VennDiagram is composed of Circles and String values 
 	// Values are either in a circle, an intersection, or outside the VennDiagram
 	
-	String name;
+	public String name;
+	public String description;
 	public static int counter;
 	public Set<String> insideValues; // set of values in VennDiagram, no duplicates therefore set is applicable 
 	public List<String> allValues; // list of values out of the VennDiagram
-	public List<Circle> circles; // list of circles 
+	public List<Circle> circles; // list of circles
 	
 	public VennDiagram() {
 		VennDiagram.counter++;
 		this.name = "Venn" + VennDiagram.counter;
+		this.description = "";
 		this.insideValues = new HashSet<String>();
 		this.circles = new ArrayList<Circle>();
 		this.allValues = new ArrayList<String>();
 	}
 	
-	public VennDiagram(String name) {
+	public VennDiagram(String name, String description) {
 		VennDiagram.counter++;
 		this.name = name;
+		this.description = description;
 		this.insideValues = new HashSet<String>();
 		this.allValues = new ArrayList<String>();
 		this.circles = new ArrayList<Circle>();
