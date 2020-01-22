@@ -6,44 +6,27 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity"
-	minHeight="-Infinity" minWidth="-Infinity" prefHeight="760.0"
-	prefWidth="814.0" style="-fx-background-color: #1d1d1d;"
-	xmlns="http://javafx.com/javafx/11.0.1"
-	xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="760.0" prefWidth="814.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 	<children>
-		<Circle fill="#f59f9f86" layoutX="288.0" layoutY="460.0"
-			radius="201.0" stroke="BLACK" strokeType="INSIDE" />
-		<Circle fill="#ebe07191" layoutX="525.0" layoutY="460.0"
-			radius="201.0" stroke="BLACK" strokeType="INSIDE" />
-		<Button blendMode="SCREEN" layoutX="316.0" layoutY="674.0"
-			mnemonicParsing="false" prefHeight="62.0" prefWidth="182.0"
-			style="-fx-background-color: #d8d8d8; -fx-font-family: arial;"
-			text="Check Your Answers!" textAlignment="CENTER" />
-		<Text fill="WHITE" layoutX="147.0" layoutY="154.0"
-			onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0"
-			style="-fx-font-family: arial;" text="Example">
+		<Circle fill="#f59f9f86" layoutX="288.0" layoutY="460.0" radius="201.0" stroke="BLACK" strokeType="INSIDE" />
+		<Circle fill="#ebe07191" layoutX="525.0" layoutY="460.0" radius="201.0" stroke="BLACK" strokeType="INSIDE" />
+		<Button blendMode="SCREEN" layoutX="316.0" layoutY="674.0" mnemonicParsing="false" prefHeight="62.0" prefWidth="182.0" style="-fx-background-color: #d8d8d8; -fx-font-family: arial;" text="Check Your Answers!" textAlignment="CENTER" />
+		<Text fill="WHITE" layoutX="211.0" layoutY="158.0" onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
 			<font>
 				<Font size="21.0" />
 			</font>
 		</Text>
-		<Text fill="WHITE" layoutX="457.0" layoutY="156.0"
-			onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0"
-			style="-fx-font-family: arial;" text="Example">
+		<Text fill="WHITE" layoutX="521.0" layoutY="160.0" onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
 			<font>
 				<Font size="21.0" />
 			</font>
 		</Text>
-		<Text fill="WHITE" layoutX="358.0" layoutY="156.0"
-			onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0"
-			style="-fx-font-family: arial;" text="Example">
+		<Text fill="WHITE" layoutX="422.0" layoutY="160.0" onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
 			<font>
 				<Font size="21.0" />
 			</font>
 		</Text>
-		<Text fill="WHITE" layoutX="247.0" layoutY="155.0"
-			onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0"
-			style="-fx-font-family: arial;" text="Example">
+		<Text fill="WHITE" layoutX="311.0" layoutY="159.0" onDragDetected="#handle" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
 			<font>
 				<Font size="21.0" />
 			</font>
