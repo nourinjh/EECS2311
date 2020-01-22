@@ -21,8 +21,8 @@
          </cursor>
 		</Text>
       <Text fx:id="target" layoutX="240.0" layoutY="413.0" onDragDone="#handleDragDone" onDragDropped="#handleDragDropped" onDragOver="#handleTextDragOver" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
-      <Text fx:id="target1" layoutX="561.0" layoutY="413.0" onDragDone="#handleDragDone" onDragDropped="#handleDragDropped" onDragOver="#handleTextDragOver" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
-      <Text fx:id="source1" fill="WHITE" layoutX="520.0" layoutY="155.0" onDragDetected="#handleDragDetection" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
+      <Text fx:id="target1" layoutX="561.0" layoutY="413.0" onDragDone="#handleDragFin" onDragDropped="#handleDragDrop" onDragOver="#handleTextDragO" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+      <Text fx:id="source1" fill="WHITE" layoutX="520.0" layoutY="155.0" onDragDetected="#handleDragDetect" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Example">
          <font>
             <Font size="21.0" />
          </font>
