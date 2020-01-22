@@ -1,8 +1,11 @@
 package application;
 
+
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -30,7 +33,12 @@ public class Controller {
 
 	@FXML // URL location of the FXML file that was given to the FXMLLoader
 	private URL location;
+	
+	@FXML
+	Alert a = new Alert(AlertType.NONE); 
+	
 
+	//Drag and drop function (Text to Text)
 	@FXML
 	void handleDragDetection(MouseEvent event) {
 		Dragboard db = source.startDragAndDrop(TransferMode.ANY);
@@ -92,8 +100,10 @@ public class Controller {
 	void handleDragFin(DragEvent event) {
 
 	}
+	
 
-	@FXML // This method is called by the FXMLLoader when initialization is complete
+	// This method is called by the FXMLLoader when initialization is complete
+	@FXML
 	void initialize() {
 
 	}
