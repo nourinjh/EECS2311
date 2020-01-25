@@ -12,12 +12,12 @@ public class VennDiagram {
 	// VennDiagram is composed of Circles and String values 
 	// Values are either in a circle, an intersection, or outside the VennDiagram
 	
-	public String name;
-	public String description;
-	public static int counter;
+	public String name; // Each VennDiagram has a name
+	public String description; // Each VennDiagram has a description
+	public static int counter; // VennDiagram counter
 	public Set<String> insideValues; // set of values in VennDiagram, no duplicates therefore set is applicable 
-	public List<String> allValues; // list of values out of the VennDiagram
-	public List<Circle> circles; // list of circles
+	public List<String> allValues; // list of values in and out of the VennDiagram 
+	public List<Circle> circles; // list of circles 
 	
 	public VennDiagram() {
 		VennDiagram.counter++;
