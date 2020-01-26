@@ -37,18 +37,34 @@ public class VennDiagram {
 		this.circles = new ArrayList<Circle>();
 	}
 	
-//	public void addValue(String value) {
-//		this.allValues.add(value);
-//		does not add to insideValues
-//	}
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public void addCircle(Circle c) {
+		this.circles.add(c);
+	}
 	
-//	public void addValueVenn(Circle c, String value) {
-//		// Checks for intersection
-//		// Add to circle list of values
-//		this.insideValues.add(value);
-//		this.allValues.add(value);
-//		
-//	}
+	public void addValueInVenn(String value, Circle c) {
+		c.addValue(value);
+		this.insideValues.add(value);
+	}
+	
+	public void addValueOutVenn(String value) {
+		this.allValues.add(value);
+	}
 	
 	
 	
