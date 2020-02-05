@@ -1,8 +1,13 @@
 package application;
 
-
+import java.awt.*;
+import java.awt.image.*;
+import java.io.*;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import javax.imageio.ImageIO;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -99,6 +104,24 @@ public class Controller {
 	@FXML
 	void handleDragFin(DragEvent event) {
 
+	}
+	
+	@FXML
+	void takeScreenshot() {
+		try {
+            Robot robot = new Robot();
+            String format = "jpg";
+            String fileName = "FullScreenshot." + format;
+             
+            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
+            ImageIO.write(screenFullImage, format, new File(fileName));
+             
+            System.out.println("A full screenshot saved!");
+        } catch (AWTException | IOException ex){
+            System.err.println(ex);
+        }
+		
 	}
 	
 
