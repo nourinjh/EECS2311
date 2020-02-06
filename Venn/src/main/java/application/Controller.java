@@ -1,7 +1,8 @@
 package application;
 
-import java.awt.*;
-import java.awt.image.*;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -13,6 +14,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -37,6 +39,9 @@ public class Controller {
 	
 	@FXML
 	private Button screenshotButton;
+	
+	@FXML
+	private TextField title;
 
 	@FXML
 	private Text source;
@@ -126,9 +131,14 @@ public class Controller {
 	@FXML
 	void takeScreenshot() {
 		try {
+			String name = title.getText();
+			if (name.contentEquals("") || name == null) {
+				name = "Venn Diagram";
+			}
+			name += ".png";
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save");
-			fc.setInitialFileName("Venn Diagram.png");
+			fc.setInitialFileName(name);
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 			
 	        Bounds bounds = pane.getBoundsInLocal();

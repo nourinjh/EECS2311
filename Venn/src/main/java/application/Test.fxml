@@ -31,7 +31,7 @@
             <Cursor fx:constant="CLOSED_HAND" />
          </cursor>
       </Text>
-      <TextField alignment="CENTER" layoutX="433.0" layoutY="40.0" prefHeight="91.0" prefWidth="445.0" promptText="Input the Title of your Venn Diagram Here!" style="-fx-background-color: #1d1d1d;" styleClass="text-field" stylesheets="@application.css">
+      <TextField fx:id="title" alignment="CENTER" layoutX="433.0" layoutY="40.0" prefHeight="91.0" prefWidth="445.0" promptText="Input the Title of your Venn Diagram Here!" style="-fx-background-color: #1d1d1d;" styleClass="text-field" stylesheets="@application.css">
          <font>
             <Font size="22.0" />
          </font>
