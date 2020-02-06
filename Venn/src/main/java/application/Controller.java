@@ -9,17 +9,34 @@ import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-//import javafx.scene.shape.Circle;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 
 public class Controller {
+	
+	@FXML
+	private Circle circle1;
+	@FXML
+	private Circle circle2;
+	@FXML
+	private Circle circle3;
+	
+	@FXML
+	private AnchorPane pane;
+	
+	@FXML
+	private Button screenshotButton;
 
 	@FXML
 	private Text source;
@@ -109,19 +126,25 @@ public class Controller {
 	@FXML
 	void takeScreenshot() {
 		try {
-            Robot robot = new Robot();
-            String format = "jpg";
-            String fileName = "FullScreenshot." + format;
-             
-            Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-            BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
-            ImageIO.write(screenFullImage, format, new File(fileName));
-             
-            System.out.println("A full screenshot saved!");
-        } catch (AWTException | IOException ex){
-            System.err.println(ex);
-        }
-		
+			FileChooser fc = new FileChooser();
+			fc.setTitle("Save");
+			fc.setInitialFileName("Venn Diagram.png");
+			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+			
+	        Bounds bounds = pane.getBoundsInLocal();
+	        Bounds screenBounds = pane.localToScreen(bounds);
+	        int x = (int) screenBounds.getMinX();
+	        int y = (int) screenBounds.getMinY();
+	        int width = (int) screenBounds.getWidth();
+	        int height = (int) screenBounds.getHeight();
+	        Rectangle screenRect = new Rectangle(x, y, width, height);
+	        BufferedImage capture = new Robot().createScreenCapture(screenRect);
+	        ImageIO.write(capture, "png", selectedFile);
+	        System.out.println("File successfully saved!");
+	    } catch (Exception e) {
+//	        ex.printStackTrace();
+	    	System.out.println("Error: File not saved.");
+	    }
 	}
 	
 
