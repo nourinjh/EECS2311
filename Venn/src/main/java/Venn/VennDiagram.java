@@ -12,6 +12,8 @@ public class VennDiagram {
 	// VennDiagram is composed of Circles and String values 
 	// Values are either in a circle, an intersection, or outside the VennDiagram
 	
+	// change 
+	
 	public String name; // Each VennDiagram has a name
 	public String description; // Each VennDiagram has a description
 	public static int counter; // VennDiagram counter
@@ -53,12 +55,5 @@ public class VennDiagram {
 	public void addCircle(Circle c) {
 		this.circles.add(c);
 	}
-	
-	
-	
-	
-	
-	
-	
 	
 }
