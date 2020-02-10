@@ -12,18 +12,18 @@ public class VennDiagram {
 	// VennDiagram is composed of Circles and String values 
 	// Values are either in a circle, an intersection, or outside the VennDiagram
 	
-	public String name;
-	public String description;
-	public static int counter;
-	public Set<String> insideValues; // set of values in VennDiagram, no duplicates therefore set is applicable 
-	public List<String> allValues; // list of values out of the VennDiagram
-	public List<Circle> circles; // list of circles
+	// change 
+	
+	public String name; // Each VennDiagram has a name
+	public String description; // Each VennDiagram has a description
+	public static int counter; // VennDiagram counter
+	public List<String> allValues; // list of values in and out of the VennDiagram 
+	public List<Circle> circles; // list of circles 
 	
 	public VennDiagram() {
 		VennDiagram.counter++;
 		this.name = "Venn" + VennDiagram.counter;
 		this.description = "";
-		this.insideValues = new HashSet<String>();
 		this.circles = new ArrayList<Circle>();
 		this.allValues = new ArrayList<String>();
 	}
@@ -32,27 +32,28 @@ public class VennDiagram {
 		VennDiagram.counter++;
 		this.name = name;
 		this.description = description;
-		this.insideValues = new HashSet<String>();
 		this.allValues = new ArrayList<String>();
 		this.circles = new ArrayList<Circle>();
 	}
 	
-//	public void addValue(String value) {
-//		this.allValues.add(value);
-//		does not add to insideValues
-//	}
-	
-//	public void addValueVenn(Circle c, String value) {
-//		// Checks for intersection
-//		// Add to circle list of values
-//		this.insideValues.add(value);
-//		this.allValues.add(value);
-//		
-//	}
-	
-	
-	
-	
-	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public void addCircle(Circle c) {
+		this.circles.add(c);
+	}
 	
 }
