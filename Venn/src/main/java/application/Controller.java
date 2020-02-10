@@ -34,7 +34,7 @@ public class Controller {
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	@FXML
-	private ObservableList<String> circleLeftItems = FXCollections.observableArrayList("TEST", "test", "ASD", "asd");
+	private ObservableList<String> circleLeftItems = FXCollections.observableArrayList();
 	@FXML
 	private ObservableList<String> circleRightItems = FXCollections.observableArrayList();
 	@FXML
@@ -304,6 +304,13 @@ public class Controller {
 		circleLeftItems.add(item);
 		items.remove(item);
 	}
+	@FXML
+	void moveFromItemsToCircleRight() {
+		String item = itemsList.getSelectionModel().getSelectedItem();
+		circleRightItems.add(item);
+		items.remove(item);
+	}
+
 	
 
 	// This method is called by the FXMLLoader when initialization is complete
