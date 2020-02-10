@@ -1,6 +1,5 @@
-.text-field{
-	-fx-font-family: "arial";
-	-fx-text-fill: rgb(254,255,255);
+.list-cell{
+	-fx-background-color: transparent;
 }
 
 .button:hover{
@@ -9,4 +8,7 @@
 
 .button:pressed{
 	-fx-background-color: #FF0000;
+.list-view{
+	-fx-background-color: transparent;
+
 }

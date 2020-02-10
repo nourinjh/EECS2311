@@ -5,10 +5,12 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
+
 
 <AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 	<children>
@@ -19,6 +21,7 @@
             <Tooltip text="Save image of venn diagram" />
          </tooltip></Button>
 		<Text fx:id="source" fill="WHITE" layoutX="476.0" layoutY="221.0" onDragDetected="#handleDragDetection" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Drag Me">
+
 			<font>
 				<Font size="21.0" />
 			</font>
@@ -26,9 +29,11 @@
             <Cursor fx:constant="CLOSED_HAND" />
          </cursor>
 		</Text>
+
       <Text fx:id="target" layoutX="593.0" layoutY="217.0" onDragDone="#handleDragDone" onDragDropped="#handleDragDropped" onDragOver="#handleTextDragOver" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Text" />
       <Text fx:id="target1" layoutX="878.0" layoutY="218.0" onDragDone="#handleDragFin" onDragDropped="#handleDragDrop" onDragOver="#handleTextDragO" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Text" />
       <Text fx:id="source1" fill="WHITE" layoutX="751.0" layoutY="220.0" onDragDetected="#handleDragDetect" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: arial;" text="Drag Me">
+
          <font>
             <Font size="21.0" />
          </font>
@@ -36,7 +41,9 @@
             <Cursor fx:constant="CLOSED_HAND" />
          </cursor>
       </Text>
+
       <TextField fx:id="title" alignment="CENTER" layoutX="433.0" layoutY="40.0" prefHeight="91.0" prefWidth="445.0" promptText="Input the Title of your Venn Diagram Here!" style="-fx-background-color: #1d1d1d;" styleClass="text-field" stylesheets="@application.css">
+
          <font>
             <Font size="22.0" />
          </font>
@@ -47,11 +54,13 @@
             <Tooltip text="Title of venn diagram" />
          </tooltip>
       </TextField>
+
       <ListView fx:id="itemsList" layoutX="57.0" layoutY="282.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsListFromCircleLeft" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefHeight="328.0" prefWidth="240.0" />
       <TextField fx:id="addItemField" layoutX="57.0" layoutY="247.0" prefHeight="27.0" prefWidth="191.0" promptText="Add an item..." />
       <Button fx:id="addItemButton" layoutX="254.0" layoutY="247.0" mnemonicParsing="false" onMouseClicked="#addItemToList" stylesheets="@application.css" text="Add" />
       <ListView fx:id="circleLeftItemsList" layoutX="406.0" layoutY="312.0" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsListFromItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" prefHeight="298.0" prefWidth="173.0" />
       <ListView fx:id="circleRightItemsList" layoutX="742.0" layoutY="312.0" prefHeight="298.0" prefWidth="173.0" />
       <ListView fx:id="bothItemsList" layoutX="596.0" layoutY="376.0" prefHeight="170.0" prefWidth="129.0" />
+
 	</children>
 </AnchorPane>

@@ -304,6 +304,7 @@ public class Controller {
 		circleLeftItems.add(item);
 		items.remove(item);
 	}
+
 	
 
 	// This method is called by the FXMLLoader when initialization is complete
