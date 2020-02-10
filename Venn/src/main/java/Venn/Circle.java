@@ -4,9 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Circle {
-
-	// VennDiagram is composed of Circles
-	// Nabi Khalid, 216441677
 	
 	// yessssir 
 	
