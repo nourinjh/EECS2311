@@ -1,13 +1,18 @@
 .list-cell{
 	-fx-background-color: transparent;
+	-fx-text-fill: white;
+
 }
 
+
 .button:hover{
-	-fx-background-color: #3a3a3a;
+	-fx-background-color: #D3D3D3;
 }
 
 .button:pressed{
-	-fx-background-color: #FF0000;
+	-fx-background-color: #72db8b;
+}
+
 .list-view{
 	-fx-background-color: transparent;
 

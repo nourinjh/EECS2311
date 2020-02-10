@@ -34,7 +34,7 @@ public class Controller {
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	@FXML
-	private ObservableList<String> circleLeftItems = FXCollections.observableArrayList("TEST", "test", "ASD", "asd");
+	private ObservableList<String> circleLeftItems = FXCollections.observableArrayList();
 	@FXML
 	private ObservableList<String> circleRightItems = FXCollections.observableArrayList();
 	@FXML
@@ -302,6 +302,12 @@ public class Controller {
 	void moveFromItemsToCircleLeft() {
 		String item = itemsList.getSelectionModel().getSelectedItem();
 		circleLeftItems.add(item);
+		items.remove(item);
+	}
+	@FXML
+	void moveFromItemsToCircleRight() {
+		String item = itemsList.getSelectionModel().getSelectedItem();
+		circleRightItems.add(item);
 		items.remove(item);
 	}
 
