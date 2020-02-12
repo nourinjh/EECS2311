@@ -15,7 +15,7 @@
       <Rectangle fx:id="frameRect" arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="677.0" layoutX="326.0" layoutY="55.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="804.0" />
 		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="577.0" layoutY="481.0" radius="229.0" strokeType="INSIDE" />
 		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="877.0" layoutY="481.0" radius="230.0" strokeType="INSIDE" />
-		<Button fx:id="screenshotButton" blendMode="SCREEN" layoutX="58.0" layoutY="695.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Save Venn Diagram" textAlignment="CENTER">
+		<Button fx:id="screenshotButton" blendMode="SCREEN" layoutX="58.0" layoutY="695.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Export to Image" textAlignment="CENTER">
          <tooltip>
             <Tooltip text="Save image of venn diagram" />
          </tooltip>
