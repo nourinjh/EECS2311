@@ -22,7 +22,6 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
@@ -56,9 +55,20 @@ public class Controller {
 	
 	@FXML
 	private Button screenshotButton;
+	@FXML
+	private javafx.scene.shape.Rectangle frameRect;
+	
+	@FXML
+	private Button deleteButton;
+	@FXML
+	private Button clearButton;
 	
 	@FXML
 	private TextField title;
+	@FXML
+	private TextField circleLeftTitle;
+	@FXML
+	private TextField circleRightTitle;
 	
 	@FXML
 	private TextField addItemField;
@@ -87,78 +97,13 @@ public class Controller {
 	
 	@FXML
 	Alert a = new Alert(AlertType.NONE); 
-	
 
-	//Drag and drop function (Text to Text)
-	@FXML
-	void handleDragDetection(MouseEvent event) {
-		Dragboard db = source.startDragAndDrop(TransferMode.ANY);
-
-		ClipboardContent cb = new ClipboardContent();
-		cb.putString(source.getText());
-
-		db.setContent(cb);
-
-		event.consume();
-
-	}
-
-	@FXML
-	void handleTextDragOver(DragEvent event) {
-		if (event.getDragboard().hasString()) {
-			event.acceptTransferModes(TransferMode.ANY);
-		}
-	}
-
-	@FXML
-	void handleDragDropped(DragEvent event) {
-		String str = event.getDragboard().getString();
-		target.setText(str);
-	}
-
-	@FXML
-	void handleDragDetect(MouseEvent event) {
-		Dragboard db = source1.startDragAndDrop(TransferMode.ANY);
-
-		ClipboardContent cb = new ClipboardContent();
-		cb.putString(source1.getText());
-
-		db.setContent(cb);
-
-		event.consume();
-
-	}
-
-	@FXML
-	void handleDragDrop(DragEvent event) {
-		String str = event.getDragboard().getString();
-		target1.setText(str);
-	}
-
-	@FXML
-	void handleTextDragO(DragEvent event) {
-		if (event.getDragboard().hasString()) {
-			event.acceptTransferModes(TransferMode.ANY);
-		}
-	}
-
-	@FXML
-	void handleDragDone(DragEvent event) {
-		
-	}
-
-	@FXML
-	void handleDragFin(DragEvent event) {
-
-	}
-	
 	@FXML
 	void addItemToList() {
 		String newItem = addItemField.getText();
-		if (!(newItem.equals(""))) {
-			items.add(newItem);
+		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
+			itemsList.getItems().add(newItem);
 			addItemField.setText("");
-			itemsList.setItems(items);
 		}
 	}
 	
@@ -168,6 +113,30 @@ public class Controller {
         ClipboardContent content = new ClipboardContent(); 
         content.putString(itemsList.getSelectionModel().getSelectedItem());
         dragBoard.setContent(content);
+	}
+	
+	@FXML
+	void deleteItem() {
+		String s = itemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			itemsList.getItems().remove(s);
+			itemsList.getSelectionModel().clearSelection();
+		} else {
+		s = circleLeftItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			circleLeftItemsList.getItems().remove(s);
+			circleLeftItemsList.getSelectionModel().clearSelection();
+		} else {
+		s = circleRightItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			circleRightItemsList.getItems().remove(s);
+			circleRightItemsList.getSelectionModel().clearSelection();
+		} else {
+		s = bothItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			bothItemsList.getItems().remove(s);
+			bothItemsList.getSelectionModel().clearSelection();
+		}}}}
 	}
 	
 	@FXML
@@ -186,19 +155,14 @@ public class Controller {
 	}
 	
 	@FXML
-	void dragDroppedOnItemsListFromCircleLeft(DragEvent event) {
+	void dragDroppedOnItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		itemsList.getItems().add(item);
-        circleLeftItems.remove(item);
+		if(!itemsList.getItems().contains(item)) {
+			itemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
-	}
-	
-	@FXML
-	void dragDroppedOnItemsListFromCircleRight(DragEvent event) {
-		String item = event.getDragboard().getString();
-		itemsList.getItems().add(item);
-        circleRightItems.remove(item);
-        event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
@@ -220,19 +184,14 @@ public class Controller {
 	}
 		
 	@FXML
-	void dragDroppedOnCircleRightItemsListFromItemsList(DragEvent event) {
+	void dragDroppedOnCircleRightItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		circleRightItemsList.getItems().add(item);
-        items.remove(item);
+		if(!circleRightItemsList.getItems().contains(item)) {
+			circleRightItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
-	}
-	
-	@FXML
-	void dragDroppedOnCircleRightItemsListFromCircleLeft(DragEvent event) {
-		String item = event.getDragboard().getString();
-		circleRightItemsList.getItems().add(item);
-        circleLeftItems.remove(item);
-        event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
@@ -254,27 +213,62 @@ public class Controller {
 	}
 		
 	@FXML
-	void dragDroppedOnCircleLeftItemsListFromItemsList(DragEvent event) {
+	void dragDroppedOnCircleLeftItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		circleLeftItemsList.getItems().add(item);
-        items.remove(item);
+		if(!circleLeftItemsList.getItems().contains(item)) {
+			circleLeftItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
-	void dragDroppedOnCircleLeftItemsListFromCircleRight(DragEvent event) {
-		String item = event.getDragboard().getString();
-		circleLeftItemsList.getItems().add(item);
-        circleRightItems.remove(item);
-        event.setDropCompleted(true);
+	void dragFromBothItemsList() {
+		Dragboard dragBoard = bothItemsList.startDragAndDrop(TransferMode.MOVE);
+        ClipboardContent content = new ClipboardContent(); 
+        content.putString(bothItemsList.getSelectionModel().getSelectedItem());
+        dragBoard.setContent(content);
 	}
 	
+	@FXML
+	void dragOntoBothItemsList() {
+		bothItemsList.setBlendMode(BlendMode.DIFFERENCE);
+	}
+	
+	@FXML
+	void dragExitedBothItemsList() {
+		bothItemsList.setBlendMode(null);
+	}
+		
+	@FXML
+	void dragDroppedOnBothItemsList(DragEvent event) {
+		String item = event.getDragboard().getString();
+		if(!bothItemsList.getItems().contains(item)) {
+			bothItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
+        event.setDropCompleted(true);
+        event.consume();
+	}
+		
 	@FXML
 	void takeScreenshot() {
 		try {
+			String mainTitle = title.getText();
+			String leftTitle = circleLeftTitle.getText();
+			String rightTitle = circleRightTitle.getText();
 			String name = title.getText();
 			if (name.equals("")) {
-				name = "Venn Diagram";
+				if (!(leftTitle.equals("") && rightTitle.equals(""))) {
+					name = leftTitle + " vs " + rightTitle;
+				}
+				else {
+					name = "Venn Diagram";
+					circleLeftTitle.setText(" ");
+					circleRightTitle.setText(" ");
+				}
+				title.setText(" ");
 			}
 			name += ".png";
 			FileChooser fc = new FileChooser();
@@ -282,8 +276,8 @@ public class Controller {
 			fc.setInitialFileName(name);
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 			
-	        Bounds bounds = pane.getBoundsInLocal();
-	        Bounds screenBounds = pane.localToScreen(bounds);
+	        Bounds bounds = frameRect.getBoundsInLocal();//pane.getBoundsInLocal();
+	        Bounds screenBounds = frameRect.localToScreen(bounds);//pane.localToScreen(bounds);
 	        int x = (int) screenBounds.getMinX();
 	        int y = (int) screenBounds.getMinY();
 	        int width = (int) screenBounds.getWidth();
@@ -292,25 +286,25 @@ public class Controller {
 	        BufferedImage capture = new Robot().createScreenCapture(screenRect);
 	        ImageIO.write(capture, "png", selectedFile);
 	        System.out.println("File successfully saved!");
+	        title.setText(mainTitle);
+	        circleLeftTitle.setText(leftTitle);
+	        circleRightTitle.setText(rightTitle);
 	    } catch (Exception e) {
 //	        ex.printStackTrace();
 	    	System.out.println("Error: File not saved.");
+	    	System.out.println(e);
 	    }
 	}
 	
 	@FXML
-	void moveFromItemsToCircleLeft() {
-		String item = itemsList.getSelectionModel().getSelectedItem();
-		circleLeftItems.add(item);
-		items.remove(item);
+	void clearDiagram() {
+		itemsList.getItems().addAll(circleLeftItemsList.getItems());
+		itemsList.getItems().addAll(circleRightItemsList.getItems());
+		itemsList.getItems().addAll(bothItemsList.getItems());
+		circleLeftItemsList.getItems().clear();
+		circleRightItemsList.getItems().clear();
+		bothItemsList.getItems().clear();
 	}
-	@FXML
-	void moveFromItemsToCircleRight() {
-		String item = itemsList.getSelectionModel().getSelectedItem();
-		circleRightItems.add(item);
-		items.remove(item);
-	}
-
 	
 
 	// This method is called by the FXMLLoader when initialization is complete
