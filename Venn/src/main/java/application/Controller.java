@@ -22,7 +22,6 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Circle;
@@ -56,6 +55,8 @@ public class Controller {
 	
 	@FXML
 	private Button screenshotButton;
+	@FXML
+	private javafx.scene.shape.Rectangle frameRect;
 	
 	@FXML
 	private Button deleteButton;
@@ -64,6 +65,10 @@ public class Controller {
 	
 	@FXML
 	private TextField title;
+	@FXML
+	private TextField circleLeftTitle;
+	@FXML
+	private TextField circleRightTitle;
 	
 	@FXML
 	private TextField addItemField;
@@ -92,78 +97,13 @@ public class Controller {
 	
 	@FXML
 	Alert a = new Alert(AlertType.NONE); 
-	
 
-	//Drag and drop function (Text to Text)
-	@FXML
-	void handleDragDetection(MouseEvent event) {
-		Dragboard db = source.startDragAndDrop(TransferMode.ANY);
-
-		ClipboardContent cb = new ClipboardContent();
-		cb.putString(source.getText());
-
-		db.setContent(cb);
-
-		event.consume();
-
-	}
-
-	@FXML
-	void handleTextDragOver(DragEvent event) {
-		if (event.getDragboard().hasString()) {
-			event.acceptTransferModes(TransferMode.ANY);
-		}
-	}
-
-	@FXML
-	void handleDragDropped(DragEvent event) {
-		String str = event.getDragboard().getString();
-		target.setText(str);
-	}
-
-	@FXML
-	void handleDragDetect(MouseEvent event) {
-		Dragboard db = source1.startDragAndDrop(TransferMode.ANY);
-
-		ClipboardContent cb = new ClipboardContent();
-		cb.putString(source1.getText());
-
-		db.setContent(cb);
-
-		event.consume();
-
-	}
-
-	@FXML
-	void handleDragDrop(DragEvent event) {
-		String str = event.getDragboard().getString();
-		target1.setText(str);
-	}
-
-	@FXML
-	void handleTextDragO(DragEvent event) {
-		if (event.getDragboard().hasString()) {
-			event.acceptTransferModes(TransferMode.ANY);
-		}
-	}
-
-	@FXML
-	void handleDragDone(DragEvent event) {
-		
-	}
-
-	@FXML
-	void handleDragFin(DragEvent event) {
-
-	}
-	
 	@FXML
 	void addItemToList() {
 		String newItem = addItemField.getText();
-		if (!(newItem.equals(""))) {
-			items.add(newItem);
+		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
+			itemsList.getItems().add(newItem);
 			addItemField.setText("");
-			itemsList.setItems(items);
 		}
 	}
 	
@@ -222,6 +162,7 @@ public class Controller {
 			((ListView<String>)event.getGestureSource()).getItems().remove(item);
 		}
         event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
@@ -250,6 +191,7 @@ public class Controller {
 			((ListView<String>)event.getGestureSource()).getItems().remove(item);
 		}
         event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
@@ -278,6 +220,7 @@ public class Controller {
 			((ListView<String>)event.getGestureSource()).getItems().remove(item);
 		}
         event.setDropCompleted(true);
+        event.consume();
 	}
 	
 	@FXML
@@ -306,14 +249,26 @@ public class Controller {
 			((ListView<String>)event.getGestureSource()).getItems().remove(item);
 		}
         event.setDropCompleted(true);
+        event.consume();
 	}
 		
 	@FXML
 	void takeScreenshot() {
 		try {
+			String mainTitle = title.getText();
+			String leftTitle = circleLeftTitle.getText();
+			String rightTitle = circleRightTitle.getText();
 			String name = title.getText();
 			if (name.equals("")) {
-				name = "Venn Diagram";
+				if (!(leftTitle.equals("") && rightTitle.equals(""))) {
+					name = leftTitle + " vs " + rightTitle;
+				}
+				else {
+					name = "Venn Diagram";
+					circleLeftTitle.setText(" ");
+					circleRightTitle.setText(" ");
+				}
+				title.setText(" ");
 			}
 			name += ".png";
 			FileChooser fc = new FileChooser();
@@ -321,8 +276,8 @@ public class Controller {
 			fc.setInitialFileName(name);
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 			
-	        Bounds bounds = pane.getBoundsInLocal();
-	        Bounds screenBounds = pane.localToScreen(bounds);
+	        Bounds bounds = frameRect.getBoundsInLocal();//pane.getBoundsInLocal();
+	        Bounds screenBounds = frameRect.localToScreen(bounds);//pane.localToScreen(bounds);
 	        int x = (int) screenBounds.getMinX();
 	        int y = (int) screenBounds.getMinY();
 	        int width = (int) screenBounds.getWidth();
@@ -331,9 +286,13 @@ public class Controller {
 	        BufferedImage capture = new Robot().createScreenCapture(screenRect);
 	        ImageIO.write(capture, "png", selectedFile);
 	        System.out.println("File successfully saved!");
+	        title.setText(mainTitle);
+	        circleLeftTitle.setText(leftTitle);
+	        circleRightTitle.setText(rightTitle);
 	    } catch (Exception e) {
 //	        ex.printStackTrace();
 	    	System.out.println("Error: File not saved.");
+	    	System.out.println(e);
 	    }
 	}
 	
