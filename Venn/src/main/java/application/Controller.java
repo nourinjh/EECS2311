@@ -58,6 +58,11 @@ public class Controller {
 	private Button screenshotButton;
 	
 	@FXML
+	private Button deleteButton;
+	@FXML
+	private Button clearButton;
+	
+	@FXML
 	private TextField title;
 	
 	@FXML
@@ -171,6 +176,30 @@ public class Controller {
 	}
 	
 	@FXML
+	void deleteItem() {
+		String s = itemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			itemsList.getItems().remove(s);
+			itemsList.getSelectionModel().clearSelection();
+		} else {
+		s = circleLeftItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			circleLeftItemsList.getItems().remove(s);
+			circleLeftItemsList.getSelectionModel().clearSelection();
+		} else {
+		s = circleRightItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			circleRightItemsList.getItems().remove(s);
+			circleRightItemsList.getSelectionModel().clearSelection();
+		} else {
+		s = bothItemsList.getSelectionModel().getSelectedItem();
+		if (s != null) {
+			bothItemsList.getItems().remove(s);
+			bothItemsList.getSelectionModel().clearSelection();
+		}}}}
+	}
+	
+	@FXML
 	void dragOntoItemsList() {
 		itemsList.setBlendMode(BlendMode.DIFFERENCE);
 	}
@@ -186,18 +215,12 @@ public class Controller {
 	}
 	
 	@FXML
-	void dragDroppedOnItemsListFromCircleLeft(DragEvent event) {
+	void dragDroppedOnItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		itemsList.getItems().add(item);
-        circleLeftItems.remove(item);
-        event.setDropCompleted(true);
-	}
-	
-	@FXML
-	void dragDroppedOnItemsListFromCircleRight(DragEvent event) {
-		String item = event.getDragboard().getString();
-		itemsList.getItems().add(item);
-        circleRightItems.remove(item);
+		if(!itemsList.getItems().contains(item)) {
+			itemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
 	}
 	
@@ -220,18 +243,12 @@ public class Controller {
 	}
 		
 	@FXML
-	void dragDroppedOnCircleRightItemsListFromItemsList(DragEvent event) {
+	void dragDroppedOnCircleRightItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		circleRightItemsList.getItems().add(item);
-        items.remove(item);
-        event.setDropCompleted(true);
-	}
-	
-	@FXML
-	void dragDroppedOnCircleRightItemsListFromCircleLeft(DragEvent event) {
-		String item = event.getDragboard().getString();
-		circleRightItemsList.getItems().add(item);
-        circleLeftItems.remove(item);
+		if(!circleRightItemsList.getItems().contains(item)) {
+			circleRightItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
 	}
 	
@@ -254,21 +271,43 @@ public class Controller {
 	}
 		
 	@FXML
-	void dragDroppedOnCircleLeftItemsListFromItemsList(DragEvent event) {
+	void dragDroppedOnCircleLeftItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
-		circleLeftItemsList.getItems().add(item);
-        items.remove(item);
+		if(!circleLeftItemsList.getItems().contains(item)) {
+			circleLeftItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
         event.setDropCompleted(true);
 	}
 	
 	@FXML
-	void dragDroppedOnCircleLeftItemsListFromCircleRight(DragEvent event) {
-		String item = event.getDragboard().getString();
-		circleLeftItemsList.getItems().add(item);
-        circleRightItems.remove(item);
-        event.setDropCompleted(true);
+	void dragFromBothItemsList() {
+		Dragboard dragBoard = bothItemsList.startDragAndDrop(TransferMode.MOVE);
+        ClipboardContent content = new ClipboardContent(); 
+        content.putString(bothItemsList.getSelectionModel().getSelectedItem());
+        dragBoard.setContent(content);
 	}
 	
+	@FXML
+	void dragOntoBothItemsList() {
+		bothItemsList.setBlendMode(BlendMode.DIFFERENCE);
+	}
+	
+	@FXML
+	void dragExitedBothItemsList() {
+		bothItemsList.setBlendMode(null);
+	}
+		
+	@FXML
+	void dragDroppedOnBothItemsList(DragEvent event) {
+		String item = event.getDragboard().getString();
+		if(!bothItemsList.getItems().contains(item)) {
+			bothItemsList.getItems().add(item);
+			((ListView<String>)event.getGestureSource()).getItems().remove(item);
+		}
+        event.setDropCompleted(true);
+	}
+		
 	@FXML
 	void takeScreenshot() {
 		try {
@@ -299,18 +338,14 @@ public class Controller {
 	}
 	
 	@FXML
-	void moveFromItemsToCircleLeft() {
-		String item = itemsList.getSelectionModel().getSelectedItem();
-		circleLeftItems.add(item);
-		items.remove(item);
+	void clearDiagram() {
+		itemsList.getItems().addAll(circleLeftItemsList.getItems());
+		itemsList.getItems().addAll(circleRightItemsList.getItems());
+		itemsList.getItems().addAll(bothItemsList.getItems());
+		circleLeftItemsList.getItems().clear();
+		circleRightItemsList.getItems().clear();
+		bothItemsList.getItems().clear();
 	}
-	@FXML
-	void moveFromItemsToCircleRight() {
-		String item = itemsList.getSelectionModel().getSelectedItem();
-		circleRightItems.add(item);
-		items.remove(item);
-	}
-
 	
 
 	// This method is called by the FXMLLoader when initialization is complete
