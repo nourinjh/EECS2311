@@ -77,18 +77,6 @@ public class Controller {
 	@FXML
 	private ListView<String> itemsList;
 
-	@FXML
-	private Text source;
-
-	@FXML
-	private Text target;
-
-	@FXML // fx:id="target1"
-	private Text target1; // Value injected by FXMLLoader
-
-	@FXML // fx:id="source1"
-	private Text source1; // Value injected by FXMLLoader
-
 	@FXML // ResourceBundle that was given to the FXMLLoader
 	private ResourceBundle resources;
 
@@ -254,10 +242,10 @@ public class Controller {
 		
 	@FXML
 	void takeScreenshot() {
+		String mainTitle = title.getText()+"";
+		String leftTitle = circleLeftTitle.getText()+"";
+		String rightTitle = circleRightTitle.getText()+"";
 		try {
-			String mainTitle = title.getText();
-			String leftTitle = circleLeftTitle.getText();
-			String rightTitle = circleRightTitle.getText();
 			String name = title.getText();
 			if (name.equals("")) {
 				if (!(leftTitle.equals("") && rightTitle.equals(""))) {
@@ -286,14 +274,14 @@ public class Controller {
 	        BufferedImage capture = new Robot().createScreenCapture(screenRect);
 	        ImageIO.write(capture, "png", selectedFile);
 	        System.out.println("File successfully saved!");
-	        title.setText(mainTitle);
-	        circleLeftTitle.setText(leftTitle);
-	        circleRightTitle.setText(rightTitle);
 	    } catch (Exception e) {
 //	        ex.printStackTrace();
 	    	System.out.println("Error: File not saved.");
 	    	System.out.println(e);
 	    }
+		title.setText(mainTitle);
+		circleLeftTitle.setText(leftTitle);
+		circleRightTitle.setText(rightTitle);
 	}
 	
 	@FXML
