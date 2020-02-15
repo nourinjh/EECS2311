@@ -2,71 +2,114 @@
 
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 	<children>
-      <Rectangle fx:id="frameRect" arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="677.0" layoutX="326.0" layoutY="55.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="804.0" />
-		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="577.0" layoutY="481.0" radius="229.0" strokeType="INSIDE" />
-		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="877.0" layoutY="481.0" radius="230.0" strokeType="INSIDE" />
-		<Button fx:id="screenshotButton" blendMode="SCREEN" layoutX="58.0" layoutY="695.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Export to Image" textAlignment="CENTER">
-         <tooltip>
-            <Tooltip text="Save image of venn diagram" />
-         </tooltip>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></Button>
-
-      <TextField fx:id="title" alignment="CENTER" layoutX="458.0" layoutY="83.0" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
-
-         <font>
-            <Font size="32.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="TEXT" />
-         </cursor>
-         <tooltip>
-            <Tooltip text="Title of venn diagram" />
-         </tooltip>
-      </TextField>
-
-      <ListView fx:id="itemsList" layoutX="57.0" layoutY="282.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefHeight="328.0" prefWidth="240.0">
-         <cursor>
-            <Cursor fx:constant="OPEN_HAND" />
-         </cursor></ListView>
-      <TextField fx:id="addItemField" layoutX="57.0" layoutY="247.0" prefHeight="27.0" prefWidth="191.0" promptText="Add an item..." />
-      <Button fx:id="addItemButton" blendMode="SCREEN" layoutX="254.0" layoutY="247.0" mnemonicParsing="false" onMouseClicked="#addItemToList" stylesheets="@application.css" text="Add">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></Button>
-      <ListView fx:id="circleLeftItemsList" layoutX="429.0" layoutY="324.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" prefHeight="322.0" prefWidth="211.0" stylesheets="@application.css" />
-      <ListView fx:id="circleRightItemsList" layoutX="816.0" layoutY="314.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" prefHeight="335.0" prefWidth="211.0" stylesheets="@application.css" />
-      <ListView fx:id="bothItemsList" layoutX="668.0" layoutY="383.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css" />
-      <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="464.0" layoutY="207.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
-         <font>
-            <Font name="Arial" size="18.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="764.0" layoutY="207.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
-         <font>
-            <Font name="Arial" size="18.0" />
-         </font>
-      </TextField>
-      <Button fx:id="deleteButton" blendMode="SCREEN" layoutX="58.0" layoutY="619.0" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Delete Item">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></Button>
-      <Button fx:id="clearButton" blendMode="SCREEN" layoutX="58.0" layoutY="657.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Clear Venn Diagram">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
+      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" prefHeight="649.0" prefWidth="806.0">
+         <children>
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+      
+            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+      
+               <font>
+                  <Font name="Arial" size="32.0" />
+               </font>
+               <cursor>
+                  <Cursor fx:constant="TEXT" />
+               </cursor>
+            </TextField>
+            <ListView fx:id="circleLeftItemsList" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css" />
+            <ListView fx:id="circleRightItemsList" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css" />
+            <ListView fx:id="bothItemsList" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css" />
+            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="142.0" layoutY="120.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+               <font>
+                  <Font name="Arial" size="18.0" />
+               </font>
+            </TextField>
+            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="442.0" layoutY="120.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+               <font>
+                  <Font name="Arial" size="18.0" />
+               </font>
+            </TextField>
+         </children>
+      </Pane>
+      <VBox layoutX="92.0" layoutY="169.0" prefHeight="466.0" prefWidth="240.0">
+         <children>
+            <HBox prefHeight="27.0" prefWidth="240.0">
+               <children>
+                  <TextField fx:id="addItemField" prefHeight="27.0" prefWidth="191.0" promptText="Add an item..." />
+                  <Button fx:id="addItemButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#addItemToList" prefHeight="27.0" prefWidth="50.0" stylesheets="@application.css" text="Add">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+               </children>
+            </HBox>
+      
+            <ListView fx:id="itemsList" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefHeight="328.0" prefWidth="240.0">
+               <cursor>
+                  <Cursor fx:constant="OPEN_HAND" />
+               </cursor>
+               <contextMenu>
+                  <ContextMenu>
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete item" />
+                    </items>
+                  </ContextMenu>
+               </contextMenu>
+            </ListView>
+            <Button fx:id="deleteButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Delete Item">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <Button fx:id="clearButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Clear Venn Diagram">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+      		<Button fx:id="screenshotButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#takeScreenshot" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Export to Image" textAlignment="CENTER">
+               <tooltip>
+                  <Tooltip text="Save image of venn diagram" />
+               </tooltip>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <HBox prefHeight="27.0" prefWidth="240.0">
+               <children>
+                  <Button fx:id="loadButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Load" textAlignment="CENTER">
+                     <tooltip>
+                        <Tooltip text="Save image of venn diagram" />
+                     </tooltip>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+                  <Button fx:id="saveButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#saveToFile" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Save" textAlignment="CENTER">
+                     <tooltip>
+                        <Tooltip text="Save image of venn diagram" />
+                     </tooltip>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
 
 	</children>
 </AnchorPane>

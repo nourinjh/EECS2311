@@ -5,10 +5,16 @@ import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -16,6 +22,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
@@ -24,8 +31,8 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
 public class Controller {
@@ -56,12 +63,17 @@ public class Controller {
 	@FXML
 	private Button screenshotButton;
 	@FXML
-	private javafx.scene.shape.Rectangle frameRect;
+	private Pane frameRect;
 	
 	@FXML
 	private Button deleteButton;
 	@FXML
 	private Button clearButton;
+	
+	@FXML
+	private Button loadButton;
+	@FXML
+	private Button saveButton;
 	
 	@FXML
 	private TextField title;
@@ -85,6 +97,8 @@ public class Controller {
 	
 	@FXML
 	Alert a = new Alert(AlertType.NONE); 
+	
+	private String fileTitle = null;
 
 	@FXML
 	void addItemToList() {
@@ -105,26 +119,19 @@ public class Controller {
 	
 	@FXML
 	void deleteItem() {
-		String s = itemsList.getSelectionModel().getSelectedItem();
-		if (s != null) {
-			itemsList.getItems().remove(s);
+		if (itemsList.isFocused()) {
+			itemsList.getItems().remove(itemsList.getSelectionModel().getSelectedItem());
 			itemsList.getSelectionModel().clearSelection();
-		} else {
-		s = circleLeftItemsList.getSelectionModel().getSelectedItem();
-		if (s != null) {
-			circleLeftItemsList.getItems().remove(s);
+		} else if (circleLeftItemsList.isFocused()) {
+			circleLeftItemsList.getItems().remove(circleLeftItemsList.getSelectionModel().getSelectedItem());
 			circleLeftItemsList.getSelectionModel().clearSelection();
-		} else {
-		s = circleRightItemsList.getSelectionModel().getSelectedItem();
-		if (s != null) {
-			circleRightItemsList.getItems().remove(s);
+		} else if (circleRightItemsList.isFocused()) {
+			circleRightItemsList.getItems().remove(circleRightItemsList.getSelectionModel().getSelectedItem());
 			circleRightItemsList.getSelectionModel().clearSelection();
-		} else {
-		s = bothItemsList.getSelectionModel().getSelectedItem();
-		if (s != null) {
-			bothItemsList.getItems().remove(s);
+		} else if (bothItemsList.isFocused()) {
+			bothItemsList.getItems().remove(bothItemsList.getSelectionModel().getSelectedItem());
 			bothItemsList.getSelectionModel().clearSelection();
-		}}}}
+		}
 	}
 	
 	@FXML
@@ -142,6 +149,7 @@ public class Controller {
 		event.acceptTransferModes(TransferMode.MOVE);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@FXML
 	void dragDroppedOnItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
@@ -171,6 +179,7 @@ public class Controller {
 		circleRightItemsList.setBlendMode(null);
 	}
 		
+	@SuppressWarnings("unchecked")
 	@FXML
 	void dragDroppedOnCircleRightItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
@@ -200,6 +209,7 @@ public class Controller {
 		circleLeftItemsList.setBlendMode(null);
 	}
 		
+	@SuppressWarnings("unchecked")
 	@FXML
 	void dragDroppedOnCircleLeftItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
@@ -229,6 +239,7 @@ public class Controller {
 		bothItemsList.setBlendMode(null);
 	}
 		
+	@SuppressWarnings("unchecked")
 	@FXML
 	void dragDroppedOnBothItemsList(DragEvent event) {
 		String item = event.getDragboard().getString();
@@ -253,11 +264,13 @@ public class Controller {
 				}
 				else {
 					name = "Venn Diagram";
-					circleLeftTitle.setText(" ");
-					circleRightTitle.setText(" ");
 				}
 				title.setText(" ");
 			}
+			if (circleLeftTitle.getText().contentEquals(""))
+				circleLeftTitle.setText(" ");
+			if (circleRightTitle.getText().contentEquals(""))
+				circleRightTitle.setText(" ");
 			name += ".png";
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Save");
@@ -278,6 +291,10 @@ public class Controller {
 //	        ex.printStackTrace();
 	    	System.out.println("Error: File not saved.");
 	    	System.out.println(e);
+	    	a.setAlertType(AlertType.ERROR);
+	    	a.setContentText("File was not saved");
+	    	a.setTitle("Error");
+	    	a.show();
 	    }
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
@@ -294,10 +311,140 @@ public class Controller {
 		bothItemsList.getItems().clear();
 	}
 	
+	@FXML
+	void saveToFile() {
+		try {
+			String name;
+			if (fileTitle != null) {
+				name = fileTitle;
+			} else if (!title.getText().equals("")) {
+				name = title.getText() + ".venn";
+			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
+				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".venn";
+			} else {
+				name = "Venn Diagram.venn";
+			}
+			
+			FileChooser fc = new FileChooser();
+			fc.setTitle("Save");
+			fc.setInitialFileName(name);
+			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+	
+			/*
+			 * Order of items in file:
+			 * Title
+			 * Left circle title
+			 * Right circle title
+			 * Unassigned items list
+			 * Left circle items list
+			 * Centre items list
+			 * Right circle items list
+			 */
+		    String fileContent = title.getText() + "𔓱𔓱" + circleLeftTitle.getText() + "𔓱𔓱" + circleRightTitle.getText() + "𔓱𔓱";
+		    for (String i : itemsList.getItems()) {
+		    	fileContent += i + "𔓱";
+		    }
+		    fileContent += "𔓱";
+		    for (String i : circleLeftItemsList.getItems()) {
+		    	fileContent += i + "𔓱";
+		    }
+		    fileContent += "𔓱";
+		    for (String i : bothItemsList.getItems()) {
+		    	fileContent += i + "𔓱";
+		    }
+		    fileContent += "𔓱";
+		    for (String i : circleRightItemsList.getItems()) {
+		    	fileContent += i + "𔓱";
+		    }
+		    fileContent = fileContent.substring(0, fileContent.length()-2);
+		     
+		    BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile));
+		    writer.write(fileContent);
+		    writer.close();
+		} catch (Exception e) {
+	    	System.out.println("Error: File not saved.");
+	    	System.out.println(e);
+	    	a.setAlertType(AlertType.ERROR);
+	    	a.setContentText("File was not saved");
+	    	a.setTitle("Error");
+	    	a.show();
+		}
+	}
+	
+	void doTheLoad() {
+		try {
+			FileChooser fc = new FileChooser();
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
+			File file = fc.showOpenDialog(pane.getScene().getWindow());
+			String content = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+			fileTitle = file.getName();
+			List<String> elements = new ArrayList<String>();
+			for (String s : content.split("𔓱𔓱")) {
+				elements.add(s);
+			}
+			title.setText(elements.get(0));
+			circleLeftTitle.setText(elements.get(1));
+			circleRightTitle.setText(elements.get(2));
+			itemsList.getItems().clear();
+			for (String s : elements.get(3).split("𔓱")) {
+				itemsList.getItems().add(s);
+			}
+			circleLeftItemsList.getItems().clear();
+			for (String s : elements.get(4).split("𔓱")) {
+				circleLeftItemsList.getItems().add(s);
+			}
+			bothItemsList.getItems().clear();
+			for (String s : elements.get(5).split("𔓱")) {
+				bothItemsList.getItems().add(s);
+			}
+			circleRightItemsList.getItems().clear();
+			for (String s : elements.get(6).split("𔓱")) {
+				circleRightItemsList.getItems().add(s);
+			}
+		} catch (Exception e) {
+			System.out.println("Error: File not saved.");
+			System.out.println(e);
+			a.setAlertType(AlertType.ERROR);
+			a.setContentText("File could not be opened");
+			a.setTitle("Error");
+			a.show();
+		}
+	}
+	
+	@FXML
+	void loadFromFile() {
+		if (!title.getText().equals("") || !circleLeftTitle.getText().equals("") || !circleRightTitle.getText().equals("") || !itemsList.getItems().isEmpty()
+				|| !circleLeftItemsList.getItems().isEmpty() || !bothItemsList.getItems().isEmpty() || !circleRightItemsList.getItems().isEmpty()) {
+			a.setAlertType(AlertType.CONFIRMATION);
+			a.setHeaderText("Are you sure you want to open another file?");
+			a.setContentText("You will lose any unsaved changes");
+			Optional<ButtonType> result = a.showAndWait();
+	
+			if (result.get() == ButtonType.OK){
+				doTheLoad();
+			}
+		} else {
+			doTheLoad();
+		}
+	}
+	
 
 	// This method is called by the FXMLLoader when initialization is complete
 	@FXML
 	void initialize() {
+		Platform.runLater(new Runnable() {
+	        @Override
+	        public void run() {
+	            pane.requestFocus();
+	        }
+	    });
+		deleteButton.setFocusTraversable(false);
+		clearButton.setFocusTraversable(false);
+		screenshotButton.setFocusTraversable(false);
+		loadButton.setFocusTraversable(false);
+		saveButton.setFocusTraversable(false);
+		addItemButton.setFocusTraversable(false);
+		addItemField.setFocusTraversable(false);
 		ObservableList<String> strictlyLeftItems = FXCollections.observableArrayList(circleLeftItems);
 		strictlyLeftItems.removeAll(circleRightItems);
 		ObservableList<String> strictlyRightItems = FXCollections.observableArrayList(circleLeftItems);
