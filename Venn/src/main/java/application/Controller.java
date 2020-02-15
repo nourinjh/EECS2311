@@ -29,6 +29,8 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -110,6 +112,13 @@ public class Controller {
 	}
 	
 	@FXML
+	void addItemWithEnter(KeyEvent event) {
+		if (event.getCode() == KeyCode.ENTER)  {
+			addItemToList();
+        }
+	}
+	
+	@FXML
 	void dragFromItemsList() {
 		Dragboard dragBoard = itemsList.startDragAndDrop(TransferMode.MOVE);
         ClipboardContent content = new ClipboardContent(); 
@@ -121,7 +130,9 @@ public class Controller {
 	void deleteItem() {
 		if (itemsList.isFocused()) {
 			itemsList.getItems().remove(itemsList.getSelectionModel().getSelectedItem());
-			itemsList.getSelectionModel().clearSelection();
+			if (itemsList.getItems().isEmpty()) {
+				addItemField.requestFocus();
+			}
 		} else if (circleLeftItemsList.isFocused()) {
 			circleLeftItemsList.getItems().remove(circleLeftItemsList.getSelectionModel().getSelectedItem());
 			circleLeftItemsList.getSelectionModel().clearSelection();
@@ -132,6 +143,13 @@ public class Controller {
 			bothItemsList.getItems().remove(bothItemsList.getSelectionModel().getSelectedItem());
 			bothItemsList.getSelectionModel().clearSelection();
 		}
+	}
+	
+	@FXML
+	void deleteItemWithDeleteKey(KeyEvent event) {
+		if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE)  {
+			addItemToList();
+        }
 	}
 	
 	@FXML

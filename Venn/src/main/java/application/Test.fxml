@@ -30,9 +30,21 @@
                   <Cursor fx:constant="TEXT" />
                </cursor>
             </TextField>
-            <ListView fx:id="circleLeftItemsList" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css" />
-            <ListView fx:id="circleRightItemsList" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css" />
-            <ListView fx:id="bothItemsList" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css" />
+            <ListView fx:id="circleLeftItemsList" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </ListView>
+            <ListView fx:id="circleRightItemsList" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </ListView>
+            <ListView fx:id="bothItemsList" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </ListView>
             <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="142.0" layoutY="120.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
                <font>
                   <Font name="Arial" size="18.0" />
@@ -49,7 +61,7 @@
          <children>
             <HBox prefHeight="27.0" prefWidth="240.0">
                <children>
-                  <TextField fx:id="addItemField" prefHeight="27.0" prefWidth="191.0" promptText="Add an item..." />
+                  <TextField fx:id="addItemField" onKeyPressed="#addItemWithEnter" prefHeight="27.0" prefWidth="191.0" promptText="Add an item..." />
                   <Button fx:id="addItemButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#addItemToList" prefHeight="27.0" prefWidth="50.0" stylesheets="@application.css" text="Add">
                      <cursor>
                         <Cursor fx:constant="HAND" />
