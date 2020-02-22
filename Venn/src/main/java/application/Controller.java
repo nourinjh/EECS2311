@@ -1,6 +1,5 @@
 package application;
 
-import java.awt.AWTException;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
@@ -16,15 +15,13 @@ import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 
-import com.sun.javafx.robot.FXRobot;
-import com.sun.javafx.robot.FXRobotFactory;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -41,9 +38,9 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -52,6 +49,8 @@ import javafx.stage.FileChooser;
 
 public class Controller {
 
+	private static final String DEFAULT_BACKGROUND_COLOUR = "0x1d1d1d";
+	private static final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
 	private static final double DEFAULT_CIRCLE_OPACTIY = 0.6;
 	private static boolean settingsIsOpen = false;
 
@@ -80,9 +79,13 @@ public class Controller {
 
 	@FXML
 	private VBox floatingMenu;
+	@FXML
+	private GridPane buttonGrid;
 
 	@FXML
 	private TitledPane settingsPane;
+	@FXML
+	private VBox settingsBox;
 	@FXML
 	private ColorPicker colorLeft;
 	private final String DEFAULT_LEFT_COLOUR = "0xf59f9f";
@@ -105,6 +108,11 @@ public class Controller {
 	private Button screenshotButton;
 	@FXML
 	private Pane frameRect;
+
+	@FXML
+	private ColorPicker colorBackground;
+	@FXML
+	private ColorPicker colorTitles;
 
 	@FXML
 	private Button deleteButton;
@@ -319,6 +327,7 @@ public class Controller {
 		String mainTitle = title.getText() + "";
 		String leftTitle = circleLeftTitle.getText() + "";
 		String rightTitle = circleRightTitle.getText() + "";
+		double menuX = floatingMenu.getLayoutX();
 		try {
 			String name = title.getText();
 			if (name.equals("")) {
@@ -338,6 +347,7 @@ public class Controller {
 			fc.setTitle("Save");
 			fc.setInitialFileName(name);
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+			floatingMenu.setLayoutX(pane.getScene().getWindow().getX() - floatingMenu.getWidth() - 10);
 
 			Bounds bounds = frameRect.getBoundsInLocal();// pane.getBoundsInLocal();
 			Bounds screenBounds = frameRect.localToScreen(bounds);// pane.localToScreen(bounds);
@@ -352,11 +362,12 @@ public class Controller {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
 			a.setAlertType(AlertType.ERROR);
-			a.setHeaderText("File could not be opened");
+			a.setHeaderText("File could not be saved");
 			a.setContentText("");
 			a.setTitle("Error");
 			a.show();
 		}
+		floatingMenu.setLayoutX(menuX);
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
@@ -404,7 +415,9 @@ public class Controller {
 			// 8) Right circle items list
 			// 9) Left circle scale
 			// 10) Right circle scale
-			
+			// 11) Background colour
+			// 12) Titles colour
+
 			String fileContent = title.getText() + "𔓱𔓱" + circleLeftTitle.getText() + "𔓱𔓱"
 					+ circleLeft.getFill().toString() + "𔓱𔓱" + circleRightTitle.getText() + "𔓱𔓱"
 					+ circleRight.getFill().toString() + "𔓱𔓱";
@@ -423,8 +436,7 @@ public class Controller {
 			for (String i : circleRightItemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
-//			fileContent = fileContent.substring(0, fileContent.length() - 2);
-			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY();
+			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱" + colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue();
 
 			BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile));
 			writer.write(fileContent);
@@ -452,6 +464,9 @@ public class Controller {
 		// 8) Right circle items list
 		// 9) Left circle scale
 		// 10) Right circle scale
+		// 11) Background colour
+		// 12) Titles colour
+		
 		try {
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
@@ -465,14 +480,12 @@ public class Controller {
 			title.setText(elements.get(0));
 			circleLeftTitle.setText(elements.get(1));
 			circleLeft.setFill(Color.web(elements.get(2)));
+			colorLeft.setValue(Color.web(elements.get(2)));
 			circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 			circleRightTitle.setText(elements.get(3));
 			circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 			circleRight.setFill(Color.web(elements.get(4)));
-			circleLeft.setScaleX(Double.parseDouble(elements.get(9)));
-			circleLeft.setScaleY(Double.parseDouble(elements.get(9)));
-			circleRight.setScaleX(Double.parseDouble(elements.get(10)));
-			circleRight.setScaleY(Double.parseDouble(elements.get(10)));
+			colorRight.setValue(Color.web(elements.get(4)));
 			itemsList.getItems().clear();
 			for (String s : elements.get(5).split("𔓱")) {
 				itemsList.getItems().add(s);
@@ -489,6 +502,20 @@ public class Controller {
 			for (String s : elements.get(8).split("𔓱")) {
 				circleRightItemsList.getItems().add(s);
 			}
+			
+			circleLeft.setScaleX(Double.parseDouble(elements.get(9)));
+			circleLeft.setScaleY(Double.parseDouble(elements.get(9)));
+			leftSizeSlider.setValue(100*Double.parseDouble(elements.get(9)));
+			leftSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(9))));
+			circleRight.setScaleX(Double.parseDouble(elements.get(10)));
+			circleRight.setScaleY(Double.parseDouble(elements.get(10)));
+			rightSizeSlider.setValue(100*Double.parseDouble(elements.get(10)));
+			rightSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(10))));
+
+			colorBackground.setValue(Color.web(elements.get(11)));
+			colorTitles.setValue(Color.web(elements.get(12)));
+			changeColourBackground();
+			
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -536,26 +563,34 @@ public class Controller {
 			Optional<ButtonType> result = a.showAndWait();
 
 			if (result.get() == ButtonType.OK) {
-				title.setText("");
-				circleLeftTitle.setText("");
-				circleRightTitle.setText("");
-				itemsList.getItems().clear();
-				circleLeftItemsList.getItems().clear();
-				circleRightItemsList.getItems().clear();
-				bothItemsList.getItems().clear();
-				circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOUR));
-				circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-				circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOUR));
-				circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-				colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOUR));
-				colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOUR));
-				circleLeft.setScaleX(1);
-				circleLeft.setScaleY(1);
-				circleRight.setScaleX(1);
-				circleRight.setScaleY(1);
-				fileTitle = null;
+				doTheNew();
 			}
 		}
+	}
+
+	@FXML
+	void doTheNew() {
+		title.setText("");
+		circleLeftTitle.setText("");
+		circleRightTitle.setText("");
+		itemsList.getItems().clear();
+		circleLeftItemsList.getItems().clear();
+		circleRightItemsList.getItems().clear();
+		bothItemsList.getItems().clear();
+		circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOUR));
+		circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
+		circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOUR));
+		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
+		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOUR));
+		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOUR));
+		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
+		colorTitles.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
+		changeColourBackground();
+		circleLeft.setScaleX(1);
+		circleLeft.setScaleY(1);
+		circleRight.setScaleX(1);
+		circleRight.setScaleY(1);
+		fileTitle = null;
 	}
 
 	@FXML
@@ -578,6 +613,33 @@ public class Controller {
 	void changeColourRight() {
 		circleRight.setFill(colorRight.getValue());
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
+	}
+
+	@FXML
+	void changeColourBackground() {
+		pane.setStyle("-fx-background-color: #"
+				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";");
+		changeColourTitles();
+	}
+
+	@FXML
+	void changeColourTitles() {
+		title.setStyle("-fx-background-color: #"
+				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";");
+		circleLeftTitle.setStyle("-fx-background-color: #"
+				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";");
+		circleRightTitle.setStyle("-fx-background-color: #"
+				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ ";");
 	}
 
 	@FXML
@@ -668,16 +730,29 @@ public class Controller {
 		if (settingsPane.isExpanded() && !settingsIsOpen) {
 			settingsIsOpen = true;
 			floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
-		} else if (!settingsPane.isExpanded()){
+		} else if (!settingsPane.isExpanded()) {
 			settingsIsOpen = false;
 			floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
 		}
 	}
 
-	/*
-	 * TODO: - Add right click menus - Responsive design - Import an image - Drag
-	 * items wherever
-	 */
+	@FXML
+	void removeFocusEnter(KeyEvent event) {
+		if (event.getCode() == KeyCode.ENTER) {
+			removeFocus();
+		}
+	}
+
+	@FXML
+	void removeFocus() {
+		pane.requestFocus();
+	}
+
+	// TODO:
+	// - Add right click menus
+	// - Responsive design
+	// - Import an image
+	// - Drag items wherever
 
 	// This method is called by the FXMLLoader when initialization is complete
 	@FXML
@@ -691,6 +766,8 @@ public class Controller {
 //					menuBar.useSystemMenuBarProperty().set(true);
 				colorLeft.setValue((Color) (circleLeft.getFill()));
 				colorRight.setValue((Color) (circleRight.getFill()));
+				colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
+				colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
 				circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOUR));
 				circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 				circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOUR));
@@ -701,13 +778,26 @@ public class Controller {
 			}
 		});
 
-		deleteButton.setFocusTraversable(false);
-		clearButton.setFocusTraversable(false);
-		screenshotButton.setFocusTraversable(false);
-		loadButton.setFocusTraversable(false);
-		saveButton.setFocusTraversable(false);
+		for (Node n : pane.getChildren()) {
+			n.setFocusTraversable(false);
+		}
+		for (Node n : buttonGrid.getChildren()) {
+			n.setFocusTraversable(false);
+		}
+		for (Node n : frameRect.getChildren()) {
+			n.setFocusTraversable(false);
+		}
+		itemsList.setFocusTraversable(false);
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);
+		settingsPane.setFocusTraversable(false);
+		for (Node n : settingsBox.getChildren()) {
+			n.setFocusTraversable(false);
+		}
+		leftSizeSlider.setFocusTraversable(false);
+		rightSizeSlider.setFocusTraversable(false);
+		leftSizeField.setFocusTraversable(false);
+		rightSizeField.setFocusTraversable(false);
 		ObservableList<String> strictlyLeftItems = FXCollections.observableArrayList(circleLeftItems);
 		strictlyLeftItems.removeAll(circleRightItems);
 		ObservableList<String> strictlyRightItems = FXCollections.observableArrayList(circleLeftItems);
