@@ -18,17 +18,23 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 
 import javafx.scene.control.*;
-
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ColorBuilder;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import org.junit.After;
@@ -38,7 +44,10 @@ import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -263,6 +272,7 @@ Parent mainNode;
     //testing the delete button
     @Test
     public void testdeleteButton () {
+    int length= ("#itemsList").length();
     //TextField newItem =  (TextField) find("#newItem");
     
     clickOn("#addItemField").write("dltstuff ");
@@ -270,6 +280,10 @@ Parent mainNode;
     
     
     clickOn("#deleteButton");
+    
+    WaitForAsyncUtils.waitForFxEvents();
+    
+    assertEquals(("#itemsList").length(), length-1);
     
     
     }
@@ -289,6 +303,14 @@ Parent mainNode;
     	drag("#itemsList").dropTo("#circleRightItemsList");
 	}
     clickOn("#clearButton");
+    
+    WaitForAsyncUtils.waitForFxEvents();
+    
+   assertEquals(("#circleRightItemsList").length(),0);
+   assertEquals(("#circleRightItemsList").length(),0);
+   assertEquals(("#circleRightItemsList").length(),0);
+    
+    
    
      }
     
@@ -302,20 +324,59 @@ Parent mainNode;
     
     clickOn("#screenshotButton");
     
+    WaitForAsyncUtils.waitForFxEvents();
+    
+    
+    
     
     }
     //test colour picker 
     @Test
     public void testColourPicker () {
-    
     	
+    
+    try
+    {FileChooser fc = new FileChooser();
+	fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
+	File file = fc.showOpenDialog(pane.getScene().getWindow());
+	String content = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+	String fileTitle = file.getName();
+	
+	
+	List<String> elements = new ArrayList<String>();
+	for (String s : content.split("𔓱𔓱")) {
+		elements.add(s);
+	}
+	//testing left colour
+    	Circle left = find("#circleLeft");
+    	left.setFill(Color.web(elements.get(2)));
+    	Paint color = left.getFill();
+        assertEquals(color, Color.web(elements.get(2)));	
+        
+    //testing right colour
+        
+        Circle right = find("#circleRight");
+    	left.setFill(Color.web(elements.get(2)));
+    	Paint colorofright = right.getFill();
+        assertEquals(colorofright, Color.web(elements.get(4)));
+
+        
+ }
+    catch (Exception e) {
+		System.out.println("Error: File not opened.");
+	
+	}
+    
     }
+}
+    
+    
     
   
     
     
     
-    }
+    
     
     
     

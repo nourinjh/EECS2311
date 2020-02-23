@@ -490,6 +490,7 @@ public class Controller {
 			for (String s : content.split("𔓱𔓱")) {
 				elements.add(s);
 			}
+			
 			title.setText(elements.get(0));
 			circleLeftTitle.setText(elements.get(1));
 			circleLeft.setFill(Color.web(elements.get(2)));
