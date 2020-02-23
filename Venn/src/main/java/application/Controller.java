@@ -434,19 +434,27 @@ public class Controller {
 			String fileContent = title.getText() + "𔓱𔓱" + circleLeftTitle.getText() + "𔓱𔓱"
 					+ circleLeft.getFill().toString() + "𔓱𔓱" + circleRightTitle.getText() + "𔓱𔓱"
 					+ circleRight.getFill().toString() + "𔓱𔓱";
-			for (String i : itemsList.getItems()) {
+			if (itemsList.getItems().isEmpty()) {
+				fileContent += "𔓱";
+			} else for (String i : itemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
 			fileContent += "𔓱";
-			for (String i : circleLeftItemsList.getItems()) {
+			if (circleLeftItemsList.getItems().isEmpty()) {
+				fileContent += "𔓱";
+			} else for (String i : circleLeftItemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
 			fileContent += "𔓱";
-			for (String i : bothItemsList.getItems()) {
+			if (bothItemsList.getItems().isEmpty()) {
+				fileContent += "𔓱";
+			} else for (String i : bothItemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
 			fileContent += "𔓱";
-			for (String i : circleRightItemsList.getItems()) {
+			if (circleRightItemsList.getItems().isEmpty()) {
+				fileContent += "𔓱";
+			} else for (String i : circleRightItemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
 			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱" + colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue().toString();
@@ -501,19 +509,23 @@ public class Controller {
 			colorRight.setValue(Color.web(elements.get(4)));
 			itemsList.getItems().clear();
 			for (String s : elements.get(5).split("𔓱")) {
-				itemsList.getItems().add(s);
+				if (!s.equals(""))
+					itemsList.getItems().add(s);
 			}
 			circleLeftItemsList.getItems().clear();
 			for (String s : elements.get(6).split("𔓱")) {
-				circleLeftItemsList.getItems().add(s);
+				if (!s.equals(""))
+					circleLeftItemsList.getItems().add(s);
 			}
 			bothItemsList.getItems().clear();
 			for (String s : elements.get(7).split("𔓱")) {
-				bothItemsList.getItems().add(s);
+				if (!s.equals(""))
+					bothItemsList.getItems().add(s);
 			}
 			circleRightItemsList.getItems().clear();
 			for (String s : elements.get(8).split("𔓱")) {
-				circleRightItemsList.getItems().add(s);
+				if (!s.equals(""))
+					circleRightItemsList.getItems().add(s);
 			}
 			
 			circleLeft.setScaleX(Double.parseDouble(elements.get(9)));
@@ -599,10 +611,10 @@ public class Controller {
 		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOUR));
 		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
 		changeColourBackground();
-		circleLeft.setScaleX(1);
-		circleLeft.setScaleY(1);
-		circleRight.setScaleX(1);
-		circleRight.setScaleY(1);
+		leftSizeSlider.setValue(100);
+		changeSizeLeft();
+		rightSizeSlider.setValue(100);
+		changeSizeRight();
 		fileTitle = null;
 	}
 
@@ -764,6 +776,10 @@ public class Controller {
 	@FXML
 	void removeFocus() {
 		pane.requestFocus();
+		itemsList.getSelectionModel().clearSelection();
+		circleLeftItemsList.getSelectionModel().clearSelection();
+		bothItemsList.getSelectionModel().clearSelection();
+		circleRightItemsList.getSelectionModel().clearSelection();
 	}
 
 	// TODO:
@@ -798,7 +814,6 @@ public class Controller {
 		for (Node n : frameRect.getChildren()) {
 			n.setFocusTraversable(false);
 		}
-		itemsList.setFocusTraversable(false);
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);
 		settingsPane.setFocusTraversable(false);
@@ -809,6 +824,12 @@ public class Controller {
 		rightSizeSlider.setFocusTraversable(false);
 		leftSizeField.setFocusTraversable(false);
 		rightSizeField.setFocusTraversable(false);
+		
+		itemsList.setFocusTraversable(true);
+		circleLeftItemsList.setFocusTraversable(true);
+		circleRightItemsList.setFocusTraversable(true);
+		pane.setFocusTraversable(true);
+		
 		ObservableList<String> strictlyLeftItems = FXCollections.observableArrayList(circleLeftItems);
 		strictlyLeftItems.removeAll(circleRightItems);
 		ObservableList<String> strictlyRightItems = FXCollections.observableArrayList(circleLeftItems);

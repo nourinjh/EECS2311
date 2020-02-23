@@ -43,7 +43,7 @@ public class ControllerTest extends ApplicationTest {
 	    	drag("#itemsList").dropTo("#bothItemsList");
 	    	drag("#itemsList").dropTo("#circleRightItemsList");
     	}
-    	// Do some sort of verification
+    	// Do some sort of verification here
     }
     
     @Test
@@ -51,6 +51,7 @@ public class ControllerTest extends ApplicationTest {
     	clickOn("#title").write("Example Diagram");
     	clickOn("#circleLeftTitle").write("Left Circle");
     	clickOn("#circleRightTitle").write("Right Circle");
+    	// Do some sort of verification here
     }
     
     // Insert more tests here
@@ -60,11 +61,5 @@ public class ControllerTest extends ApplicationTest {
     	FxToolkit.hideStage();
     	release(new KeyCode[] {});
     	release(new MouseButton[] {});
-    }
-    
-    /* Helper method to retrieve JavaFX GUI components */
-    @SuppressWarnings("unchecked")
-	public <T extends Node> T find(final String query) {
-    	return (T) lookup(query).queryAll().iterator().next();
     }
 }

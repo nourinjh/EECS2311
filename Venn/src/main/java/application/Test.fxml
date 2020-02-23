@@ -32,8 +32,8 @@
 	<children>
       <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" prefHeight="649.0" prefWidth="806.0">
          <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" onMouseClicked="#removeFocus" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" onMouseClicked="#removeFocus" radius="230.0" strokeType="INSIDE" />
       
             <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
       
