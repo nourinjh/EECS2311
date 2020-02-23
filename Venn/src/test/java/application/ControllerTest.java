@@ -235,7 +235,7 @@ Parent mainNode;
 	    	drag("#itemsList").dropTo("#bothItemsList");
 	    	drag("#itemsList").dropTo("#circleRightItemsList");
     	}
-    	// Do some sort of verification
+    	
     }
     
     //test input text 
@@ -264,12 +264,51 @@ Parent mainNode;
     @Test
     public void testdeleteButton () {
     //TextField newItem =  (TextField) find("#newItem");
-    for (int i = 1; i <= 5; i++) {
-    clickOn("#addItemField").write("This is a test input" + i);
+    
+    clickOn("#addItemField").write("dltstuff ");
     clickOn("#addItemButton");
-    clickOn("#deleteButton").eraseText(i);
-	
+    
+    
+    clickOn("#deleteButton");
+    
+    
     }
+    
+    //clear button
+    @Test
+    public void testclearButton () {
+    	for (int i = 1; i <= 15; i++) {
+	    	clickOn("#addItemField").write("Item " + i);
+	    	clickOn("#addItemButton");
+    	}	
+    
+    
+    for (int i = 0; i < 3; i++) {
+    	drag("#itemsList").dropTo("#circleLeftItemsList");
+    	drag("#itemsList").dropTo("#bothItemsList");
+    	drag("#itemsList").dropTo("#circleRightItemsList");
+	}
+    clickOn("#clearButton");
+   
+     }
+    
+    //test screenshot button
+    public void testscreenShotButton () {
+    
+    clickOn("#addItemField").write("dltstuff ");
+    clickOn("#addItemButton");
+    
+    drag("#itemsList").dropTo("#bothItemsList");
+    
+    clickOn("#screenshotButton");
+    
+    
+    }
+    //test colour picker 
+    @Test
+    public void testColourPicker () {
+    
+    	
     }
     
   
@@ -281,7 +320,7 @@ Parent mainNode;
     
     
     
-    /* Helper method to retrieve JavaFX GUI components */
+   
    
 	
 
