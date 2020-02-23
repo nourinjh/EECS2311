@@ -1,19 +1,26 @@
-.list-cell{
+.list-cell {
 	-fx-background-color: transparent;
 	-fx-text-fill: white;
-
+	-fx-alignment: center;
 }
 
-
-.button:hover{
-	-fx-background-color: #D3D3D3;
-}
-
-.button:pressed{
-	-fx-background-color: #72db8b;
-}
-
-.list-view{
+.list-cell:focused {
 	-fx-background-color: transparent;
+	-fx-text-fill: deepskyblue;
+	-fx-alignment: center;
+}
 
+.button {
+	-fx-text-fill: black;
+	-fx-opacity: 1;
+}
+
+.button:disabled {
+	-fx-background-color: lightgrey;
+	-fx-text-fill: grey;
+	-fx-opacity: 0.8;
+}
+
+.list-view {
+	-fx-background-color: transparent;
 }
