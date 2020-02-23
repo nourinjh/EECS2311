@@ -1,3 +1,11 @@
+// To export as a runnable JAR file:
+// 1. Right click on "application" package
+// 2. Click "Export"
+// 3. Select "Runnable JAR file"
+// 4. Select "Extract required libraries into generated JAR"
+// 5. Click finish
+// 6. Pray
+
 package application;
 
 import java.awt.Rectangle;
@@ -27,6 +35,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
@@ -50,7 +59,7 @@ import javafx.stage.FileChooser;
 public class Controller {
 
 	private static final String DEFAULT_BACKGROUND_COLOUR = "0x1d1d1d";
-	private static final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
+	private static final String DEFAULT_TITLE_COLOUR = "0xFFFFFF";
 	private static final double DEFAULT_CIRCLE_OPACTIY = 0.6;
 	private static boolean settingsIsOpen = false;
 
@@ -157,6 +166,10 @@ public class Controller {
 		String newItem = addItemField.getText();
 		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
 			itemsList.getItems().add(newItem);
+//			Label label = new Label(newItem);
+//			pane.getChildren().add(label);
+//			label.setLayoutX(circleLeft.getLayoutX());
+//			label.setLayoutY(circleLeft.getLayoutY());
 			addItemField.setText("");
 		}
 	}
@@ -436,7 +449,7 @@ public class Controller {
 			for (String i : circleRightItemsList.getItems()) {
 				fileContent += i + "𔓱";
 			}
-			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱" + colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue();
+			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱" + colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue().toString();
 
 			BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile));
 			writer.write(fileContent);
@@ -583,8 +596,8 @@ public class Controller {
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOUR));
 		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOUR));
+		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOUR));
 		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
-		colorTitles.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
 		changeColourBackground();
 		circleLeft.setScaleX(1);
 		circleLeft.setScaleY(1);
@@ -626,19 +639,19 @@ public class Controller {
 	@FXML
 	void changeColourTitles() {
 		title.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
 		circleLeftTitle.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
 		circleRightTitle.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
 	}
 
@@ -704,25 +717,30 @@ public class Controller {
 
 	@FXML
 	void addImage() {
-		try {
-			FileChooser fc = new FileChooser();
-			List<String> extensions = new ArrayList<String>();
-			extensions.add("*.png");
-			extensions.add("*.jpg");
-			extensions.add("*.jpeg");
-			fc.getExtensionFilters()
-					.add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions));
-			File file = fc.showOpenDialog(pane.getScene().getWindow());
-			System.out.println(file.getAbsolutePath());
-		} catch (Exception e) {
-			System.out.println("Error: File not opened.");
-			System.out.println(e);
-			a.setAlertType(AlertType.ERROR);
-			a.setHeaderText("File could not be opened");
-			a.setContentText("");
-			a.setTitle("Error");
-			a.show();
-		}
+//		try {
+//			FileChooser fc = new FileChooser();
+//			List<String> extensions = new ArrayList<String>();
+//			extensions.add("*.png");
+//			extensions.add("*.jpg");
+//			extensions.add("*.jpeg");
+//			fc.getExtensionFilters()
+//					.add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions));
+//			File file = fc.showOpenDialog(pane.getScene().getWindow());
+//			System.out.println(file.getAbsolutePath());
+//		} catch (Exception e) {
+//			System.out.println("Error: File not opened.");
+//			System.out.println(e);
+//			a.setAlertType(AlertType.ERROR);
+//			a.setHeaderText("File could not be opened");
+//			a.setContentText("");
+//			a.setTitle("Error");
+//			a.show();
+//		}
+		a.setAlertType(AlertType.INFORMATION);
+		a.setHeaderText("This feature is not yet available");
+		a.setContentText("Adding images to diagrams will be available in a future release");
+		a.setTitle("Feature not yet available");
+		a.show();
 	}
 
 	@FXML
@@ -764,14 +782,7 @@ public class Controller {
 //				String os = System.getProperty("os.name");
 //				if (os != null && os.startsWith("Mac"))
 //					menuBar.useSystemMenuBarProperty().set(true);
-				colorLeft.setValue((Color) (circleLeft.getFill()));
-				colorRight.setValue((Color) (circleRight.getFill()));
-				colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
-				colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
-				circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOUR));
-				circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-				circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOUR));
-				circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
+				doTheNew();
 				settingsPane.setExpanded(false);
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);

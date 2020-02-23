@@ -1,17 +1,70 @@
 package application;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
-import org.junit.jupiter.api.Test;
+import org.junit.*;
+import org.testfx.api.FxToolkit;
+import org.testfx.framework.junit.ApplicationTest;
 
-class ControllerTest {
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.stage.Stage;
+
+public class ControllerTest extends ApplicationTest {
 	
-	Main main = new Main();
-	Controller cont = new Controller();
-
-	@Test
-	void test() {
-		fail("Not yet implemented");
+	private static ControllerTest controller;
+    
+	@Before
+	public void setUpClass() throws Exception {
+		controller = new ControllerTest();
+		ApplicationTest.launch(Main.class);
 	}
+	
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("/application/Test.fxml"));
 
+        primaryStage.setScene(new Scene(root));
+        primaryStage.show();
+	}
+    
+    @Test
+    public void testAddingItems() {
+    	for (int i = 1; i <= 15; i++) {
+	    	clickOn("#addItemField").write("Item " + i);
+	    	clickOn("#addItemButton");
+    	}
+    	for (int i = 0; i < 3; i++) {
+	    	drag("#itemsList").dropTo("#circleLeftItemsList");
+	    	drag("#itemsList").dropTo("#bothItemsList");
+	    	drag("#itemsList").dropTo("#circleRightItemsList");
+    	}
+    	// Do some sort of verification
+    }
+    
+    @Test
+    public void testTitles() {
+    	clickOn("#title").write("Example Diagram");
+    	clickOn("#circleLeftTitle").write("Left Circle");
+    	clickOn("#circleRightTitle").write("Right Circle");
+    }
+    
+    // Insert more tests here
+    
+    @After
+    public void afterEachTest() throws Exception {
+    	FxToolkit.hideStage();
+    	release(new KeyCode[] {});
+    	release(new MouseButton[] {});
+    }
+    
+    /* Helper method to retrieve JavaFX GUI components */
+    @SuppressWarnings("unchecked")
+	public <T extends Node> T find(final String query) {
+    	return (T) lookup(query).queryAll().iterator().next();
+    }
 }
