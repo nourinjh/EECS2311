@@ -348,9 +348,9 @@ Parent mainNode;
     public void testColourPicker () {
     	
 	//testing left colour
-    	clickOn("#settingsPane").moveBy(5, 5);
-    	scroll(10, VerticalDirection.DOWN);
-    	clickOn("#colorLeft").moveBy(5, 5).clickOn();
+    	moveTo("#settingsPane").moveBy(0, -85).clickOn().moveBy(10, 10);
+    	scroll(100, VerticalDirection.DOWN);
+    	clickOn("#colorLeft").moveBy(10, 10).clickOn();
     	
     	Circle left = find("#circleLeft");
     	left.setFill(Color.web("#000000"));
@@ -369,7 +369,7 @@ Parent mainNode;
     
     
     
- 
+
     
     
     

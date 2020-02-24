@@ -17,6 +17,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -29,6 +30,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -541,7 +543,8 @@ public class Controller {
 			colorBackground.setValue(Color.web(elements.get(11)));
 			colorTitles.setValue(Color.web(elements.get(12)));
 			changeColourBackground();
-//			Main.setWindowTitle(fileTitle);
+			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+			Main.setWindowTitle(fileTitle);
 			
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
@@ -618,7 +621,8 @@ public class Controller {
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
 		fileTitle = null;
-//		Main.setWindowTitle();
+		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+		Main.setWindowTitle();
 	}
 
 	@FXML
