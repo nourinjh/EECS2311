@@ -1,1 +1,2 @@
-# EECS2311
+# Digital Venn Diagram Tool
+
