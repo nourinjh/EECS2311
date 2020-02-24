@@ -498,6 +498,7 @@ public class Controller {
 			for (String s : content.split("𔓱𔓱")) {
 				elements.add(s);
 			}
+			
 			title.setText(elements.get(0));
 			circleLeftTitle.setText(elements.get(1));
 			circleLeft.setFill(Color.web(elements.get(2)));
@@ -540,7 +541,7 @@ public class Controller {
 			colorBackground.setValue(Color.web(elements.get(11)));
 			colorTitles.setValue(Color.web(elements.get(12)));
 			changeColourBackground();
-			Main.setWindowTitle(fileTitle);
+//			Main.setWindowTitle(fileTitle);
 			
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
@@ -617,7 +618,7 @@ public class Controller {
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
 		fileTitle = null;
-		Main.setWindowTitle();
+//		Main.setWindowTitle();
 	}
 
 	@FXML
