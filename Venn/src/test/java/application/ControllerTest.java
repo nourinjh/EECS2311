@@ -232,25 +232,20 @@ Parent mainNode;
             
         }
     
-    @SuppressWarnings("unchecked")
-	@Test
+    @Test
+    //testing the textFields
+    
     public void testAddingItems() {
-    	final int totalItems = 15;
-    	final int itemsPerCircle = 3;
-    	for (int i = 1; i <= totalItems; i++) {
+    	for (int i = 1; i <= 15; i++) {
 	    	clickOn("#addItemField").write("Item " + i);
 	    	clickOn("#addItemButton");
     	}
-    	for (int i = 0; i < itemsPerCircle; i++) {
+    	for (int i = 0; i < 3; i++) {
 	    	drag("#itemsList").dropTo("#circleLeftItemsList");
 	    	drag("#itemsList").dropTo("#bothItemsList");
 	    	drag("#itemsList").dropTo("#circleRightItemsList");
     	}
     	
-    	assertEquals(((ListView<String>)(find("#itemsList"))).getItems().size(), totalItems - (3 * itemsPerCircle));
-    	assertEquals(((ListView<String>)(find("#circleLeftItemsList"))).getItems().size(), itemsPerCircle);
-    	assertEquals(((ListView<String>)(find("#bothItemsList"))).getItems().size(), itemsPerCircle);
-    	assertEquals(((ListView<String>)(find("#circleRightItemsList"))).getItems().size(), itemsPerCircle);
     }
     
     //test input text 
@@ -261,10 +256,6 @@ Parent mainNode;
     	clickOn("#title").write("Example Diagram");
     	clickOn("#circleLeftTitle").write("Left Circle");
     	clickOn("#circleRightTitle").write("Right Circle");
-    	
-    	assertEquals(((TextField)(find("#title"))).getText(), "Example Diagram");
-    	assertEquals(((TextField)(find("#circleLeftTitle"))).getText(), "Left Circle");
-    	assertEquals(((TextField)(find("#circleRightTitle"))).getText(), "Right Circle");
     }
     
     // Insert more tests here
@@ -279,90 +270,103 @@ Parent mainNode;
     
     //testing the buttons
     
-    @SuppressWarnings("unchecked")
-	//testing the delete button
+    //testing the delete button
     @Test
-    public void testDeleteButton () {
+    public void testdeleteButton () {
+    int length= ("#itemsList").length();
     //TextField newItem =  (TextField) find("#newItem");
     
-    	for (int i = 1; i <= 6; i++) {
-	    	clickOn("#addItemField").write("Item " + i);
-	    	clickOn("#addItemButton");
-    	}
-    	
-	    WaitForAsyncUtils.waitForFxEvents();
-	    
-	    final int length = ((ListView<String>)(find("#itemsList"))).getItems().size();
-	
-	    clickOn("#itemsList");
-	    clickOn("#deleteButton");
-	    
-	    WaitForAsyncUtils.waitForFxEvents();
-	    
-	    assertEquals(((ListView<String>)(find("#itemsList"))).getItems().size(), length-1);
-	    
+    clickOn("#addItemField").write("dltstuff ");
+    clickOn("#addItemButton");
+    
+    
+    clickOn("#deleteButton");
+    
+    WaitForAsyncUtils.waitForFxEvents();
+    
+    assertEquals(("#itemsList").length(), length-1);
+    
+    
     }
+    
     //clear button
-    @SuppressWarnings("unchecked")
-	@Test
-    public void testClearButton () {
+    @Test
+    public void testclearButton () {
     	for (int i = 1; i <= 15; i++) {
 	    	clickOn("#addItemField").write("Item " + i);
 	    	clickOn("#addItemButton");
-    	}
+    	}	
     
-	    
-	    for (int i = 0; i < 3; i++) {
-	    	drag("#itemsList").dropTo("#circleLeftItemsList");
-	    	drag("#itemsList").dropTo("#bothItemsList");
-	    	drag("#itemsList").dropTo("#circleRightItemsList");
-		}
-	    clickOn("#clearButton");
-	    
-	    WaitForAsyncUtils.waitForFxEvents();
-	    
-	   assertEquals(((ListView<String>)(find("#circleLeftItemsList"))).getItems().size(), 0);
-	   assertEquals(((ListView<String>)(find("#circleRightItemsList"))).getItems().size(), 0);
-	   assertEquals(((ListView<String>)(find("#bothItemsList"))).getItems().size(), 0);
-	    
-	    
-	   
+    
+    for (int i = 0; i < 3; i++) {
+    	drag("#itemsList").dropTo("#circleLeftItemsList");
+    	drag("#itemsList").dropTo("#bothItemsList");
+    	drag("#itemsList").dropTo("#circleRightItemsList");
+	}
+    clickOn("#clearButton");
+    
+    WaitForAsyncUtils.waitForFxEvents();
+    
+   assertEquals(("#circleRightItemsList").length(),0);
+   assertEquals(("#circleRightItemsList").length(),0);
+   assertEquals(("#circleRightItemsList").length(),0);
+    
+    
+   
      }
     
     //test screenshot button
-    public void testScreenShotButton () {
+    public void testscreenShotButton () {
     
-	    clickOn("#addItemField").write("dltstuff ");
-	    clickOn("#addItemButton");
-	    
-	    drag("#itemsList").dropTo("#bothItemsList");
-	    
-	    clickOn("#screenshotButton");
-	    
-	    WaitForAsyncUtils.waitForFxEvents();
+    clickOn("#addItemField").write("dltstuff ");
+    clickOn("#addItemButton");
+    
+    drag("#itemsList").dropTo("#bothItemsList");
+    
+    clickOn("#screenshotButton");
+    
+    WaitForAsyncUtils.waitForFxEvents();
+    
+    
+    
     
     }
-    
     //test colour picker 
     @Test
     public void testColourPicker () {
     	
+    
+    try
+    {FileChooser fc = new FileChooser();
+	fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
+	File file = fc.showOpenDialog(pane.getScene().getWindow());
+	String content = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+	String fileTitle = file.getName();
+	
+	
+	List<String> elements = new ArrayList<String>();
+	for (String s : content.split("𔓱𔓱")) {
+		elements.add(s);
+	}
 	//testing left colour
-    	clickOn("#settingsPane").moveBy(5, 5);
-    	scroll(10, VerticalDirection.DOWN);
-    	clickOn("#colorLeft").moveBy(5, 5).clickOn();
-    	
     	Circle left = find("#circleLeft");
-    	left.setFill(Color.web("#000000"));
+    	left.setFill(Color.web(elements.get(2)));
     	Paint color = left.getFill();
-        assertEquals(color, Color.web("#000000"));	
+        assertEquals(color, Color.web(elements.get(2)));	
         
     //testing right colour
         
         Circle right = find("#circleRight");
-    	left.setFill(Color.web("#000000"));
+    	left.setFill(Color.web(elements.get(2)));
     	Paint colorofright = right.getFill();
-        assertEquals(colorofright, Color.web("#000000"));
+        assertEquals(colorofright, Color.web(elements.get(4)));
+
+        
+ }
+    catch (Exception e) {
+		System.out.println("Error: File not opened.");
+	
+	}
     
     }
 }
