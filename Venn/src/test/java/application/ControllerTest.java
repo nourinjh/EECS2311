@@ -123,16 +123,7 @@ Parent mainNode;
         @Before
         public void setUp() {
             /*  retrieving the tested widgets from the GUI. */ 
-             
-            
-        	
-		/*
-		 * circleLeftItems=find("#circleLeftItems");
-		 * circleRightItems=find("#circleRightItems"); bothItems=find("#bothItems");
-		 * circleLeftItemsList=find("#circleLeftItemsList");
-		 * circleRightItemsList=find("#circleRightItemsList");
-		 * bothItemsList=find("#bothItemsList");
-		 */
+       
         	circleLeft=find("#circleLeft");
         	circleRight=find("#circleRight");
         	pane=find("#pane");
@@ -189,13 +180,7 @@ Parent mainNode;
         public void testWidgetsExist() {
             final String errorMsg = "One or more widget dont exist";
        
-		/*
-		 * assertNotNull(errorMsg,items); assertNotNull(errorMsg,circleLeftItems);
-		 * assertNotNull(errorMsg, circleRightItems); assertNotNull(errorMsg,
-		 * bothItems); assertNotNull(errorMsg,circleLeftItemsList);
-		 * assertNotNull(errorMsg,circleRightItemsList); assertNotNull(errorMsg,
-		 * bothItemsList);
-		 */
+	
             assertNotNull(errorMsg,circleLeft);
             assertNotNull(errorMsg,circleRight);
             assertNotNull(errorMsg, pane);
@@ -342,7 +327,6 @@ Parent mainNode;
 	String content = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
 	String fileTitle = file.getName();
 	
-	
 	List<String> elements = new ArrayList<String>();
 	for (String s : content.split("𔓱𔓱")) {
 		elements.add(s);
@@ -354,14 +338,11 @@ Parent mainNode;
         assertEquals(color, Color.web(elements.get(2)));	
         
     //testing right colour
-        
         Circle right = find("#circleRight");
     	left.setFill(Color.web(elements.get(2)));
     	Paint colorofright = right.getFill();
         assertEquals(colorofright, Color.web(elements.get(4)));
-
-        
- }
+}
     catch (Exception e) {
 		System.out.println("Error: File not opened.");
 	
