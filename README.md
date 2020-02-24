@@ -28,7 +28,7 @@ The program allows the user to:
 
 ![venn](venn.png)
 
-*Legend*
+**_Legend_**
 
 A: File menu
 * New - Opens a new, blank Venn diagram
