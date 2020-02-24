@@ -14,6 +14,8 @@ The purpose of this project is to create a program that will allow users to crea
 
 ## What Does It Do So Far?
 
+#### [View demo on YouTube here](https://youtu.be/eQxy9xiPg4E)
+
 The program allows the user to: 
 * Add a title to the diagram
 *	Add a title to each circle in the diagram
@@ -49,3 +51,33 @@ E: Item entry field
 
 F: Items list
 * Every item the user adds (E) is added to this list. The items in this list can be clicked and dragged into the circles (P) to add them to the Venn diagram.
+
+G: Add Image button
+* In a future release, this button will allow the user to add an image file into the Venn diagram. This feature is not yet available.
+
+H: Export to Image button
+* Saves an image of the current Venn diagram
+
+I: Open button
+* Allows the user to open a previously saved .venn file
+
+J: Settings panel
+* Click to open/close panel. Filled with customization options for the appearance of the Venn diagram
+
+K: Save button
+* Allows the user to save the Venn diagram as a .venn file for later editing
+
+L: Clear Diagram button
+* Moves all items out of the diagram and into the item list (F)
+
+M: Delete Item button
+* Deletes the currently selected item from the Venn diagram
+
+N: Venn Diagram Title
+* The user can click this section and type in a custom title for the Venn diagram.
+
+O: Circle Titles
+* The user can click these sections and type in custom titles for the individual circles in the Venn diagram.
+
+P: Circles
+* Each circle represents one category or object of the two that are being compared. The user can drag things from the list on the left (F) into one or both of these circles. The centre section represents things shared by both circles.
