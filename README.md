@@ -26,3 +26,24 @@ The program allows the user to:
 
 ![venn](venn.png)
 
+*Legend*
+A:	 File menu
+•	New - Opens a new, blank Venn diagram
+•	Open... - Allows the user to open a previously saved .venn file
+•	Save - Allows the user to save the Venn diagram as a .venn file for later editing
+•	Export Venn Diagram as Image - Saves an image of the current Venn diagram
+B:	Edit menu
+•	Delete Item - Deletes the currently selected item from the Venn diagram
+•	Clear Venn Diagram - Moves all items out of the diagram and into the item list (F)
+
+C:	Help menu
+•	View Manual - Opens a link to the online user manual
+
+D:	Add button
+•	Adds the text in the item entry field (E) to the item list (F)
+	
+E:	Item entry field
+•	The user can type in a text item they would like to add to the Venn diagram. To add this item into the items list (F), click the Add button (D).
+
+F:	Items list
+•	Every item the user adds (E) is added to this list. The items in this list can be clicked and dragged into the circles (P) to add them to the Venn diagram.
