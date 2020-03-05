@@ -9,6 +9,7 @@
 package application;
 
 import java.awt.Rectangle;
+import application.UndoCollector;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -438,28 +439,33 @@ public class Controller {
 					+ circleRight.getFill().toString() + "𔓱𔓱";
 			if (itemsList.getItems().isEmpty()) {
 				fileContent += "𔓱";
-			} else for (String i : itemsList.getItems()) {
-				fileContent += i + "𔓱";
-			}
+			} else
+				for (String i : itemsList.getItems()) {
+					fileContent += i + "𔓱";
+				}
 			fileContent += "𔓱";
 			if (circleLeftItemsList.getItems().isEmpty()) {
 				fileContent += "𔓱";
-			} else for (String i : circleLeftItemsList.getItems()) {
-				fileContent += i + "𔓱";
-			}
+			} else
+				for (String i : circleLeftItemsList.getItems()) {
+					fileContent += i + "𔓱";
+				}
 			fileContent += "𔓱";
 			if (bothItemsList.getItems().isEmpty()) {
 				fileContent += "𔓱";
-			} else for (String i : bothItemsList.getItems()) {
-				fileContent += i + "𔓱";
-			}
+			} else
+				for (String i : bothItemsList.getItems()) {
+					fileContent += i + "𔓱";
+				}
 			fileContent += "𔓱";
 			if (circleRightItemsList.getItems().isEmpty()) {
 				fileContent += "𔓱";
-			} else for (String i : circleRightItemsList.getItems()) {
-				fileContent += i + "𔓱";
-			}
-			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱" + colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue().toString();
+			} else
+				for (String i : circleRightItemsList.getItems()) {
+					fileContent += i + "𔓱";
+				}
+			fileContent += "𔓱" + circleLeft.getScaleX() + "𔓱𔓱" + circleRight.getScaleY() + "𔓱𔓱"
+					+ colorBackground.getValue().toString() + "𔓱𔓱" + colorTitles.getValue().toString();
 
 			BufferedWriter writer = new BufferedWriter(new FileWriter(selectedFile));
 			writer.write(fileContent);
@@ -489,7 +495,7 @@ public class Controller {
 		// 10) Right circle scale
 		// 11) Background colour
 		// 12) Titles colour
-		
+
 		try {
 			FileChooser fc = new FileChooser();
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
@@ -500,7 +506,7 @@ public class Controller {
 			for (String s : content.split("𔓱𔓱")) {
 				elements.add(s);
 			}
-			
+
 			title.setText(elements.get(0));
 			circleLeftTitle.setText(elements.get(1));
 			circleLeft.setFill(Color.web(elements.get(2)));
@@ -530,22 +536,23 @@ public class Controller {
 				if (!s.equals(""))
 					circleRightItemsList.getItems().add(s);
 			}
-			
+
 			circleLeft.setScaleX(Double.parseDouble(elements.get(9)));
 			circleLeft.setScaleY(Double.parseDouble(elements.get(9)));
-			leftSizeSlider.setValue(100*Double.parseDouble(elements.get(9)));
-			leftSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(9))));
+			leftSizeSlider.setValue(100 * Double.parseDouble(elements.get(9)));
+			leftSizeField.setText(String.format("%.0f", 100 * Double.parseDouble(elements.get(9))));
 			circleRight.setScaleX(Double.parseDouble(elements.get(10)));
 			circleRight.setScaleY(Double.parseDouble(elements.get(10)));
-			rightSizeSlider.setValue(100*Double.parseDouble(elements.get(10)));
-			rightSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(10))));
+			rightSizeSlider.setValue(100 * Double.parseDouble(elements.get(10)));
+			rightSizeField.setText(String.format("%.0f", 100 * Double.parseDouble(elements.get(10))));
 
 			colorBackground.setValue(Color.web(elements.get(11)));
 			colorTitles.setValue(Color.web(elements.get(12)));
 			changeColourBackground();
-			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+			// FIXME: Crashes the JUnit tests because they don't have a title bar on the
+			// window to change
 			Main.setWindowTitle(fileTitle);
-			
+
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -621,7 +628,8 @@ public class Controller {
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
 		fileTitle = null;
-		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+		// FIXME: Crashes the JUnit tests because they don't have a title bar on the
+		// window to change
 		Main.setWindowTitle();
 	}
 
@@ -660,18 +668,15 @@ public class Controller {
 		title.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleLeftTitle.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleRightTitle.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 	}
 
 	@FXML
@@ -789,6 +794,24 @@ public class Controller {
 		circleRightItemsList.getSelectionModel().clearSelection();
 	}
 
+
+
+	public interface Undoable {
+		void undo();
+
+		void redo();
+	}
+	
+	@FXML
+	void undo() {
+		UndoCollector.getLastUndo();
+	}
+	
+	@FXML
+	void redo() {
+		UndoCollector.redo();
+	}
+	
 	// TODO:
 	// - Add right click menus
 	// - Responsive design
@@ -831,12 +854,12 @@ public class Controller {
 		rightSizeSlider.setFocusTraversable(false);
 		leftSizeField.setFocusTraversable(false);
 		rightSizeField.setFocusTraversable(false);
-		
+
 		itemsList.setFocusTraversable(true);
 		circleLeftItemsList.setFocusTraversable(true);
 		circleRightItemsList.setFocusTraversable(true);
 		pane.setFocusTraversable(true);
-		
+
 		ObservableList<String> strictlyLeftItems = FXCollections.observableArrayList(circleLeftItems);
 		strictlyLeftItems.removeAll(circleRightItems);
 		ObservableList<String> strictlyRightItems = FXCollections.observableArrayList(circleLeftItems);
