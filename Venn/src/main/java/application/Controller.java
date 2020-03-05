@@ -9,7 +9,7 @@
 package application;
 
 import java.awt.Rectangle;
-import application.UndoCollector;
+
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -18,7 +18,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -29,23 +28,19 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -795,80 +790,6 @@ public class Controller {
 		bothItemsList.getSelectionModel().clearSelection();
 		circleRightItemsList.getSelectionModel().clearSelection();
 	}
-
-	public interface Undoable {
-		void undo();
-
-		void redo();
-	}
-
-	public interface Command {
-		/** Executes the command. */
-		void execute();
-
-		/** Checks whether the command can be executed. */
-		boolean canExecute();
-	}
-
-	public class DummyGuiController implements Initializable {
-		@FXML
-		ToggleButton button;
-
-
-		@Override
-		public void initialize(final URL location, final ResourceBundle resources) {
-
-			button.setOnAction(evt -> {
-				IsItTrueOrNotCommand cmd = new IsItTrueOrNotCommand();
-				cmd.setModel(model);
-				cmd.setValue(button.isSelected());
-
-				if(cmd.canExecute()) {
-					cmd.execute();
-					UndoCollector.INSTANCE.add(cmd);
-				}
-			});
-		}
-	}
-	
-	public class IsItTrueOrNotCommand implements Command, Undoable {
-		DummyModel model;
-
-		boolean value;
-
-		boolean formerValue;
-
-		@Override
-		public void execute() {
-			formerValue = model.isItTrue();
-			model.setIsTrueOrNot(value);
-		}
-
-		@Override
-		public boolean canExecute() {
-			return model!=null;
-		}
-
-		public void setModel(final DummyModel dummyModel) {
-			model = dummyModel;
-		}
-
-		public void setValue(final boolean val) {
-			value = val;
-		}
-
-		@Override
-		public void undo() {
-			model.setIsTrueOrNot(formerValue);
-		}
-
-		@Override
-		public void redo() {
-			model.setIsTrueOrNot(value);
-		}
-
-	}
-	
 	
 
 	// TODO:
