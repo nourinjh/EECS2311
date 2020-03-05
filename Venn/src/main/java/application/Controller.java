@@ -29,6 +29,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -44,6 +45,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -794,24 +796,81 @@ public class Controller {
 		circleRightItemsList.getSelectionModel().clearSelection();
 	}
 
-
-
 	public interface Undoable {
 		void undo();
 
 		void redo();
 	}
-	
-	@FXML
-	void undo() {
-		UndoCollector.getLastUndo();
+
+	public interface Command {
+		/** Executes the command. */
+		void execute();
+
+		/** Checks whether the command can be executed. */
+		boolean canExecute();
+	}
+
+	public class DummyGuiController implements Initializable {
+		@FXML
+		ToggleButton button;
+
+
+		@Override
+		public void initialize(final URL location, final ResourceBundle resources) {
+
+			button.setOnAction(evt -> {
+				IsItTrueOrNotCommand cmd = new IsItTrueOrNotCommand();
+				cmd.setModel(model);
+				cmd.setValue(button.isSelected());
+
+				if(cmd.canExecute()) {
+					cmd.execute();
+					UndoCollector.INSTANCE.add(cmd);
+				}
+			});
+		}
 	}
 	
-	@FXML
-	void redo() {
-		UndoCollector.redo();
+	public class IsItTrueOrNotCommand implements Command, Undoable {
+		DummyModel model;
+
+		boolean value;
+
+		boolean formerValue;
+
+		@Override
+		public void execute() {
+			formerValue = model.isItTrue();
+			model.setIsTrueOrNot(value);
+		}
+
+		@Override
+		public boolean canExecute() {
+			return model!=null;
+		}
+
+		public void setModel(final DummyModel dummyModel) {
+			model = dummyModel;
+		}
+
+		public void setValue(final boolean val) {
+			value = val;
+		}
+
+		@Override
+		public void undo() {
+			model.setIsTrueOrNot(formerValue);
+		}
+
+		@Override
+		public void redo() {
+			model.setIsTrueOrNot(value);
+		}
+
 	}
 	
+	
+
 	// TODO:
 	// - Add right click menus
 	// - Responsive design
