@@ -28,12 +28,12 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#removeFocus" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 	<children>
-      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" prefHeight="649.0" prefWidth="806.0">
+      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
          <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" onMouseClicked="#removeFocus" radius="229.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" onMouseClicked="#removeFocus" radius="230.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" onDragDropped="#dropItem" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" onDragDropped="#dropItem" radius="230.0" strokeType="INSIDE" />
       
             <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
       
@@ -44,17 +44,17 @@
                   <Cursor fx:constant="TEXT" />
                </cursor>
             </TextField>
-            <ListView fx:id="circleLeftItemsList" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
+            <ListView fx:id="circleLeftItemsList" disable="true" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
             </ListView>
-            <ListView fx:id="circleRightItemsList" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
+            <ListView fx:id="circleRightItemsList" disable="true" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
             </ListView>
-            <ListView fx:id="bothItemsList" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css">
+            <ListView fx:id="bothItemsList" disable="true" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
@@ -326,18 +326,18 @@
             <items>
                   <MenuItem mnemonicParsing="false" onAction="#newDiagram" onMenuValidation="#newDiagram" text="New">
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="N" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="N" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
               <MenuItem mnemonicParsing="false" onAction="#loadFromFile" onMenuValidation="#loadFromFile" text="Open...">
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="O" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#saveToFile" onMenuValidation="#saveToFile" text="Save">
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
