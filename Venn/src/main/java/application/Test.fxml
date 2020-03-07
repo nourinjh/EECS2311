@@ -136,7 +136,7 @@
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
-                  <Button fx:id="addImageButton" blendMode="SCREEN" mnemonicParsing="false" onAction="#addImage" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Add Image">
+                  <Button fx:id="addImageButton" blendMode="SCREEN" mnemonicParsing="false" onAction="#addImage" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" style="-fx-background-color: RED;" text="DEBUG ITEM">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>

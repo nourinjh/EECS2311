@@ -80,6 +80,7 @@ public class Controller {
 	private static final String DEFAULT_TITLE_COLOUR = "0xFFFFFF";
 	private static final double DEFAULT_CIRCLE_OPACTIY = 0.6;
 	private static boolean settingsIsOpen = false;
+	private static boolean multiSelect = false;
 
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
@@ -89,6 +90,11 @@ public class Controller {
 	private ObservableList<String> circleRightItems = FXCollections.observableArrayList();
 	@FXML
 	private ObservableList<String> bothItems = FXCollections.observableArrayList();
+	@FXML
+	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
+	@FXML
+	private ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList(); 
+
 	@FXML
 	private ListView<String> circleLeftItemsList;
 	@FXML
@@ -198,15 +204,43 @@ public class Controller {
 			
 			this.setOnMouseClicked(mouseEvent -> {
 				requestFocus();
+				if (!multiSelect) {
+					for (DraggableItem d : selectedItems) {
+						d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
+					}
+					selectedItems.clear();
+				}
+				selectedItems.add(this);
 				setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
 			});
 			
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				if (!hasFocus.booleanValue()) {
-					setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+					for (DraggableItem d : selectedItems) {
+						d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
+					}
+					selectedItems.clear();
 				}
 			});
-
+			
+			this.setOnKeyPressed(keyEvent -> {
+				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
+					deleteItem();
+				}
+				if (keyEvent.getCode() == KeyCode.ESCAPE) {
+					pane.requestFocus();
+				}
+				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
+					multiSelect = true;
+				}
+			});
+			
+			this.setOnKeyReleased(keyEvent -> {
+				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
+					multiSelect = false;
+				}
+			});
+						
 			enableDrag();
 		}
 
@@ -234,18 +268,18 @@ public class Controller {
 			});
 			setOnMouseReleased(mouseEvent -> {
 				getScene().setCursor(Cursor.HAND);
-				if (this.text.intersects(circleLeft.getBoundsInParent()) && this.text.intersects(circleRight.getBoundsInParent())) {
-					this.text.setTextFill(Color.BLUE);
-				}
-				else if (this.text.intersects(circleLeft.getBoundsInParent())) {
-					this.text.setTextFill(Color.RED);
-				}
-				else if (this.text.intersects(circleRight.getBoundsInParent())) {
-					this.text.setTextFill(Color.GREEN);
-				}
-				else {
-					this.text.setTextFill(Color.WHITE);
-				}
+//				if (this.text.intersects(circleLeft.getBoundsInParent()) && this.text.intersects(circleRight.getBoundsInParent())) {
+//					this.text.setTextFill(Color.BLUE);
+//				}
+//				else if (this.text.intersects(circleLeft.getBoundsInParent())) {
+//					this.text.setTextFill(Color.RED);
+//				}
+//				else if (this.text.intersects(circleRight.getBoundsInParent())) {
+//					this.text.setTextFill(Color.GREEN);
+//				}
+//				else {
+//					this.text.setTextFill(Color.WHITE);
+//				}
 			});				
 			setOnMouseDragged(mouseEvent -> {
 				double newX = getLayoutX() + mouseEvent.getX() - dragDelta.x;
@@ -304,6 +338,11 @@ public class Controller {
 
 	@FXML
 	void deleteItem() {
+		for (DraggableItem d : selectedItems) {
+			pane.getChildren().remove(d);
+		}
+		itemsInDiagram.removeAll(selectedItems);
+		selectedItems.clear();
 		if (itemsList.isFocused()) {
 			itemsList.getItems().remove(itemsList.getSelectionModel().getSelectedItem());
 			if (itemsList.getItems().isEmpty()) {
@@ -504,6 +543,11 @@ public class Controller {
 		itemsList.getItems().addAll(circleLeftItemsList.getItems());
 		itemsList.getItems().addAll(circleRightItemsList.getItems());
 		itemsList.getItems().addAll(bothItemsList.getItems());
+		for (DraggableItem d : itemsInDiagram) {
+			itemsList.getItems().add(d.getText());
+			pane.getChildren().remove(d);
+		}
+		itemsInDiagram.clear();
 		circleLeftItemsList.getItems().clear();
 		circleRightItemsList.getItems().clear();
 		bothItemsList.getItems().clear();
@@ -871,8 +915,7 @@ public class Controller {
 //		a.setContentText("Adding images to diagrams will be available in a future release");
 //		a.setTitle("Feature not yet available");
 //		a.show();
-		DraggableItem a = new DraggableItem(frameRect.getLayoutX(), frameRect.getLayoutY(), "nice");
-		pane.getChildren().add(a);
+		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), "Foobar");
 	}
 
 	@FXML
@@ -906,19 +949,24 @@ public class Controller {
 	@FXML
 	void dropItem(DragEvent event) {
 		String item = event.getDragboard().getString();
-		DraggableItem a = new DraggableItem(event.getSceneX(), event.getSceneY(), item);
-		pane.getChildren().add(a);
+		addItemToDiagram(event.getSceneX(), event.getSceneY(), item);
 		((ListView<String>) event.getGestureSource()).getItems().remove(item);
 		event.setDropCompleted(true);
 		event.consume();
+	}
+	
+	void addItemToDiagram(double x, double y, String text) {
+		DraggableItem a = new DraggableItem(x, y, text);
+		pane.getChildren().add(a);
+		itemsInDiagram.add(a);
 	}
 
 	// TODO:
 	// - Customize colours of dragged items
 	// - Categorize dragged items
-	// - Detail view for dragged items
+	// - Detail view for dragged items -> Tooltips?
 	// - Implement saving and loading dragged items
-	// - Enable CSV file imports
+	// - Enable CSV file imports -> Rethink entire loading and saving system -> .zip as .venn?
 	// - Add right click menus
 	// - Responsive design
 	// - Import an image
@@ -948,6 +996,7 @@ public class Controller {
 			n.setFocusTraversable(false);
 		}
 		for (Node n : buttonGrid.getChildren()) {
+			if (n != addImageButton)
 			n.setFocusTraversable(false);
 		}
 		for (Node n : frameRect.getChildren()) {
