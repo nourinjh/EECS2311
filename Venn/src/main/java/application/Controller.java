@@ -75,12 +75,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 
 public class Controller {
 
-	private static final String DEFAULT_BACKGROUND_COLOUR = "0x1d1d1d";
-	private static final String DEFAULT_TITLE_COLOUR = "0xFFFFFF";
+	private static final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
+	private static final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
 	private static final double DEFAULT_CIRCLE_OPACTIY = 0.6;
 	private static boolean settingsIsOpen = false;
 	private static boolean multiSelect = false;
@@ -90,7 +91,7 @@ public class Controller {
 	@FXML
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
 	@FXML
-	private ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList(); 
+	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList(); 
 
 	@FXML
 	private Circle circleLeft;
@@ -111,21 +112,33 @@ public class Controller {
 	private VBox settingsBox;
 	@FXML
 	private ColorPicker colorLeft;
-	private final String DEFAULT_LEFT_COLOUR = "0xf59f9f";
+	private final String DEFAULT_LEFT_COLOR = "0xf59f9f";
+	@FXML
+	private ColorPicker colorLeftItems;
+	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffffff";
 	@FXML
 	private Slider leftSizeSlider;
 	@FXML
 	private TextField leftSizeField;
 	@FXML
 	private ColorPicker colorRight;
-	private final String DEFAULT_RIGHT_COLOUR = "0xebe071";
+	private final String DEFAULT_RIGHT_COLOR = "0xebe071";
+	@FXML
+	private ColorPicker colorRightItems;
+	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xffffff";
 	@FXML
 	private Slider rightSizeSlider;
 	@FXML
 	private TextField rightSizeField;
+	@FXML
+	private ColorPicker colorBothItems;
+	private final String DEFAULT_BOTH_ITEM_COLOR = "0xffffff";
 
 	@FXML
 	private MenuBar menuBar;
+	
+	@FXML
+	private Button importButton;
 
 	@FXML
 	private Button screenshotButton;
@@ -162,7 +175,7 @@ public class Controller {
 	private ListView<String> itemsList;
 
 	@FXML
-	private Button addImageButton;
+	private Button makeDummyItemButton;
 
 	@FXML // ResourceBundle that was given to the FXMLLoader
 	private ResourceBundle resources;
@@ -175,9 +188,24 @@ public class Controller {
 
 	private File openFile = null;
 	
+	private enum InCircle {
+		LEFT,
+		RIGHT,
+		BOTH,
+		NONE;
+	}
+	
+	static Color leftColor;
+	static Color rightColor;
+	static Color bothColor;
+	static Color noneColor;
+	
 	class DraggableItem extends StackPane {
 		private Label text = new Label();
 		private String description;
+		private Color color;
+		private InCircle circle;
+		
 
 		DraggableItem(double x, double y) {
 			relocate(x - 5.0D, y - 5.0D);
@@ -185,6 +213,7 @@ public class Controller {
 			text.setTextFill(Color.WHITE);
 			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
 			requestFocus();
+			circle = InCircle.NONE;
 
 			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				if (!hasFocus.booleanValue() && getParent() != null && getParent() instanceof Pane
@@ -195,11 +224,15 @@ public class Controller {
 			
 		
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
-				if (!hasFocus.booleanValue()) {
-					for (DraggableItem d : selectedItems) {
-						d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
+				try {
+					if (!hasFocus.booleanValue() && (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
+						for (DraggableItem d : selectedItems) {
+							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
+						}
+						selectedItems.clear();
 					}
-					selectedItems.clear();
+				} catch (Exception e) {
+					removeFocus();
 				}
 			});
 			
@@ -213,19 +246,23 @@ public class Controller {
 				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = true;
 				}
+				keyEvent.consume();
 			});
 			
 			this.setOnKeyReleased(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = false;
 				}
+				keyEvent.consume();
 			});
 						
 			enableDrag();
+			checkBounds();
 		}
 
 		public DraggableItem(double d, double e, String text) {
 			this(d, e);
+			this.text.setText(text);
 //			String t = text;
 //			if (text.length() > 25) {
 //				t = text.substring(0, 25);;
@@ -239,19 +276,23 @@ public class Controller {
 //				}
 //			}
 //			this.text.setText(t);
-			this.text.setText(text);
 		}
 		
 		public Label getLabel() {
 			return this.text;
 		}
 		
+		public InCircle getCircle() {
+			return this.circle;
+		}
+		
 		public String getText() {
 			return this.text.getText();
 		}
 		
-		public void changeColor(Color c) {
+		public void setColor(Color c) {
 			this.text.setTextFill(c);
+			this.color = c;
 		}
 		
 		public void setDescription(String desc) {
@@ -279,41 +320,78 @@ public class Controller {
 				}
 				selectedItems.add(this);
 				setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+				mouseEvent.consume();
 			});
 			setOnMouseReleased(mouseEvent -> {
 				getScene().setCursor(Cursor.HAND);
-//				if (this.text.intersects(circleLeft.getBoundsInParent()) && this.text.intersects(circleRight.getBoundsInParent())) {
-//					this.text.setTextFill(Color.BLUE);
-//				}
-//				else if (this.text.intersects(circleLeft.getBoundsInParent())) {
-//					this.text.setTextFill(Color.RED);
-//				}
-//				else if (this.text.intersects(circleRight.getBoundsInParent())) {
-//					this.text.setTextFill(Color.GREEN);
-//				}
-//				else {
-//					this.text.setTextFill(Color.WHITE);
-//				}
+				checkBounds();
+				mouseEvent.consume();
 			});				
 			setOnMouseDragged(mouseEvent -> {
 				double newX = getLayoutX() + mouseEvent.getX() - dragDelta.x;
-				if (newX > floatingMenu.getLayoutX() + floatingMenu.getWidth() && newX < getScene().getWidth() - getWidth()) {
-					setLayoutX(newX);
-				}
 				double newY = getLayoutY() + mouseEvent.getY() - dragDelta.y;
-				if (newY > circleLeftTitle.getLayoutY() + 3*circleLeftTitle.getHeight() + getHeight() && newY < getScene().getHeight() - getHeight()) {
-					setLayoutY(newY);
+				setLayoutX(newX);
+				setLayoutY(newY);
+				if ((newX > circleLeft.getBoundsInParent().getMinX() - (getWidth()/2) && newX < circleRight.getBoundsInParent().getMaxX() - (getWidth()/2)) && (newY > circleLeft.getBoundsInParent().getMinY() - (getHeight()/2) && newY < circleRight.getBoundsInParent().getMaxY() - (getHeight()/2))) {
+					this.text.setBackground(null);
+					this.text.setTextFill(this.color);
+					getScene().setCursor(Cursor.CLOSED_HAND);
+					setOnMouseReleased(mouseEvent2 -> {
+						getScene().setCursor(Cursor.HAND);
+						checkBounds();
+						mouseEvent.consume();
+					});
+				} else {
+					this.text.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(0))));
+					this.text.setTextFill(Color.WHITE);
+					getScene().setCursor(Cursor.DISAPPEAR);
+					setOnMouseReleased(mouseEvent2 -> {
+						getScene().setCursor(Cursor.DEFAULT);
+						frameRect.getChildren().remove(this);
+						itemsInDiagram.remove(this);
+						itemsList.getItems().add(this.getText());
+					});
 				}
+//				boolean intersectsLeft = (Math.pow((newX - ((circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX()) / 2)), 2) + (Math.pow((newY - ((circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY()) / 2)), 2))) > Math.pow(circleLeft.getRadius(), 2);
+//				boolean intersectsRight = (Math.pow((newX - ((circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX()) / 2)), 2) + (Math.pow((newY - ((circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY()) / 2)), 2))) > Math.pow(circleRight.getRadius(), 2);
+//				if (intersectsLeft || intersectsRight) {
+//					setLayoutX(newX);
+//					setLayoutY(newY);
+//				}
+				mouseEvent.consume();
 			});
 			setOnMouseEntered(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown()) {
 					getScene().setCursor(Cursor.HAND);
+					mouseEvent.consume();
 				}
+				frameRect.setOnMouseClicked(mouseEvent2 -> {});
+				pane.setOnMouseClicked(mouseEvent2 -> {});
 			});
 			setOnMouseExited(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown())
 					getScene().setCursor(Cursor.DEFAULT);
+				mouseEvent.consume();
+
+				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
 			});
+		}
+		
+		void checkBounds() {
+			if (this.getBoundsInParent().intersects(circleLeft.getBoundsInParent()) && this.getBoundsInParent().intersects(circleRight.getBoundsInParent())) {
+				this.setColor(bothColor);
+				circle = InCircle.BOTH;
+			} else if (this.getBoundsInParent().intersects(circleLeft.getBoundsInParent())) {
+				this.setColor(leftColor);
+				circle = InCircle.LEFT;
+			} else if (this.getBoundsInParent().intersects(circleRight.getBoundsInParent())) {
+				this.setColor(rightColor);
+				circle = InCircle.RIGHT;
+			} else {
+				this.setColor(noneColor);
+				circle = InCircle.NONE;
+			}
 		}
 
 		private class Delta {
@@ -355,7 +433,7 @@ public class Controller {
 			}
 		} else {
 			for (DraggableItem d : selectedItems) {
-				pane.getChildren().remove(d);
+				frameRect.getChildren().remove(d);
 			}
 			itemsInDiagram.removeAll(selectedItems);
 			selectedItems.clear();
@@ -387,14 +465,8 @@ public class Controller {
 		event.acceptTransferModes(TransferMode.ANY);
 	}
 
-	@SuppressWarnings("unchecked")
 	@FXML
 	void dragDroppedOnItemsList(DragEvent event) {
-		String item = event.getDragboard().getString();
-		if (!itemsList.getItems().contains(item)) {
-			itemsList.getItems().add(item);
-			((ListView<String>) event.getGestureSource()).getItems().remove(item);
-		}
 		event.setDropCompleted(true);
 		event.consume();
 	}
@@ -494,6 +566,7 @@ public class Controller {
 
 	@FXML
 	void takeScreenshot() {
+		removeFocus();
 		String mainTitle = title.getText() + "";
 		String leftTitle = circleLeftTitle.getText() + "";
 		String rightTitle = circleRightTitle.getText() + "";
@@ -547,7 +620,7 @@ public class Controller {
 	void clearDiagram() {
 		for (DraggableItem d : itemsInDiagram) {
 			itemsList.getItems().add(d.getText());
-			pane.getChildren().remove(d);
+			frameRect.getChildren().remove(d);
 		}
 		itemsInDiagram.clear();
 	}
@@ -557,9 +630,9 @@ public class Controller {
 		// File hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
-		// ..... (0) Title, (1) Titles color, (2) Background color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale
+		// ..... (0) Title, (1) Titles color, (2) Background color, (3) Intersection item text color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist
@@ -571,9 +644,9 @@ public class Controller {
 		    
 		    File config = new File("Config.vlist");
 		    StringBuilder sb = new StringBuilder();
-		    sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱" + colorBackground.getValue().toString() + "\n");
-		    sb.append(circleLeftTitle.getText() + "𔓱" + colorLeft.getValue().toString() + "𔓱" + circleLeft.getScaleX() + "\n");
-		    sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱" + circleRight.getScaleX());
+		    sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱" + colorBackground.getValue().toString() + "𔓱" + colorBothItems.getValue().toString() + "\n");
+		    sb.append(circleLeftTitle.getText() + "𔓱" + colorLeft.getValue().toString() + "𔓱" + circleLeft.getScaleX() + "𔓱" + colorLeftItems.getValue().toString() + "\n");
+		    sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱" + circleRight.getScaleX() + "𔓱" + colorRightItems.getValue().toString());
 		    BufferedWriter bw = new BufferedWriter(new FileWriter(config));
 		    bw.write(sb.toString());
 		    bw.close();
@@ -703,13 +776,13 @@ public class Controller {
 	}
 
 	void doTheLoad() {
-		
+
 		// File hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
-		// ..... (0) Title, (1) Titles color, (2) Background color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale
+		// ..... (0) Title, (1) Titles color, (2) Background color, (3) Intersection item text color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist
@@ -727,7 +800,7 @@ public class Controller {
 				itemsList.getItems().addAll(importCSV(file));
 			} else if (file.getName().substring(file.getName().length() - 5).toLowerCase().equals(".venn")) {
 				String line, title, leftTitle, rightTitle, elements[];
-				Color bgColor, leftColor, rightColor, titleColor;
+				Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, bothTextColor;
 				double leftScale, rightScale;
 				ObservableList<String> unassignedItems = FXCollections.observableArrayList();
 				ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
@@ -741,16 +814,19 @@ public class Controller {
 				title = elements[0];
 				titleColor = Color.web(elements[1]);
 				bgColor = Color.web(elements[2]);
+				bothTextColor = Color.web(elements[3]);
 				
 				elements = br.readLine().split("𔓱");
 				leftTitle = elements[0];
 				leftColor = Color.web(elements[1]);
 				leftScale = Double.parseDouble(elements[2]);
+				leftTextColor = Color.web(elements[3]);
 				
 				elements = br.readLine().split("𔓱");
 				rightTitle = elements[0];
 				rightColor = Color.web(elements[1]);
 				rightScale = Double.parseDouble(elements[2]);
+				rightTextColor = Color.web(elements[3]);
 				br.close();
 				
 				// Unassigned
@@ -770,7 +846,7 @@ public class Controller {
 				while ((line = br.readLine()) != null) {
 					elements = line.split("𔓱");
 					DraggableItem a = new DraggableItem(Double.parseDouble(elements[2]), Double.parseDouble(elements[3]), elements[0]);
-					a.changeColor(Color.web(elements[1]));
+					a.setColor(Color.web(elements[1]));
 					a.setDescription(elements[4]);
 					inDiagram.add(a);
 				}
@@ -790,13 +866,17 @@ public class Controller {
 				this.leftSizeSlider.setValue(leftScale*100);
 				this.changeSizeLeft();
 				this.rightSizeSlider.setValue(rightScale*100);
-				this.changeSizeLeft();
+				this.changeSizeRight();
 				this.itemsList.getItems().clear();
 				this.itemsList.getItems().addAll(unassignedItems);
-				this.pane.getChildren().removeAll(this.itemsInDiagram);
-				this.pane.getChildren().addAll(inDiagram);
+				this.frameRect.getChildren().removeAll(this.itemsInDiagram);
+				this.frameRect.getChildren().addAll(inDiagram);
 				this.itemsInDiagram.clear();
 				this.itemsInDiagram.addAll(inDiagram);
+				this.colorLeftItems.setValue(leftTextColor);
+				this.colorRightItems.setValue(rightTextColor);
+				this.colorBothItems.setValue(bothTextColor);
+				this.changeColorItems();
 				
 				openFile = file;
 				// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
@@ -895,21 +975,27 @@ public class Controller {
 		circleLeftTitle.setText("");
 		circleRightTitle.setText("");
 		itemsList.getItems().clear();
-		circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOUR));
+		circleLeft.setFill(Color.web(DEFAULT_LEFT_COLOR));
 		circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-		circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOUR));
+		circleRight.setFill(Color.web(DEFAULT_RIGHT_COLOR));
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOUR));
-		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOUR));
-		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOUR));
-		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOUR));
+		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOR));
+		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOR));
+		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
+		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOR));
 		changeColorBackground();
 		leftSizeSlider.setValue(100);
 		changeSizeLeft();
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
-		pane.getChildren().removeAll(itemsInDiagram);
+		frameRect.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
+		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
+		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
+		colorBothItems.setValue(Color.web(DEFAULT_BOTH_ITEM_COLOR));
+		changeColorItems();
+		
+		// Set default item colors, changeItemColors()
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 		Main.setWindowTitle();
@@ -929,6 +1015,22 @@ public class Controller {
 	void changeColorLeft() {
 		circleLeft.setFill(colorLeft.getValue());
 		circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
+	}
+	
+	@FXML
+	void changeColorItems() {
+		leftColor = colorLeftItems.getValue();
+		rightColor = colorRightItems.getValue();
+		bothColor = colorBothItems.getValue();
+		for (DraggableItem d : itemsInDiagram) {
+			if (d.getCircle() == InCircle.LEFT) {
+				d.setColor(leftColor);
+			} else if (d.getCircle() == InCircle.RIGHT) {
+				d.setColor(rightColor);
+			} else if (d.getCircle() == InCircle.BOTH) {
+				d.setColor(bothColor);
+			}
+		}
 	}
 
 	@FXML
@@ -1023,33 +1125,34 @@ public class Controller {
 			}
 		}
 	}
+	
+	@FXML
+	void importFile() {
+		try {
+			FileChooser fc = new FileChooser();
+			List<String> extensions = new ArrayList<String>();
+			extensions.add("*.png");
+			extensions.add("*.jpg");
+			extensions.add("*.jpeg");
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv"));
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions));
+			// Set up as combobox
+//			fc.setSelectedExtensionFilter(filter);
+			File file = fc.showOpenDialog(pane.getScene().getWindow());
+			System.out.println(file.getAbsolutePath());
+		} catch (Exception e) {
+			System.out.println("Error: File not opened.");
+			System.out.println(e);
+			a.setAlertType(AlertType.ERROR);
+			a.setHeaderText("File could not be opened");
+			a.setContentText("");
+			a.setTitle("Error");
+			a.show();
+		}
+	}
 
 	@FXML
-	void addImage() {
-//		try {
-//			FileChooser fc = new FileChooser();
-//			List<String> extensions = new ArrayList<String>();
-//			extensions.add("*.png");
-//			extensions.add("*.jpg");
-//			extensions.add("*.jpeg");
-//			fc.getExtensionFilters()
-//					.add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions));
-//			File file = fc.showOpenDialog(pane.getScene().getWindow());
-//			System.out.println(file.getAbsolutePath());
-//		} catch (Exception e) {
-//			System.out.println("Error: File not opened.");
-//			System.out.println(e);
-//			a.setAlertType(AlertType.ERROR);
-//			a.setHeaderText("File could not be opened");
-//			a.setContentText("");
-//			a.setTitle("Error");
-//			a.show();
-//		}
-//		a.setAlertType(AlertType.INFORMATION);
-//		a.setHeaderText("This feature is not yet available");
-//		a.setContentText("Adding images to diagrams will be available in a future release");
-//		a.setTitle("Feature not yet available");
-//		a.show();
+	void makeDummyItem() {
 		String[] words = {"foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo", "flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob"};
 		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), words[(int)(Math.random() * words.length)]);
 //		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), "This is a very long string. Extremely long, in fact. It's a string that just keeps going, and going, and going! I hope it's not way too long to handle!");
@@ -1080,19 +1183,18 @@ public class Controller {
 		selectedItems.clear();
 	}
 	
-	@SuppressWarnings("unchecked")
 	@FXML
 	void dropItem(DragEvent event) {
 		String item = event.getDragboard().getString();
-		addItemToDiagram(event.getSceneX(), event.getSceneY(), item);
-		((ListView<String>) event.getGestureSource()).getItems().remove(item);
+		addItemToDiagram(event.getX(), event.getY(), item);
+		itemsList.getItems().remove(item);
 		event.setDropCompleted(true);
 		event.consume();
 	}
 	
 	void addItemToDiagram(double x, double y, String text) {
 		DraggableItem a = new DraggableItem(x, y, text);
-		pane.getChildren().add(a);
+		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
 	}
 
@@ -1123,6 +1225,10 @@ public class Controller {
 				settingsPane.setExpanded(false);
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
+				frameRect.setOnMouseReleased(mouseEvent -> {
+					frameRect.getScene().setCursor(Cursor.DEFAULT);
+					mouseEvent.consume();
+				});
 //				frameRect.getChildren().add(new javafx.scene.shape.Rectangle((int)(circleLeft.getBoundsInParent().getMinX()), (int)(circleLeft.getBoundsInParent().getMinY()), (int)(2*circleLeft.getRadius()), (int)(2*circleLeft.getRadius())));
 //				frameRect.getChildren().add(new javafx.scene.shape.Rectangle((int)(circleRight.getBoundsInParent().getMinX()), (int)(circleRight.getBoundsInParent().getMinY()), (int)(2*circleRight.getRadius()), (int)(2*circleRight.getRadius())));
 			}
@@ -1132,7 +1238,6 @@ public class Controller {
 			n.setFocusTraversable(false);
 		}
 		for (Node n : buttonGrid.getChildren()) {
-			if (n != addImageButton)
 			n.setFocusTraversable(false);
 		}
 		for (Node n : frameRect.getChildren()) {
