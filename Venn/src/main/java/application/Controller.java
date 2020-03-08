@@ -50,6 +50,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
@@ -475,9 +476,13 @@ public class Controller {
 	@FXML
 	void dragDroppedOnItemsList(DragEvent event) {
 		event.setDropCompleted(true);
-		event.consume();
+		event.consume(); 
+	
 	}
 
+//	private final Button undoBtn = new Button("Undo");
+//    private final Button redoBtn = new Button("Redo");
+    
 	/*
 	 * Old drag code is in this comment block, for future reference...
 	 * 
@@ -1189,7 +1194,10 @@ public class Controller {
 		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
 	}
-
+	
+	
+	
+	
 	// TODO:
 	// - Customize colors of dragged items
 	// - Categorize dragged items
