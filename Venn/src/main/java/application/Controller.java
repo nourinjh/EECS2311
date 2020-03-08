@@ -409,6 +409,19 @@ public class Controller {
 	}
 
 	@FXML
+	void Undo() {
+	
+		System.out.println("Undo");
+		
+	}
+	
+	
+	@FXML
+	void Redo() {
+		System.out.println("Redo");
+	}
+	
+	@FXML
 	void addItemToList() {
 		String newItem = addItemField.getText();
 		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
@@ -476,7 +489,8 @@ public class Controller {
 	@FXML
 	void dragDroppedOnItemsList(DragEvent event) {
 		event.setDropCompleted(true);
-		event.consume(); 
+		event.consume();
+		 
 	
 	}
 

@@ -129,7 +129,7 @@
 						</Button>
 					</children>
 				</GridPane>
-				<TitledPane fx:id="settingsPane" animated="false" expanded="false" onMouseClicked="#expandSettings" prefHeight="270.0" prefWidth="226.0" style="-fx-text-fill: black;" text="Settings">
+				<TitledPane fx:id="settingsPane" animated="false" expanded="false" onMouseClicked="#expandSettings" prefHeight="270.0" prefWidth="398.0" style="-fx-text-fill: black;" text="Settings">
 					<content>
 						<ScrollPane fitToHeight="true" fitToWidth="true">
 							<content>
@@ -397,8 +397,8 @@
 					<items>
 						<MenuItem mnemonicParsing="false" onAction="#deleteItem" onMenuValidation="#deleteItem" text="Delete Item" />
 						<MenuItem mnemonicParsing="false" onAction="#clearDiagram" onMenuValidation="#clearDiagram" text="Clear Venn Diagram" />
-						<MenuItem mnemonicParsing="false" onAction="#undo" text="Undo" />
-						<MenuItem mnemonicParsing="false" onAction="#redo" text="Redo" />
+						<MenuItem mnemonicParsing="false" onAction="#Undo" onMenuValidation="#Undo" text="Undo" />
+						<MenuItem mnemonicParsing="false" onAction="#Redo" onMenuValidation="#Redo" text="Redo" />
 					</items>
 				</Menu>
 				<Menu mnemonicParsing="false" text="Help">
