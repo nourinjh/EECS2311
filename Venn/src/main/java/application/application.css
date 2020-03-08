@@ -12,7 +12,7 @@
 
 .button {
 	-fx-text-fill: black;
-	-fx-opacity: 1;
+	-fx-opacity: 1.0;
 }
 
 .button:disabled {
