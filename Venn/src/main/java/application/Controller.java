@@ -1189,17 +1189,6 @@ public class Controller {
 	}
 
 	@FXML
-	void expandSettings() {
-		if (settingsPane.isExpanded() && !settingsIsOpen) {
-			settingsIsOpen = true;
-			floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
-		} else if (!settingsPane.isExpanded()) {
-			settingsIsOpen = false;
-			floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
-		}
-	}
-
-	@FXML
 	void removeFocusEnter(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			removeFocus();
@@ -1263,6 +1252,13 @@ public class Controller {
 //					menuBar.useSystemMenuBarProperty().set(true);
 				doTheNew();
 				settingsPane.setExpanded(false);
+				settingsPane.expandedProperty().addListener(listener -> {
+					if (settingsPane.expandedProperty().getValue().equals(true)) {
+						floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
+					} else {
+						floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
+					}
+				});
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
 				frameRect.setOnMouseReleased(mouseEvent -> {
