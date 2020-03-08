@@ -50,6 +50,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
@@ -77,14 +78,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class Controller {
 
-	private static final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
-	private static final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
-	private static final double DEFAULT_CIRCLE_OPACTIY = 0.6;
-	private static boolean settingsIsOpen = false;
-	private static boolean multiSelect = false;
+	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
+	private final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
+	private final double DEFAULT_CIRCLE_OPACTIY = 0.6;
+	private boolean settingsIsOpen = false;
+	private boolean multiSelect = false;
 
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
@@ -214,6 +216,8 @@ public class Controller {
 			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
 			requestFocus();
 			circle = InCircle.NONE;
+			this.text.setMaxWidth(85);
+			this.text.setWrapText(true);
 
 			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				if (!hasFocus.booleanValue() && getParent() != null && getParent() instanceof Pane
@@ -230,6 +234,17 @@ public class Controller {
 							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
 						}
 						selectedItems.clear();
+					}
+					if (hasFocus.booleanValue()) {
+						if (!multiSelect) {
+							for (DraggableItem d : selectedItems) {
+								d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+										new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+							}
+							selectedItems.clear();
+						}
+						selectedItems.add(this);
+						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
 					}
 				} catch (Exception e) {
 					removeFocus();
@@ -312,14 +327,6 @@ public class Controller {
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
 				requestFocus();
-				if (!multiSelect) {
-					for (DraggableItem d : selectedItems) {
-						d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
-					}
-					selectedItems.clear();
-				}
-				selectedItems.add(this);
-				setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
 				mouseEvent.consume();
 			});
 			setOnMouseReleased(mouseEvent -> {
@@ -594,10 +601,10 @@ public class Controller {
 
 			Bounds bounds = frameRect.getBoundsInLocal();// pane.getBoundsInLocal();
 			Bounds screenBounds = frameRect.localToScreen(bounds);// pane.localToScreen(bounds);
-			int x = (int) screenBounds.getMinX();
-			int y = (int) screenBounds.getMinY();
-			int width = (int) screenBounds.getWidth();
-			int height = (int) screenBounds.getHeight();
+			int x = (int) screenBounds.getMinX() - 15;
+			int y = (int) screenBounds.getMinY() - 15;
+			int width = (int) screenBounds.getWidth() + 30;
+			int height = (int) screenBounds.getHeight() + 30;
 			Rectangle screenRect = new Rectangle(x, y, width, height);
 			BufferedImage capture = new Robot().createScreenCapture(screenRect);
 			ImageIO.write(capture, "png", selectedFile);
@@ -792,96 +799,92 @@ public class Controller {
 			FileChooser fc = new FileChooser();
 			List<String> extensions = new ArrayList<String>();
 			extensions.add("*.venn");
-			extensions.add("*.csv");
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn and CSV files (*.venn, *.csv)", extensions));
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
-			// TODO: Separate into an "Import CSV" function and an "Open" function
-			if (file.getName().substring(file.getName().length() - 4).toLowerCase().equals(".csv")) {
-				itemsList.getItems().addAll(importCSV(file));
-			} else if (file.getName().substring(file.getName().length() - 5).toLowerCase().equals(".venn")) {
-				String line, title, leftTitle, rightTitle, elements[];
-				Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, bothTextColor;
-				double leftScale, rightScale;
-				ObservableList<String> unassignedItems = FXCollections.observableArrayList();
-				ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
-				ZipFile vennFile = new ZipFile(file);
-				
-				// Config
-				ZipEntry ze = vennFile.getEntry("Config.vlist");
-				BufferedReader br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
-				
-				elements = br.readLine().split("𔓱");
-				title = elements[0];
-				titleColor = Color.web(elements[1]);
-				bgColor = Color.web(elements[2]);
-				bothTextColor = Color.web(elements[3]);
-				
-				elements = br.readLine().split("𔓱");
-				leftTitle = elements[0];
-				leftColor = Color.web(elements[1]);
-				leftScale = Double.parseDouble(elements[2]);
-				leftTextColor = Color.web(elements[3]);
-				
-				elements = br.readLine().split("𔓱");
-				rightTitle = elements[0];
-				rightColor = Color.web(elements[1]);
-				rightScale = Double.parseDouble(elements[2]);
-				rightTextColor = Color.web(elements[3]);
-				br.close();
-				
-				// Unassigned
-				ze = vennFile.getEntry("Unassigned.csv");
-				br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					if (line.contains(",")) {
-						line = line.substring(1, line.length()-1);
-					}
-					unassignedItems.add(line);
-				}
-				br.close();				
+			String line, title, leftTitle, rightTitle, elements[];
+			Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, bothTextColor;
+			double leftScale, rightScale;
+			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
+			ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
+			ZipFile vennFile = new ZipFile(file);
 
-				// InDiagram
-				ze = vennFile.getEntry("InDiagram.vlist");
-				br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					elements = line.split("𔓱");
-					DraggableItem a = new DraggableItem(Double.parseDouble(elements[2]), Double.parseDouble(elements[3]), elements[0]);
-					a.setColor(Color.web(elements[1]));
-					a.setDescription(elements[4]);
-					inDiagram.add(a);
+			// Config
+			ZipEntry ze = vennFile.getEntry("Config.vlist");
+			BufferedReader br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+
+			elements = br.readLine().split("𔓱");
+			title = elements[0];
+			titleColor = Color.web(elements[1]);
+			bgColor = Color.web(elements[2]);
+			bothTextColor = Color.web(elements[3]);
+
+			elements = br.readLine().split("𔓱");
+			leftTitle = elements[0];
+			leftColor = Color.web(elements[1]);
+			leftScale = Double.parseDouble(elements[2]);
+			leftTextColor = Color.web(elements[3]);
+
+			elements = br.readLine().split("𔓱");
+			rightTitle = elements[0];
+			rightColor = Color.web(elements[1]);
+			rightScale = Double.parseDouble(elements[2]);
+			rightTextColor = Color.web(elements[3]);
+			br.close();
+
+			// Unassigned
+			ze = vennFile.getEntry("Unassigned.csv");
+			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+			while ((line = br.readLine()) != null) {
+				if (line.contains(",")) {
+					line = line.substring(1, line.length() - 1);
 				}
-				br.close();
-								
-				this.title.setText(title);
-				this.circleLeftTitle.setText(leftTitle);
-				this.circleRightTitle.setText(rightTitle);
-				this.colorBackground.setValue(bgColor);
-				this.changeColorBackground();
-				this.colorLeft.setValue(leftColor);
-				this.changeColorLeft();
-				this.colorRight.setValue(rightColor);
-				this.changeColorRight();
-				this.colorTitles.setValue(titleColor);
-				this.changeColorTitles();
-				this.leftSizeSlider.setValue(leftScale*100);
-				this.changeSizeLeft();
-				this.rightSizeSlider.setValue(rightScale*100);
-				this.changeSizeRight();
-				this.itemsList.getItems().clear();
-				this.itemsList.getItems().addAll(unassignedItems);
-				this.frameRect.getChildren().removeAll(this.itemsInDiagram);
-				this.frameRect.getChildren().addAll(inDiagram);
-				this.itemsInDiagram.clear();
-				this.itemsInDiagram.addAll(inDiagram);
-				this.colorLeftItems.setValue(leftTextColor);
-				this.colorRightItems.setValue(rightTextColor);
-				this.colorBothItems.setValue(bothTextColor);
-				this.changeColorItems();
-				
-				openFile = file;
-				// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-				Main.setWindowTitle(openFile.getName());
+				unassignedItems.add(line);
 			}
+			br.close();
+
+			// InDiagram
+			ze = vennFile.getEntry("InDiagram.vlist");
+			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+			while ((line = br.readLine()) != null) {
+				elements = line.split("𔓱");
+				DraggableItem a = new DraggableItem(Double.parseDouble(elements[2]), Double.parseDouble(elements[3]),
+						elements[0]);
+				a.setColor(Color.web(elements[1]));
+				a.setDescription(elements[4]);
+				inDiagram.add(a);
+			}
+			br.close();
+
+			this.title.setText(title);
+			this.circleLeftTitle.setText(leftTitle);
+			this.circleRightTitle.setText(rightTitle);
+			this.colorBackground.setValue(bgColor);
+			this.changeColorBackground();
+			this.colorLeft.setValue(leftColor);
+			this.changeColorLeft();
+			this.colorRight.setValue(rightColor);
+			this.changeColorRight();
+			this.colorTitles.setValue(titleColor);
+			this.changeColorTitles();
+			this.leftSizeSlider.setValue(leftScale * 100);
+			this.changeSizeLeft();
+			this.rightSizeSlider.setValue(rightScale * 100);
+			this.changeSizeRight();
+			this.itemsList.getItems().clear();
+			this.itemsList.getItems().addAll(unassignedItems);
+			this.frameRect.getChildren().removeAll(this.itemsInDiagram);
+			this.frameRect.getChildren().addAll(inDiagram);
+			this.itemsInDiagram.clear();
+			this.itemsInDiagram.addAll(inDiagram);
+			this.colorLeftItems.setValue(leftTextColor);
+			this.colorRightItems.setValue(rightTextColor);
+			this.colorBothItems.setValue(bothTextColor);
+			this.changeColorItems();
+
+			openFile = file;
+			// FIXME: Crashes the JUnit tests because they don't have a title bar on the
+			// window to change
+			Main.setWindowTitle(openFile.getName());
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -1049,19 +1052,13 @@ public class Controller {
 
 	@FXML
 	void changeColorTitles() {
-		title.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";\n-fx-text-fill: #"
+		title.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
-		circleLeftTitle.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";\n-fx-text-fill: #"
+		circleLeftTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
-		circleRightTitle.setStyle("-fx-background-color: #"
-				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";\n-fx-text-fill: #"
+		circleRightTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";");
 	}
@@ -1079,13 +1076,13 @@ public class Controller {
 			double size;
 			try {
 				size = Double.parseDouble(leftSizeField.getText());
-				if (size < 25) {
-					size = 25;
-					leftSizeField.setText("25");
+				if (size < 50) {
+					size = 50;
+					leftSizeField.setText("50");
 				}
-				if (size > 250) {
-					size = 250;
-					leftSizeField.setText("250");
+				if (size > 120) {
+					size = 120;
+					leftSizeField.setText("120");
 				}
 				circleLeft.setScaleX(size / 100.0);
 				circleLeft.setScaleY(size / 100.0);
@@ -1109,13 +1106,13 @@ public class Controller {
 			double size;
 			try {
 				size = Double.parseDouble(rightSizeField.getText());
-				if (size < 25) {
-					size = 25;
-					rightSizeField.setText("25");
+				if (size < 50) {
+					size = 50;
+					rightSizeField.setText("50");
 				}
-				if (size > 250) {
-					size = 250;
-					rightSizeField.setText("250");
+				if (size > 120) {
+					size = 120;
+					rightSizeField.setText("120");
 				}
 				circleRight.setScaleX(size / 100.0);
 				circleRight.setScaleY(size / 100.0);
@@ -1134,12 +1131,22 @@ public class Controller {
 			extensions.add("*.png");
 			extensions.add("*.jpg");
 			extensions.add("*.jpeg");
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv"));
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions));
-			// Set up as combobox
-//			fc.setSelectedExtensionFilter(filter);
+			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
+			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions);
+			fc.getExtensionFilters().add(csvFilter);
+			fc.getExtensionFilters().add(imgFilter);
+			// Set up as combobox -> fc.setSelectedExtensionFilter(filter);
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
-			System.out.println(file.getAbsolutePath());
+			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
+				itemsList.getItems().addAll(importCSV(file));
+			} else {
+				System.out.println("Image: " + file.getAbsolutePath());
+				a.setAlertType(AlertType.INFORMATION);
+				a.setHeaderText("Feature coming soon");
+				a.setContentText("Adding images is not yet available. This feature will be coming in a future release.");
+				a.setTitle("Feature not available");
+				a.show();
+			}
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -1153,9 +1160,9 @@ public class Controller {
 
 	@FXML
 	void makeDummyItem() {
-		String[] words = {"foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo", "flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob"};
+		removeFocus();
+		String[] words = {"foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo", "flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob", "supercalifragilisticexpialidocious", "This is a very long string. Extremely long, in fact. This is to test how it handles long strings!"};
 		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), words[(int)(Math.random() * words.length)]);
-//		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), "This is a very long string. Extremely long, in fact. It's a string that just keeps going, and going, and going! I hope it's not way too long to handle!");
 	}
 
 	@FXML
@@ -1196,6 +1203,16 @@ public class Controller {
 		DraggableItem a = new DraggableItem(x, y, text);
 		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
+	}
+	
+	@FXML
+	void selectAll() {
+		for (DraggableItem d : itemsInDiagram) {
+			multiSelect = true;
+			d.requestFocus();
+			selectedItems.add(d);
+		}
+		multiSelect = false;
 	}
 
 	// TODO:
@@ -1253,6 +1270,7 @@ public class Controller {
 		rightSizeSlider.setFocusTraversable(false);
 		leftSizeField.setFocusTraversable(false);
 		rightSizeField.setFocusTraversable(false);
+		itemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		
 		itemsList.setFocusTraversable(true);
 		pane.setFocusTraversable(true);

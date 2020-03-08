@@ -35,7 +35,7 @@
       		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
       		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
       
-            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
       
                <font>
                   <Font name="Arial" size="32.0" />
@@ -44,12 +44,12 @@
                   <Cursor fx:constant="TEXT" />
                </cursor>
             </TextField>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="142.0" layoutY="120.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
             </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="442.0" layoutY="120.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -141,13 +141,13 @@
                               </Label>
                               <Label text="Background Colour">
                                  <padding>
-                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                    <Insets left="10.0" right="10.0" top="5.0" />
                                  </padding>
                                  <font>
                                     <Font size="11.0" />
                                  </font>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" left="10.0" />
+                                    <Insets left="10.0" />
                                  </VBox.margin>
                               </Label>
                               <ColorPicker fx:id="colorBackground" minHeight="-Infinity" onAction="#changeColorBackground" promptText="Background Colour">
@@ -157,13 +157,13 @@
                               </ColorPicker>
                               <Label text="Title Text Colour">
                                  <padding>
-                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                    <Insets left="10.0" right="10.0" top="5.0" />
                                  </padding>
                                  <font>
                                     <Font size="11.0" />
                                  </font>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" left="10.0" />
+                                    <Insets left="10.0" />
                                  </VBox.margin>
                               </Label>
                               <ColorPicker fx:id="colorTitles" minHeight="-Infinity" onAction="#changeColorTitles" promptText="Title Text Colour">
@@ -229,7 +229,7 @@
                               </Label>
                               <HBox>
                                  <children>
-                                    <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="250.0" min="25.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" snapToTicks="true" value="100.0">
+                                    <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" snapToTicks="true" value="100.0">
                                        <padding>
                                           <Insets left="10.0" right="10.0" />
                                        </padding>
@@ -305,7 +305,7 @@
                               </Label>
                               <HBox>
                                  <children>
-                                    <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="250.0" min="25.0" minorTickCount="1" onMouseDragged="#changeSizeRight" snapToTicks="true" value="100.0">
+                                    <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeRight" snapToTicks="true" value="100.0">
                                        <padding>
                                           <Insets left="10.0" right="10.0" />
                                        </padding>
@@ -367,23 +367,23 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#newDiagram" onMenuValidation="#newDiagram" text="New">
+                  <MenuItem mnemonicParsing="false" onMenuValidation="#newDiagram" text="New">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="N" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem mnemonicParsing="false" onAction="#loadFromFile" onMenuValidation="#loadFromFile" text="Open...">
+              <MenuItem mnemonicParsing="false" onMenuValidation="#loadFromFile" text="Open...">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onAction="#save" onMenuValidation="#save" text="Save">
+                  <MenuItem mnemonicParsing="false" onMenuValidation="#save" text="Save">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#saveAs" onMenuValidation="#saveAs" text="Save As...">
+                  <MenuItem mnemonicParsing="false" onMenuValidation="#saveAs" text="Save As...">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
                      </accelerator>
@@ -394,7 +394,15 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#deleteItem" onMenuValidation="#deleteItem" text="Delete Item" />
+                  <MenuItem mnemonicParsing="false" text="Undo" />
+                  <MenuItem mnemonicParsing="false" text="Redo" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" onMenuValidation="#selectAll" text="Select All">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="A" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+              <MenuItem mnemonicParsing="false" onAction="#deleteItem" onMenuValidation="#deleteItem" text="Delete Selected Item(s)" />
                   <MenuItem mnemonicParsing="false" onAction="#clearDiagram" onMenuValidation="#clearDiagram" text="Clear Venn Diagram" />
             </items>
           </Menu>
@@ -405,7 +413,7 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Button fx:id="makeDummyItemButton" blendMode="SCREEN" layoutX="92.0" layoutY="148.0" mnemonicParsing="false" onAction="#makeDummyItem" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" style="-fx-background-color: RED;" text="DEBUG ITEM">
+      <Button fx:id="makeDummyItemButton" blendMode="SCREEN" layoutX="739.0" layoutY="735.0" mnemonicParsing="false" onAction="#makeDummyItem" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="112.0" style="-fx-background-color: RED;" text="DEBUG ITEM">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
