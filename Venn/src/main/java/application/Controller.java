@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -211,8 +212,9 @@ public class Controller {
 			text.setTextFill(Color.WHITE);
 
 			setPadding(new Insets(10));
-			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
-      requestFocus();
+			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
+					new BorderWidths(5), new Insets(2))));
+			requestFocus();
 			circle = InCircle.NONE;
 			this.text.setMaxWidth(85);
 			this.text.setWrapText(true);
@@ -229,7 +231,8 @@ public class Controller {
 					if (!hasFocus.booleanValue()
 							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
 						for (DraggableItem d : selectedItems) {
-							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));						
+							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+									new CornerRadii(1), new BorderWidths(5), new Insets(2))));
 
 						}
 						selectedItems.clear();
@@ -243,7 +246,8 @@ public class Controller {
 							selectedItems.clear();
 						}
 						selectedItems.add(this);
-						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
+						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
+								new CornerRadii(1), new BorderWidths(5), new Insets(2))));
 					}
 				} catch (Exception e) {
 					removeFocus();
@@ -256,7 +260,6 @@ public class Controller {
 //			this.translateYProperty().addListener((observable, oldValue, newValue) -> {
 //				setLayoutY((double)oldValue + (double)newValue);
 //			});
-			
 
 			this.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
@@ -348,7 +351,10 @@ public class Controller {
 				setLayoutX(newX);
 				setLayoutY(newY);
 
-				if ((newX > circleLeft.getBoundsInParent().getMinX() - (getWidth()/2) && newX < circleRight.getBoundsInParent().getMaxX() - (getWidth()/2)) && (newY > circleLeft.getBoundsInParent().getMinY() - (getHeight()/2) && newY < circleRight.getBoundsInParent().getMaxY() - (getHeight()/2))) {
+				if ((newX > circleLeft.getBoundsInParent().getMinX() - (getWidth() / 2)
+						&& newX < circleRight.getBoundsInParent().getMaxX() - (getWidth() / 2))
+						&& (newY > circleLeft.getBoundsInParent().getMinY() - (getHeight() / 2)
+								&& newY < circleRight.getBoundsInParent().getMaxY() - (getHeight() / 2))) {
 					this.setBackground(null);
 
 					this.text.setTextFill(this.color);
@@ -360,7 +366,8 @@ public class Controller {
 					});
 				} else {
 
-					this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+					this.setBackground(
+							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 
 					this.text.setTextFill(Color.WHITE);
 					getScene().setCursor(Cursor.DISAPPEAR);
@@ -422,19 +429,59 @@ public class Controller {
 		}
 	}
 
-	@FXML
-	void Undo() {
-	
-		System.out.println("Undo");
-		
+	public class Stack {
+		static final int MAX = 1000;
+		int top;
+		int a[] = new int[MAX]; // Maximum size of Stack
+
+		boolean isEmpty() {
+			return (top < 0);
+		}
+
+		Stack() 
+	    { 
+	        top = -1; 
+	    }
+
+		boolean push(int x) {
+			if (top >= (MAX - 1)) {
+				System.out.println("Stack Overflow");
+				return false;
+			} else {
+				a[++top] = x;
+				System.out.println(x + " pushed into stack");
+				return true;
+			}
+		}
+
+		int pop() {
+			if (top < 0) {
+				System.out.println("Stack Underflow");
+				return 0;
+			} else {
+				int x = a[top--];
+				return x;
+			}
+		}
 	}
 	
+	Stack undoStack = new Stack();
+	Stack redoStack = new Stack();
 	
+
+	@FXML
+	void Undo() {
+		
+		
+		System.out.println("Undo");
+
+	}
+
 	@FXML
 	void Redo() {
 		System.out.println("Redo");
 	}
-	
+
 	@FXML
 	void addItemToList() {
 		String newItem = addItemField.getText();
@@ -448,6 +495,7 @@ public class Controller {
 	void addItemWithEnter(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			addItemToList();
+			
 		}
 	}
 
@@ -515,8 +563,8 @@ public class Controller {
 	void dragDroppedOnItemsList(DragEvent event) {
 		event.setDropCompleted(true);
 		event.consume();
-		 
-	
+		
+	}
 
 	@FXML
 	void takeScreenshot() {
@@ -913,7 +961,8 @@ public class Controller {
 		changeColorItems();
 
 		openFile = null;
-		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+		// FIXME: Crashes the JUnit tests because they don't have a title bar on the
+		// window to change
 
 		Main.setWindowTitle();
 	}
@@ -967,14 +1016,11 @@ public class Controller {
 	@FXML
 	void changeColorTitles() {
 		title.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleLeftTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleRightTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 	}
 
 	@FXML
@@ -1059,7 +1105,8 @@ public class Controller {
 				System.out.println("Image: " + file.getAbsolutePath());
 				a.setAlertType(AlertType.INFORMATION);
 				a.setHeaderText("Feature coming soon");
-				a.setContentText("Adding images is not yet available. This feature will be coming in a future release.");
+				a.setContentText(
+						"Adding images is not yet available. This feature will be coming in a future release.");
 				a.setTitle("Feature not available");
 				a.show();
 			}
@@ -1078,8 +1125,13 @@ public class Controller {
 	void makeDummyItem() {
 
 		removeFocus();
-		String[] words = {"foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo", "flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob", "supercalifragilisticexpialidocious", "This is a very long string. Extremely long, in fact. This is to test how it handles long strings!"};
-		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), words[(int)(Math.random() * words.length)]);
+		String[] words = { "foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo",
+				"flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob",
+				"supercalifragilisticexpialidocious",
+				"This is a very long string. Extremely long, in fact. This is to test how it handles long strings!" };
+		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20,
+				circleLeftTitle.getLayoutY() + 5 * circleLeftTitle.getHeight(),
+				words[(int) (Math.random() * words.length)]);
 
 	}
 
@@ -1111,7 +1163,6 @@ public class Controller {
 		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
 	}
-	
 
 	@FXML
 	void selectAll() {
@@ -1122,7 +1173,6 @@ public class Controller {
 		}
 		multiSelect = false;
 	}
-
 
 	// This method is called by the FXMLLoader when initialization is complete
 	@FXML
