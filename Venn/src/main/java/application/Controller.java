@@ -21,8 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +83,6 @@ public class Controller {
 	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
 	private final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
 	private final double DEFAULT_CIRCLE_OPACTIY = 0.6;
-	private boolean settingsIsOpen = false;
 	private boolean multiSelect = false;
 
 	@FXML
@@ -496,99 +493,6 @@ public class Controller {
 		event.consume();
 	}
 	
-/*
-	Old drag code is in this comment block, for future reference...
-	@FXML
-	void dragFromCircleRightItemsList() {
-		Dragboard dragBoard = circleRightItemsList.startDragAndDrop(TransferMode.ANY);
-		ClipboardContent content = new ClipboardContent();
-		content.putString(circleRightItemsList.getSelectionModel().getSelectedItem());
-		dragBoard.setContent(content);
-	}
-
-	@FXML
-	void dragOntoCircleRightItemsList() {
-		circleRightItemsList.setBlendMode(BlendMode.DIFFERENCE);
-	}
-
-	@FXML
-	void dragExitedCircleRightItemsList() {
-		circleRightItemsList.setBlendMode(null);
-	}
-
-	@SuppressWarnings("unchecked")
-	@FXML
-	void dragDroppedOnCircleRightItemsList(DragEvent event) {
-		String item = event.getDragboard().getString();
-		if (!circleRightItemsList.getItems().contains(item)) {
-			circleRightItemsList.getItems().add(item);
-			((ListView<String>) event.getGestureSource()).getItems().remove(item);
-		}
-		event.setDropCompleted(true);
-		event.consume();
-	}
-
-	@FXML
-	void dragFromCircleLeftItemsList() {
-		Dragboard dragBoard = circleLeftItemsList.startDragAndDrop(TransferMode.ANY);
-		ClipboardContent content = new ClipboardContent();
-		content.putString(circleLeftItemsList.getSelectionModel().getSelectedItem());
-		dragBoard.setContent(content);
-	}
-
-	@FXML
-	void dragOntoCircleLeftItemsList() {
-		circleLeftItemsList.setBlendMode(BlendMode.DIFFERENCE);
-	}
-
-	@FXML
-	void dragExitedCircleLeftItemsList() {
-		circleLeftItemsList.setBlendMode(null);
-	}
-
-	@SuppressWarnings("unchecked")
-	@FXML
-	void dragDroppedOnCircleLeftItemsList(DragEvent event) {
-		String item = event.getDragboard().getString();
-		if (!circleLeftItemsList.getItems().contains(item)) {
-			circleLeftItemsList.getItems().add(item);
-			((ListView<String>) event.getGestureSource()).getItems().remove(item);
-		}
-		event.setDropCompleted(true);
-		event.consume();
-	}
-
-	@FXML
-	void dragFromBothItemsList() {
-		Dragboard dragBoard = bothItemsList.startDragAndDrop(TransferMode.ANY);
-		ClipboardContent content = new ClipboardContent();
-		content.putString(bothItemsList.getSelectionModel().getSelectedItem());
-		dragBoard.setContent(content);
-	}
-
-	@FXML
-	void dragOntoBothItemsList() {
-		bothItemsList.setBlendMode(BlendMode.DIFFERENCE);
-	}
-
-	@FXML
-	void dragExitedBothItemsList() {
-		bothItemsList.setBlendMode(null);
-	}
-
-	@SuppressWarnings("unchecked")
-	@FXML
-	void dragDroppedOnBothItemsList(DragEvent event) {
-		String item = event.getDragboard().getString();
-		if (!bothItemsList.getItems().contains(item)) {
-			bothItemsList.getItems().add(item);
-			((ListView<String>) event.getGestureSource()).getItems().remove(item);
-		}
-		event.setDropCompleted(true);
-		event.consume();
-	}
- */
-
 	@FXML
 	void takeScreenshot() {
 		removeFocus();
@@ -875,6 +779,7 @@ public class Controller {
 				inDiagram.add(a);
 			}
 			br.close();
+			vennFile.close();
 
 			this.title.setText(title);
 			this.circleLeftTitle.setText(leftTitle);
@@ -917,59 +822,7 @@ public class Controller {
 			a.show();
 		}
 	}
-	/* Old loading code, for future reference...
-				String content = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
-				List<String> elements = new ArrayList<String>();
-				for (String s : content.split("𔓱𔓱")) {
-					elements.add(s);
-				}
-				
-				title.setText(elements.get(0));
-				circleLeftTitle.setText(elements.get(1));
-				circleLeft.setFill(Color.web(elements.get(2)));
-				colorLeft.setValue(Color.web(elements.get(2)));
-				circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-				circleRightTitle.setText(elements.get(3));
-				circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-				circleRight.setFill(Color.web(elements.get(4)));
-				colorRight.setValue(Color.web(elements.get(4)));
-				itemsList.getItems().clear();
-				for (String s : elements.get(5).split("𔓱")) {
-					if (!s.equals(""))
-						itemsList.getItems().add(s);
-				}
-				circleLeftItemsList.getItems().clear();
-				for (String s : elements.get(6).split("𔓱")) {
-					if (!s.equals(""))
-						circleLeftItemsList.getItems().add(s);
-				}
-				bothItemsList.getItems().clear();
-				for (String s : elements.get(7).split("𔓱")) {
-					if (!s.equals(""))
-						bothItemsList.getItems().add(s);
-				}
-				circleRightItemsList.getItems().clear();
-				for (String s : elements.get(8).split("𔓱")) {
-					if (!s.equals(""))
-						circleRightItemsList.getItems().add(s);
-				}
-				
-				circleLeft.setScaleX(Double.parseDouble(elements.get(9)));
-				circleLeft.setScaleY(Double.parseDouble(elements.get(9)));
-				leftSizeSlider.setValue(100*Double.parseDouble(elements.get(9)));
-				leftSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(9))));
-				circleRight.setScaleX(Double.parseDouble(elements.get(10)));
-				circleRight.setScaleY(Double.parseDouble(elements.get(10)));
-				rightSizeSlider.setValue(100*Double.parseDouble(elements.get(10)));
-				rightSizeField.setText(String.format("%.0f", 100*Double.parseDouble(elements.get(10))));
 	
-				colorBackground.setValue(Color.web(elements.get(11)));
-				colorTitles.setValue(Color.web(elements.get(12)));
-				changeColorBackground();
-				// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-				Main.setWindowTitle(openFile.getName());
-	 */
-
 	@FXML
 	void loadFromFile() {
 		a.setAlertType(AlertType.CONFIRMATION);
@@ -1019,11 +872,8 @@ public class Controller {
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorBothItems.setValue(Color.web(DEFAULT_BOTH_ITEM_COLOR));
 		changeColorItems();
-		
-		// Set default item colors, changeItemColors()
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-
 		Main.setWindowTitle();
 	}
 
@@ -1227,18 +1077,6 @@ public class Controller {
 		multiSelect = false;
 	}
 
-	// TODO:
-	// - Customize colors of dragged items
-	// - Categorize dragged items
-	// - Detail view for dragged items -> Tooltips?
-	// - Implement saving and loading dragged items
-	// - Enable CSV file imports -> Rethink entire loading and saving system -> .zip as .venn?
-	// - Add right click menus
-	// - Responsive design
-	// - Import an image
-	// - Add tooltips
-	// - Quick-action toolbar with icon buttons
-
 	// This method is called by the FXMLLoader when initialization is complete
 	@FXML
 	void initialize() {
@@ -1265,8 +1103,6 @@ public class Controller {
 					frameRect.getScene().setCursor(Cursor.DEFAULT);
 					mouseEvent.consume();
 				});
-//				frameRect.getChildren().add(new javafx.scene.shape.Rectangle((int)(circleLeft.getBoundsInParent().getMinX()), (int)(circleLeft.getBoundsInParent().getMinY()), (int)(2*circleLeft.getRadius()), (int)(2*circleLeft.getRadius())));
-//				frameRect.getChildren().add(new javafx.scene.shape.Rectangle((int)(circleRight.getBoundsInParent().getMinX()), (int)(circleRight.getBoundsInParent().getMinY()), (int)(2*circleRight.getRadius()), (int)(2*circleRight.getRadius())));
 			}
 		});
 

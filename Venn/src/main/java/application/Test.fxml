@@ -416,7 +416,7 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Button fx:id="makeDummyItemButton" blendMode="SCREEN" layoutX="739.0" layoutY="735.0" mnemonicParsing="false" onAction="#makeDummyItem" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="112.0" style="-fx-background-color: RED;" text="DEBUG ITEM">
+      <Button fx:id="makeDummyItemButton" blendMode="SCREEN" disable="true" layoutX="739.0" layoutY="735.0" mnemonicParsing="false" onAction="#makeDummyItem" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="112.0" style="-fx-background-color: RED;" text="DEBUG ITEM" visible="false">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
