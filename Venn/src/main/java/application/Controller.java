@@ -15,6 +15,7 @@
 package application;
 
 import java.awt.Rectangle;
+
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -23,7 +24,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -40,14 +40,12 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.Slider;
@@ -746,10 +744,12 @@ public class Controller {
 			fc.setInitialFileName(name);
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+
 			if (!(selectedFile.getName().length() > 5 && selectedFile.getName().substring(selectedFile.getName().length() - 5).toLowerCase().equals(".venn"))) {
 				selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".venn"));
 			}
 			doTheSave(selectedFile);
+
 		} catch (Exception e) {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
@@ -788,6 +788,7 @@ public class Controller {
 		// ... InDiagram.vlist
 		// ..... (0) Item text, (1) item color, (2) item x, (3) item y, (4) item description
 		
+
 		try {
 			FileChooser fc = new FileChooser();
 			List<String> extensions = new ArrayList<String>();
@@ -795,6 +796,7 @@ public class Controller {
 			extensions.add("*.csv");
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn and CSV files (*.venn, *.csv)", extensions));
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
+
 			// TODO: Separate into an "Import CSV" function and an "Open" function
 			if (file.getName().substring(file.getName().length() - 4).toLowerCase().equals(".csv")) {
 				itemsList.getItems().addAll(importCSV(file));
@@ -882,6 +884,7 @@ public class Controller {
 				// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 				Main.setWindowTitle(openFile.getName());
 			}
+
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -988,6 +991,7 @@ public class Controller {
 		changeSizeLeft();
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
+
 		frameRect.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
@@ -998,6 +1002,7 @@ public class Controller {
 		// Set default item colors, changeItemColors()
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+
 		Main.setWindowTitle();
 	}
 
@@ -1052,18 +1057,15 @@ public class Controller {
 		title.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleLeftTitle.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 		circleRightTitle.setStyle("-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
 				+ ";\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2)
-				+ ";");
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
 	}
 
 	@FXML
@@ -1197,6 +1199,7 @@ public class Controller {
 		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
 	}
+	
 
 	// TODO:
 	// - Customize colors of dragged items
@@ -1253,10 +1256,10 @@ public class Controller {
 		rightSizeSlider.setFocusTraversable(false);
 		leftSizeField.setFocusTraversable(false);
 		rightSizeField.setFocusTraversable(false);
-		
+
 		itemsList.setFocusTraversable(true);
 		pane.setFocusTraversable(true);
-		
+
 		itemsList.setItems(items);
 	}
 }
