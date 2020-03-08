@@ -50,6 +50,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Slider;
+import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.effect.BlendMode;
@@ -998,6 +999,8 @@ public class Controller {
 	
 	@FXML
 	void importFile() {
+		// Set up as SplitMenuButton and split into different methods
+		// One for each import type, plus a generic catch-all (fc.setSelectedExtensionFilter(filter)?)
 		try {
 			FileChooser fc = new FileChooser();
 			List<String> extensions = new ArrayList<String>();
@@ -1005,18 +1008,28 @@ public class Controller {
 			extensions.add("*.jpg");
 			extensions.add("*.jpeg");
 			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
+			ExtensionFilter ansFilter = new ExtensionFilter("Answer key files (*.venn)", "*.venn");
 			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions);
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
-			// Set up as combobox -> fc.setSelectedExtensionFilter(filter);
+			fc.getExtensionFilters().add(ansFilter);
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
 			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
 				itemsList.getItems().addAll(importCSV(file));
-			} else {
+			} else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
 				System.out.println("Image: " + file.getAbsolutePath());
 				a.setAlertType(AlertType.INFORMATION);
 				a.setHeaderText("Feature coming soon");
 				a.setContentText("Adding images is not yet available. This feature will be coming in a future release.");
+				a.setTitle("Feature not available");
+				a.show();
+			} else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
+				// Compare current file to answers
+				// Change backgrounds of items to bright red or green for wrong or right
+				System.out.println("Answer file: " + file.getAbsolutePath());
+				a.setAlertType(AlertType.INFORMATION);
+				a.setHeaderText("Feature coming soon");
+				a.setContentText("Comparing answers is not yet available. This feature will be coming in a future release.");
 				a.setTitle("Feature not available");
 				a.show();
 			}
