@@ -213,7 +213,8 @@ public class Controller {
 			relocate(x - 5.0D, y - 5.0D);
 			getChildren().add(this.text);
 			text.setTextFill(Color.WHITE);
-			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+			setPadding(new Insets(10));
+			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
 			requestFocus();
 			circle = InCircle.NONE;
 			this.text.setMaxWidth(85);
@@ -225,13 +226,12 @@ public class Controller {
 					((Pane) getParent()).getChildren().remove(this);
 				}
 			});
-			
 		
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				try {
 					if (!hasFocus.booleanValue() && (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
 						for (DraggableItem d : selectedItems) {
-							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));						
+							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));						
 						}
 						selectedItems.clear();
 					}
@@ -239,17 +239,24 @@ public class Controller {
 						if (!multiSelect) {
 							for (DraggableItem d : selectedItems) {
 								d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
-										new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+										new CornerRadii(1), new BorderWidths(5), new Insets(2))));
 							}
 							selectedItems.clear();
 						}
 						selectedItems.add(this);
-						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2, 2, 2, 2))));
+						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
 					}
 				} catch (Exception e) {
 					removeFocus();
 				}
 			});
+			
+//			this.translateXProperty().addListener((observable, oldValue, newValue) -> {
+//				setLayoutX((double)oldValue + (double)newValue);
+//			});
+//			this.translateYProperty().addListener((observable, oldValue, newValue) -> {
+//				setLayoutY((double)oldValue + (double)newValue);
+//			});
 			
 			this.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
@@ -340,7 +347,7 @@ public class Controller {
 				setLayoutX(newX);
 				setLayoutY(newY);
 				if ((newX > circleLeft.getBoundsInParent().getMinX() - (getWidth()/2) && newX < circleRight.getBoundsInParent().getMaxX() - (getWidth()/2)) && (newY > circleLeft.getBoundsInParent().getMinY() - (getHeight()/2) && newY < circleRight.getBoundsInParent().getMaxY() - (getHeight()/2))) {
-					this.text.setBackground(null);
+					this.setBackground(null);
 					this.text.setTextFill(this.color);
 					getScene().setCursor(Cursor.CLOSED_HAND);
 					setOnMouseReleased(mouseEvent2 -> {
@@ -349,7 +356,7 @@ public class Controller {
 						mouseEvent.consume();
 					});
 				} else {
-					this.text.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(0))));
+					this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 					this.text.setTextFill(Color.WHITE);
 					getScene().setCursor(Cursor.DISAPPEAR);
 					setOnMouseReleased(mouseEvent2 -> {
@@ -429,6 +436,17 @@ public class Controller {
 		ClipboardContent content = new ClipboardContent();
 		content.putString(itemsList.getSelectionModel().getSelectedItem());
 		dragBoard.setContent(content);
+		Label tempLabel = new Label(dragBoard.getString());
+		pane.getChildren().add(tempLabel);
+		tempLabel.setLayoutX(35);
+		tempLabel.setLayoutY(35);
+		tempLabel.setMaxWidth(105);
+		tempLabel.setWrapText(true);
+		tempLabel.setPadding(new Insets(10));
+		tempLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(0), new Insets(0))));
+		tempLabel.setTextFill(Color.BLACK);
+		dragBoard.setDragView(tempLabel.snapshot(null, null));
+		pane.getChildren().remove(tempLabel);
 	}
 
 	@FXML
@@ -1171,17 +1189,6 @@ public class Controller {
 	}
 
 	@FXML
-	void expandSettings() {
-		if (settingsPane.isExpanded() && !settingsIsOpen) {
-			settingsIsOpen = true;
-			floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
-		} else if (!settingsPane.isExpanded()) {
-			settingsIsOpen = false;
-			floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
-		}
-	}
-
-	@FXML
 	void removeFocusEnter(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			removeFocus();
@@ -1245,6 +1252,13 @@ public class Controller {
 //					menuBar.useSystemMenuBarProperty().set(true);
 				doTheNew();
 				settingsPane.setExpanded(false);
+				settingsPane.expandedProperty().addListener(listener -> {
+					if (settingsPane.expandedProperty().getValue().equals(true)) {
+						floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
+					} else {
+						floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
+					}
+				});
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
 				frameRect.setOnMouseReleased(mouseEvent -> {

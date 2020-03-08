@@ -28,7 +28,6 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 
 	<children>
@@ -130,7 +129,7 @@
                   </Button>
                </children>
             </GridPane>
-            <TitledPane fx:id="settingsPane" animated="false" expanded="false" onMouseClicked="#expandSettings" prefHeight="270.0" prefWidth="226.0" style="-fx-text-fill: black;" text="Settings">
+            <TitledPane fx:id="settingsPane" animated="false" expanded="false" prefHeight="270.0" prefWidth="226.0" style="-fx-text-fill: black;" text="Settings">
                <content>
                   <ScrollPane fitToHeight="true" fitToWidth="true">
                      <content>
