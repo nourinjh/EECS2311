@@ -15,6 +15,7 @@
 package application;
 
 import java.awt.Rectangle;
+
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -23,7 +24,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -753,10 +753,12 @@ public class Controller {
 			fc.setInitialFileName(name);
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+
 			if (!(selectedFile.getName().length() > 5 && selectedFile.getName().substring(selectedFile.getName().length() - 5).toLowerCase().equals(".venn"))) {
 				selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".venn"));
 			}
 			doTheSave(selectedFile);
+
 		} catch (Exception e) {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
@@ -795,6 +797,7 @@ public class Controller {
 		// ... InDiagram.vlist
 		// ..... (0) Item text, (1) item color, (2) item x, (3) item y, (4) item description
 		
+
 		try {
 			FileChooser fc = new FileChooser();
 			List<String> extensions = new ArrayList<String>();
@@ -991,6 +994,7 @@ public class Controller {
 		changeSizeLeft();
 		rightSizeSlider.setValue(100);
 		changeSizeRight();
+
 		frameRect.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
@@ -1001,6 +1005,7 @@ public class Controller {
 		// Set default item colors, changeItemColors()
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+
 		Main.setWindowTitle();
 	}
 
@@ -1271,10 +1276,9 @@ public class Controller {
 		leftSizeField.setFocusTraversable(false);
 		rightSizeField.setFocusTraversable(false);
 		itemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		
 		itemsList.setFocusTraversable(true);
 		pane.setFocusTraversable(true);
-		
+
 		itemsList.setItems(items);
 	}
 }
