@@ -46,6 +46,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
@@ -480,6 +481,25 @@ public class Controller {
 	@FXML
 	void Redo() {
 		System.out.println("Redo");
+	}
+	
+	
+	//context menu stuff
+	@FXML
+	void circleRightMenu(){
+		
+		ContextMenu contextMenu = new ContextMenu();
+        MenuItem menuItem1 = new MenuItem("Choice 1");
+        MenuItem menuItem2 = new MenuItem("Choice 2");
+        MenuItem menuItem3 = new MenuItem("Choice 3");
+
+        menuItem3.setOnAction((event) -> {
+            System.out.println("Choice 3 clicked!");
+        });
+
+        contextMenu.getItems().addAll(menuItem1,menuItem2,menuItem3);
+        
+        addItemField.setContextMenu(contextMenu);
 	}
 
 	@FXML
