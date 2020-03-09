@@ -14,7 +14,7 @@ The purpose of this project is to create a program that will allow users to crea
 
 ## What Does It Do So Far?
 
-#### [View demo on YouTube here](https://youtu.be/eQxy9xiPg4E)
+#### [View demo on YouTube here](https://youtu.be/sIvjT9a0bqU)
 
 The program allows the user to: 
 * Add a title to the diagram
