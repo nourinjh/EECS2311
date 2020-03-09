@@ -28,14 +28,15 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#removeFocus" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
+
 	<children>
-      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" prefHeight="649.0" prefWidth="806.0">
+      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
          <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" onMouseClicked="#removeFocus" radius="229.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" onMouseClicked="#removeFocus" radius="230.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
       
-            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: #1d1d1d; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
       
                <font>
                   <Font name="Arial" size="32.0" />
@@ -44,27 +45,12 @@
                   <Cursor fx:constant="TEXT" />
                </cursor>
             </TextField>
-            <ListView fx:id="circleLeftItemsList" layoutX="111.0" layoutY="225.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleLeftItemsList" onDragDropped="#dragDroppedOnCircleLeftItemsList" onDragEntered="#dragOntoCircleLeftItemsList" onDragExited="#dragExitedCircleLeftItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-            </ListView>
-            <ListView fx:id="circleRightItemsList" layoutX="482.0" layoutY="226.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromCircleRightItemsList" onDragDropped="#dragDroppedOnCircleRightItemsList" onDragEntered="#dragOntoCircleRightItemsList" onDragExited="#dragExitedCircleRightItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="361.0" prefWidth="211.0" stylesheets="@application.css">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-            </ListView>
-            <ListView fx:id="bothItemsList" layoutX="346.0" layoutY="304.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDetected="#dragFromBothItemsList" onDragDropped="#dragDroppedOnBothItemsList" onDragEntered="#dragOntoBothItemsList" onDragExited="#dragExitedBothItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefHeight="203.0" prefWidth="114.0" stylesheets="@application.css">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-            </ListView>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="142.0" layoutY="120.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
             </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="442.0" layoutY="120.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: #1d1d1d;">
+            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -111,16 +97,6 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button fx:id="deleteButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Delete Item" GridPane.columnIndex="1">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </Button>
-                  <Button fx:id="clearButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Clear Diagram" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </Button>
             		<Button fx:id="screenshotButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#takeScreenshot" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Export to Image" textAlignment="CENTER" GridPane.rowIndex="1">
                      <cursor>
                         <Cursor fx:constant="HAND" />
@@ -131,19 +107,29 @@
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
-                  <Button fx:id="saveButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#saveToFile" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Save" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                  <Button fx:id="deleteButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Delete Item" GridPane.columnIndex="1">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
-                  <Button fx:id="addImageButton" blendMode="SCREEN" mnemonicParsing="false" onAction="#addImage" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Add Image">
+                  <Button fx:id="clearButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Clear Diagram" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+                  <Button fx:id="saveButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#save" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Save" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </Button>
+                  <Button fx:id="importButton" blendMode="SCREEN" mnemonicParsing="false" onMouseClicked="#importFile" prefHeight="27.0" prefWidth="240.0" stylesheets="@application.css" text="Import" textAlignment="CENTER">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>
                   </Button>
                </children>
             </GridPane>
-            <TitledPane fx:id="settingsPane" animated="false" expanded="false" onMouseClicked="#expandSettings" prefHeight="270.0" prefWidth="226.0" style="-fx-text-fill: black;" text="Settings">
+            <TitledPane fx:id="settingsPane" animated="false" expanded="false" prefHeight="270.0" prefWidth="226.0" style="-fx-text-fill: black;" text="Settings">
                <content>
                   <ScrollPane fitToHeight="true" fitToWidth="true">
                      <content>
@@ -156,32 +142,32 @@
                               </Label>
                               <Label text="Background Colour">
                                  <padding>
-                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                    <Insets left="10.0" right="10.0" top="5.0" />
                                  </padding>
                                  <font>
                                     <Font size="11.0" />
                                  </font>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" left="10.0" />
+                                    <Insets left="10.0" />
                                  </VBox.margin>
                               </Label>
-                              <ColorPicker fx:id="colorBackground" minHeight="-Infinity" onAction="#changeColourBackground" promptText="Background Colour">
+                              <ColorPicker fx:id="colorBackground" minHeight="-Infinity" onAction="#changeColorBackground" promptText="Background Colour">
                                  <VBox.margin>
                                     <Insets left="20.0" />
                                  </VBox.margin>
                               </ColorPicker>
                               <Label text="Title Text Colour">
                                  <padding>
-                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                    <Insets left="10.0" right="10.0" top="5.0" />
                                  </padding>
                                  <font>
                                     <Font size="11.0" />
                                  </font>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" left="10.0" />
+                                    <Insets left="10.0" />
                                  </VBox.margin>
                               </Label>
-                              <ColorPicker fx:id="colorTitles" minHeight="-Infinity" onAction="#changeColourTitles" promptText="Title Text Colour">
+                              <ColorPicker fx:id="colorTitles" minHeight="-Infinity" onAction="#changeColorTitles" promptText="Title Text Colour">
                                  <VBox.margin>
                                     <Insets left="20.0" />
                                  </VBox.margin>
@@ -210,7 +196,23 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorLeft" minHeight="-Infinity" onAction="#changeColourLeft" promptText="Colour">
+                              <ColorPicker fx:id="colorLeft" minHeight="-Infinity" onAction="#changeColorLeft" promptText="Colour">
+                                 <VBox.margin>
+                                    <Insets left="20.0" />
+                                 </VBox.margin>
+                              </ColorPicker>
+                              <Label layoutX="20.0" layoutY="229.0" text="Item Text Colour">
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" top="5.0" />
+                                 </padding>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
+                                 <VBox.margin>
+                                    <Insets left="10.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <ColorPicker fx:id="colorLeftItems" layoutX="30.0" layoutY="253.0" minHeight="-Infinity" onAction="#changeColorItems" promptText="Item Text Colour">
                                  <VBox.margin>
                                     <Insets left="20.0" />
                                  </VBox.margin>
@@ -228,7 +230,7 @@
                               </Label>
                               <HBox>
                                  <children>
-                                    <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="250.0" min="25.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" snapToTicks="true" value="100.0">
+                                    <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" snapToTicks="true" value="100.0">
                                        <padding>
                                           <Insets left="10.0" right="10.0" />
                                        </padding>
@@ -270,7 +272,23 @@
                                     <Insets left="10.0" />
                                  </VBox.margin>
                               </Label>
-                              <ColorPicker fx:id="colorRight" minHeight="-Infinity" onAction="#changeColourRight" promptText="Colour">
+                              <ColorPicker fx:id="colorRight" minHeight="-Infinity" onAction="#changeColorRight" promptText="Colour">
+                                 <VBox.margin>
+                                    <Insets left="20.0" />
+                                 </VBox.margin>
+                              </ColorPicker>
+                              <Label layoutX="20.0" layoutY="285.0" text="Item Text Colour">
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" top="5.0" />
+                                 </padding>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
+                                 <VBox.margin>
+                                    <Insets left="10.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <ColorPicker fx:id="colorRightItems" layoutX="30.0" layoutY="309.0" minHeight="-Infinity" onAction="#changeColorItems" promptText="Item Text Colour">
                                  <VBox.margin>
                                     <Insets left="20.0" />
                                  </VBox.margin>
@@ -288,7 +306,7 @@
                               </Label>
                               <HBox>
                                  <children>
-                                    <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="250.0" min="25.0" minorTickCount="1" onMouseDragged="#changeSizeRight" snapToTicks="true" value="100.0">
+                                    <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeRight" snapToTicks="true" value="100.0">
                                        <padding>
                                           <Insets left="10.0" right="10.0" />
                                        </padding>
@@ -306,6 +324,32 @@
                                     <Insets left="5.0" />
                                  </VBox.margin>
                               </HBox>
+                              <Separator layoutX="15.0" layoutY="397.0" prefWidth="200.0">
+                                 <padding>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                 </padding>
+                              </Separator>
+                              <Label layoutX="10.0" layoutY="420.0" text="Intersection">
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" />
+                                 </padding>
+                              </Label>
+                              <Label layoutX="20.0" layoutY="498.0" text="Item Text Colour">
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" top="5.0" />
+                                 </padding>
+                                 <font>
+                                    <Font size="11.0" />
+                                 </font>
+                                 <VBox.margin>
+                                    <Insets left="10.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <ColorPicker fx:id="colorBothItems" layoutX="30.0" layoutY="522.0" minHeight="-Infinity" onAction="#changeColorItems" promptText="Item Text Colour">
+                                 <VBox.margin>
+                                    <Insets left="20.0" />
+                                 </VBox.margin>
+                              </ColorPicker>
                            </children>
                            <padding>
                               <Insets bottom="5.0" />
@@ -324,30 +368,66 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#newDiagram" onMenuValidation="#newDiagram" text="New">
+
+                  <MenuItem mnemonicParsing="false" onAction="#newDiagram" text="New">
+
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="N" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="N" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem mnemonicParsing="false" onAction="#loadFromFile" onMenuValidation="#loadFromFile" text="Open...">
+
+              <MenuItem mnemonicParsing="false" onAction="#loadFromFile" text="Open...">
+
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="O" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onAction="#saveToFile" onMenuValidation="#saveToFile" text="Save">
+
+                  <MenuItem mnemonicParsing="false" onAction="#save" text="Save">
+
                      <accelerator>
-                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="DOWN" shift="UP" shortcut="UP" />
+                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+
+                  <MenuItem mnemonicParsing="false" onAction="#saveAs" text="Save As...">
+
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" onMenuValidation="#takeScreenshot" text="Export Venn Diagram as Image..." />
+                  <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Export Venn Diagram as Image..." />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#deleteItem" onMenuValidation="#deleteItem" text="Delete Item" />
-                  <MenuItem mnemonicParsing="false" onAction="#clearDiagram" onMenuValidation="#clearDiagram" text="Clear Venn Diagram" />
+
+                  <MenuItem mnemonicParsing="false" text="Undo">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" text="Redo">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Y" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator></MenuItem>
+
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select All">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="A" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+
+              <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Item(s)" />
+                  <MenuItem mnemonicParsing="false" onAction="#clearDiagram" text="Clear Venn Diagram" />
+                  <MenuItem mnemonicParsing="false" text="Redo" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -357,6 +437,12 @@
           </Menu>
         </menus>
       </MenuBar>
+      <Button fx:id="makeDummyItemButton" blendMode="SCREEN" disable="true" layoutX="739.0" layoutY="735.0" mnemonicParsing="false" onAction="#makeDummyItem" onMouseClicked="#deleteItem" prefHeight="27.0" prefWidth="112.0" style="-fx-background-color: RED;" text="DEBUG ITEM" visible="false">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+
 
 	</children>
 </AnchorPane>
