@@ -2,10 +2,10 @@
 
 ## Contributers 
 
-* Andrew Hocking
-* Nourin Abd El Hadi
-* Nabi Khalid
-* Anika Prova
+* Andrew Hocking (215752835)
+* Nourin Abd El Hadi (216107021)
+* Nabi Khalid (216441677)
+* Anika Prova (216474306)
 
 ## Introduction
 
