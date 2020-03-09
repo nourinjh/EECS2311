@@ -26,7 +26,7 @@ The program allows the user to:
 *	Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
 *	Save Venn diagram as an image
 
-![venn](venn.png)
+![venn](/Resources/venn.png)
 
 **_Legend_**
 
