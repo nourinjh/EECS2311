@@ -14,8 +14,6 @@ The purpose of this project is to create a program that will allow users to crea
 
 ## What Does It Do So Far?
 
-#### [View demo on YouTube here](https://youtu.be/sIvjT9a0bqU)
-
 The program allows the user to: 
 * Add a title to the diagram
 *	Add a title to each circle in the diagram
@@ -26,9 +24,13 @@ The program allows the user to:
 *	Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
 *	Save Venn diagram as an image
 
-![venn](/Resources/venn.png)
+## Demo
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo1.gif)
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo2.gif)
 
 **_Legend_**
+
+![venn](https://github.com/nourinjh/EECS2311/blob/master/Resources/venn.png)
 
 A: File menu
 * New - Opens a new, blank Venn diagram
