@@ -28,8 +28,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 
 	<children>
       <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
@@ -369,23 +368,23 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                  <MenuItem mnemonicParsing="false" onMenuValidation="#newDiagram" text="New">
+                  <MenuItem mnemonicParsing="false" onAction="#newDiagram" onMenuValidation="#newDiagram" text="New">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="N" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem mnemonicParsing="false" onMenuValidation="#loadFromFile" text="Open...">
+              <MenuItem mnemonicParsing="false" onAction="#loadFromFile" onMenuValidation="#loadFromFile" text="Open...">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onMenuValidation="#save" text="Save">
+                  <MenuItem mnemonicParsing="false" onAction="#save" onMenuValidation="#save" text="Save">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onMenuValidation="#saveAs" text="Save As...">
+                  <MenuItem mnemonicParsing="false" onAction="#saveAs" onMenuValidation="#saveAs" text="Save As...">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
                      </accelerator>
@@ -396,8 +395,8 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-                  <MenuItem mnemonicParsing="false" text="Undo" />
-                  <MenuItem mnemonicParsing="false" text="Redo" />
+                  <MenuItem mnemonicParsing="false" onAction="#Undo" onMenuValidation="#Undo" text="Undo" />
+                  <MenuItem mnemonicParsing="false" onAction="#Redo" onMenuValidation="#Redo" text="Redo" />
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onMenuValidation="#selectAll" text="Select All">
                      <accelerator>
@@ -406,8 +405,6 @@
                   </MenuItem>
               <MenuItem mnemonicParsing="false" onAction="#deleteItem" onMenuValidation="#deleteItem" text="Delete Selected Item(s)" />
                   <MenuItem mnemonicParsing="false" onAction="#clearDiagram" onMenuValidation="#clearDiagram" text="Clear Venn Diagram" />
-                  <MenuItem mnemonicParsing="false" text="Undo" />
-                  <MenuItem mnemonicParsing="false" text="Redo" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
