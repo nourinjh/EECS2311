@@ -424,7 +424,7 @@ public class Controller {
 	}
 
 	@FXML
-	void Undo() {
+	void undo() {
 	
 		System.out.println("Undo");
 		
@@ -432,7 +432,7 @@ public class Controller {
 	
 	
 	@FXML
-	void Redo() {
+	void redo() {
 		System.out.println("Redo");
 	}
 	
