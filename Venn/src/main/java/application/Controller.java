@@ -430,7 +430,6 @@ public class Controller {
 		
 	}
 	
-	
 	@FXML
 	void redo() {
 		System.out.println("Redo");
