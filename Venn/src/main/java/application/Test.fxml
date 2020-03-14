@@ -31,32 +31,6 @@
 <AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 
 	<children>
-      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
-         <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
-      
-            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
-      
-               <font>
-                  <Font name="Arial" size="32.0" />
-               </font>
-               <cursor>
-                  <Cursor fx:constant="TEXT" />
-               </cursor>
-            </TextField>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-         </children>
-      </Pane>
       <VBox fx:id="floatingMenu" layoutX="92.0" layoutY="220.0" prefHeight="528.0" prefWidth="240.0">
          <children>
             <VBox>
@@ -430,6 +404,32 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
+      <Pane fx:id="frameRect" layoutX="407.0" layoutY="78.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
+         <children>
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+      
+            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+      
+               <font>
+                  <Font name="Arial" size="32.0" />
+               </font>
+               <cursor>
+                  <Cursor fx:constant="TEXT" />
+               </cursor>
+            </TextField>
+            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+               <font>
+                  <Font name="Arial" size="18.0" />
+               </font>
+            </TextField>
+            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+               <font>
+                  <Font name="Arial" size="18.0" />
+               </font>
+            </TextField>
+         </children>
+      </Pane>
 
 
 	</children>

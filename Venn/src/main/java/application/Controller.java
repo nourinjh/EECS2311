@@ -255,14 +255,6 @@ public class Controller {
 				}
 			});
 
-//			this.translateXProperty().addListener((observable, oldValue, newValue) -> {
-//				setLayoutX((double)oldValue + (double)newValue);
-//			});
-//			this.translateYProperty().addListener((observable, oldValue, newValue) -> {
-//				setLayoutY((double)oldValue + (double)newValue);
-//			});
-			
-
 			this.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
 					deleteItem();
@@ -290,19 +282,6 @@ public class Controller {
 		public DraggableItem(double d, double e, String text) {
 			this(d, e);
 			this.text.setText(text);
-//			String t = text;
-//			if (text.length() > 25) {
-//				t = text.substring(0, 25);;
-//				for (int i = 25; i < text.length(); i+=25) {
-//					if (text.charAt(i - 1) != ' ' || text.charAt(i - 1) != ',' | text.charAt(i - 1) != '.' || text.charAt(i - 1) != '!' || text.charAt(i - 1) != '?') {
-//						t += "-";
-//					} else if (text.charAt(i - 1) == ' '){
-//						i++;
-//					}
-//					t += "\n" + text.substring(i, Math.min(text.length(), i + 25));
-//				}
-//			}
-//			this.text.setText(t);
 		}
 
 		public Label getLabel() {
@@ -355,7 +334,7 @@ public class Controller {
 				setLayoutX(newX);
 				setLayoutY(newY);
 
-				if (checkBounds()) { // ((newX > circleLeft.getBoundsInParent().getMinX() - (getWidth()/2) && newX < circleRight.getBoundsInParent().getMaxX() - (getWidth()/2)) && (newY > circleLeft.getBoundsInParent().getMinY() - (getHeight()/2) && newY < circleRight.getBoundsInParent().getMaxY() - (getHeight()/2))) {
+				if (checkBounds()) { 
 					this.setBackground(null);
 					this.text.setTextFill(this.color);
 					getScene().setCursor(Cursor.CLOSED_HAND);
@@ -409,17 +388,14 @@ public class Controller {
 			double distanceToRight = itemLocation.distance(centreRight);
 			
 			if (distanceToLeft <= circleLeft.getRadius() && distanceToRight <= circleRight.getRadius()) {
-//			if (this.getBoundsInParent().intersects(circleLeft.getBoundsInParent()) && this.getBoundsInParent().intersects(circleRight.getBoundsInParent())) {
 				this.setColor(bothColor);
 				circle = InCircle.BOTH;
 				return true;
 			} else if (distanceToLeft <= circleLeft.getRadius()) {
-//			} else if (this.getBoundsInParent().intersects(circleLeft.getBoundsInParent())) {
 				this.setColor(leftColor);
 				circle = InCircle.LEFT;
 				return true;
 			} else if (distanceToRight <= circleRight.getRadius()) {
-//			} else if (this.getBoundsInParent().intersects(circleRight.getBoundsInParent())) {
 				this.setColor(rightColor);
 				circle = InCircle.RIGHT;
 				return true;
@@ -544,6 +520,7 @@ public class Controller {
 		 
 	@FXML
 	void takeScreenshot() {
+		boolean didHaveUnsavedChanges = changesMade;
 		removeFocus();
 		String mainTitle = title.getText() + "";
 		String leftTitle = circleLeftTitle.getText() + "";
@@ -570,8 +547,8 @@ public class Controller {
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 			floatingMenu.setLayoutX(pane.getScene().getWindow().getX() - floatingMenu.getWidth() - 10);
 
-			Bounds bounds = frameRect.getBoundsInLocal();// pane.getBoundsInLocal();
-			Bounds screenBounds = frameRect.localToScreen(bounds);// pane.localToScreen(bounds);
+			Bounds bounds = frameRect.getBoundsInLocal();
+			Bounds screenBounds = frameRect.localToScreen(bounds);
 			int x = (int) screenBounds.getMinX() - 15;
 			int y = (int) screenBounds.getMinY() - 15;
 			int width = (int) screenBounds.getWidth() + 30;
@@ -579,6 +556,7 @@ public class Controller {
 			Rectangle screenRect = new Rectangle(x, y, width, height);
 			BufferedImage capture = new Robot().createScreenCapture(screenRect);
 			ImageIO.write(capture, "png", selectedFile);
+		} catch (IllegalArgumentException e) {
 		} catch (Exception e) {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
@@ -592,6 +570,7 @@ public class Controller {
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
+		changesMade = didHaveUnsavedChanges;
 	}
 
 	@FXML
@@ -694,8 +673,7 @@ public class Controller {
 			openFile = selectedFile;
 			Main.setWindowTitle(selectedFile.getName());
 			changesMade = false;
-		} catch (NullPointerException npe) {
-			
+		} catch (NullPointerException e) {
 		} catch (Exception e) {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
@@ -880,6 +858,7 @@ public class Controller {
 			changesMade = false;
 			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 			Main.setWindowTitle(openFile.getName());
+		} catch (NullPointerException e) {
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -960,7 +939,7 @@ public class Controller {
 	@FXML
 	void openManual() {
 		try {
-			// Change link to online PDF of manual in future release
+			// TODO: Change link to online manual in future release
 			java.awt.Desktop.getDesktop().browse(new URI("https://github.com/nourinjh/EECS2311/"));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1087,7 +1066,7 @@ public class Controller {
 
 	@FXML
 	void importFile() {
-		// Set up as SplitMenuButton and split into different methods
+		// TODO: Set up as SplitMenuButton and split into different methods
 		// One for each import type, plus a generic catch-all (fc.setSelectedExtensionFilter(filter)?)
 		try {
 			FileChooser fc = new FileChooser();
@@ -1172,6 +1151,7 @@ public class Controller {
 		DraggableItem a = new DraggableItem(x, y, text);
 		frameRect.getChildren().add(a);
 		itemsInDiagram.add(a);
+		a.toFront();
 		changesMade();
 	}
 	
@@ -1194,7 +1174,7 @@ public class Controller {
 			@Override
 			public void run() {
 				pane.requestFocus();
-//				// FIXME: Crashes when using keyboard shortcuts :(
+//				// FIXME: Keyboard shortcuts run twice when this is used...?
 //				String os = System.getProperty("os.name");
 //				if (os != null && os.startsWith("Mac"))
 //					menuBar.useSystemMenuBarProperty().set(true);
@@ -1278,7 +1258,6 @@ public class Controller {
 		itemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		itemsList.setFocusTraversable(true);
 		pane.setFocusTraversable(true);
-
 		itemsList.setItems(items);
 	}
 }
