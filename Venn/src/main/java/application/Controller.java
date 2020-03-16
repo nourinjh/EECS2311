@@ -533,6 +533,7 @@ public class Controller {
 				circleRightTitle.setText(" ");
 			name += ".png";
 			FileChooser fc = new FileChooser();
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files (*.png)", "*.png"));
 			fc.setTitle("Save");
 			fc.setInitialFileName(name);
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
@@ -1245,7 +1246,6 @@ public class Controller {
 				});
 			}
 		});
-		
 		title.textProperty().addListener(changed -> {
 			changesMade();
 		});

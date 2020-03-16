@@ -144,7 +144,7 @@
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
                   
-                        <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                        <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
                            <font>
                               <Font name="Arial" size="32.0" />
@@ -153,12 +153,12 @@
                               <Cursor fx:constant="TEXT" />
                            </cursor>
                         </TextField>
-                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="113.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
                         </TextField>
-                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="412.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
