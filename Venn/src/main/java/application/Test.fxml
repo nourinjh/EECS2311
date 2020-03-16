@@ -11,10 +11,13 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.input.KeyCodeCombination?>
@@ -69,6 +72,13 @@
                         <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
+                  <Menu mnemonicParsing="false" text="Import...">
+                    <items>
+                      <MenuItem mnemonicParsing="false" text="Image" />
+                        <MenuItem mnemonicParsing="false" text="CSV File" />
+                        <MenuItem mnemonicParsing="false" text="Answer Key" />
+                    </items>
+                  </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#save" text="Save">
                      <accelerator>
@@ -100,11 +110,19 @@
                         <KeyCodeCombination alt="UP" code="A" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Item(s)" />
+              <MenuItem fx:id="deleteItemMenu" mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
+                     </accelerator></MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#clearDiagram" text="Clear Venn Diagram" />
                   <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo" visible="false">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="BACK_SPACE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
                      </accelerator>
                   </MenuItem>
             </items>
@@ -112,66 +130,75 @@
           <Menu mnemonicParsing="false" text="Help">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#openManual" text="View Manual" />
+                  <MenuItem mnemonicParsing="false" onAction="#showAboutWindow" text="About Venn" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
-      <Pane fx:id="frameRect" layoutX="407.0" layoutY="98.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
-         <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
-      
-            <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
-      
-               <font>
-                  <Font name="Arial" size="32.0" />
-               </font>
-               <cursor>
-                  <Cursor fx:constant="TEXT" />
-               </cursor>
-            </TextField>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-         </children>
-      </Pane>
-      <ToolBar layoutY="29.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="1280.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="29.0">
+      <ScrollPane layoutX="407.0" layoutY="94.0" pannable="true" prefHeight="665.0" prefWidth="873.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="407.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="55.0">
+         <content>
+            <Pane prefHeight="737.0" prefWidth="864.0">
+               <children>
+                  <Pane fx:id="frameRect" layoutX="-6.0" layoutY="36.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
+                     <children>
+                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+                  
+                        <TextField fx:id="title" alignment="CENTER" layoutX="136.0" layoutY="-4.0" onKeyPressed="#removeFocusEnter" prefHeight="91.0" prefWidth="534.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                  
+                           <font>
+                              <Font name="Arial" size="32.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="TEXT" />
+                           </cursor>
+                        </TextField>
+                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="141.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                        </TextField>
+                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="440.0" layoutY="99.0" onKeyPressed="#removeFocusEnter" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                        </TextField>
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </Pane>
+               </children>
+            </Pane>
+         </content>
+      </ScrollPane>
+      <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
-          <Button fx:id="saveButton" mnemonicParsing="false" onMouseClicked="#save">
+          <Button fx:id="saveButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/save.png" />
                      </image>
                   </ImageView>
                </graphic>
+               <tooltip>
+                  <Tooltip text="Save" />
+               </tooltip>
             </Button>
-            <Button fx:id="loadButton" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile">
+            <Button fx:id="loadButton" focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/folder.png" />
                      </image>
                   </ImageView>
                </graphic>
+               <tooltip>
+                  <Tooltip text="Open" />
+               </tooltip>
             </Button>
-            <Button fx:id="screenshotButton" layoutX="52.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot">
-               <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@images/camera.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-            <Button fx:id="importButton" layoutX="94.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#importFile">
+            <MenuButton fx:id="importButton" focusTraversable="false" mnemonicParsing="false">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -179,26 +206,62 @@
                      </image>
                   </ImageView>
                </graphic>
-            </Button>
-            <Button fx:id="deleteButton" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem">
+               <items>
+                  <MenuItem mnemonicParsing="false" onAction="#importImage" text="Image" />
+                  <MenuItem mnemonicParsing="false" onAction="#importCSV" text="CSV File" />
+                  <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
+               </items>
+               <tooltip>
+                  <Tooltip text="Import" />
+               </tooltip>
+            </MenuButton>
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="5.0" right="5.0" />
+               </padding>
+            </Separator>
+            <Button fx:id="screenshotButton" focusTraversable="false" layoutX="52.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" onMouseClicked="#deleteItem" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/camera.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Save as Image" />
+               </tooltip>
+            </Button>
+            <Button fx:id="deleteButton" focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/trash.png" />
                      </image>
                   </ImageView>
                </graphic>
+               <tooltip>
+                  <Tooltip text="Delete Item" />
+               </tooltip>
             </Button>
-            <Button fx:id="clearButton" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram">
+            <Button fx:id="clearButton" focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/eraser.png" />
                      </image>
                   </ImageView>
                </graphic>
+               <tooltip>
+                  <Tooltip text="Clear Diagram" />
+               </tooltip>
             </Button>
-            <MenuButton mnemonicParsing="false">
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="5.0" right="5.0" />
+               </padding>
+            </Separator>
+            <MenuButton focusTraversable="false" mnemonicParsing="false">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -420,8 +483,14 @@
                         </HBox>
                      </graphic></MenuItem>
                </items>
+               <tooltip>
+                  <Tooltip text="Settings" />
+               </tooltip>
             </MenuButton>
         </items>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
       </ToolBar>
 
 

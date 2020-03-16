@@ -20,6 +20,7 @@ import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
@@ -58,6 +60,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToolBar;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -143,9 +146,8 @@ public class Controller {
 
 	@FXML
 	private MenuBar menuBar;
-
 	@FXML
-	private Button importButton;
+	private ToolBar toolBar;
 
 	@FXML
 	private Button screenshotButton;
@@ -159,6 +161,8 @@ public class Controller {
 
 	@FXML
 	private Button deleteButton;
+	@FXML
+	private MenuItem deleteItemMenu;
 	@FXML
 	private Button clearButton;
 
@@ -191,11 +195,6 @@ public class Controller {
 	Alert a = new Alert(AlertType.NONE);
 
 	private static File openFile = null;
-
-	private Color leftColor;
-	private Color rightColor;
-	private Color intersectionColor;
-	private Color noneColor = Color.WHITE;
 
 	class DraggableItem extends StackPane {
 		private Label text = new Label();
@@ -239,6 +238,11 @@ public class Controller {
 							selectedItems.clear();
 						}
 						selectedItems.add(this);
+						if (selectedItems.size() != 1) {
+							deleteItemMenu.setText("Delete Selected Items");
+						} else {
+							deleteItemMenu.setText("Delete Selected Item");
+						}
 						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
 				} catch (Exception e) {
@@ -375,19 +379,19 @@ public class Controller {
 			double distanceToRight = itemLocation.distance(centreRight);
 			
 			if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() && distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
-				this.setColor(intersectionColor);
+				this.setColor(colorIntersectionItems.getValue());
 				this.setBackground(null);
 				return true;
 			} else if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()) {
-				this.setColor(leftColor);
+				this.setColor(colorLeftItems.getValue());
 				this.setBackground(null);
 				return true;
 			} else if (distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
-				this.setColor(rightColor);
+				this.setColor(colorRightItems.getValue());
 				this.setBackground(null);
 				return true;
 			} else {
-				this.setColor(noneColor);
+				this.setColor(Color.WHITE);
 				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 				return false;
 			}
@@ -507,7 +511,7 @@ public class Controller {
 		 
 	@FXML
 	void takeScreenshot() {
-		boolean didHaveUnsavedChanges = changesMade;
+		boolean hadChanges = changesMade;
 		removeFocus();
 		String mainTitle = title.getText() + "";
 		String leftTitle = circleLeftTitle.getText() + "";
@@ -557,7 +561,7 @@ public class Controller {
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
-		changesMade = didHaveUnsavedChanges;
+		changesMade = hadChanges;
 	}
 
 	@FXML
@@ -571,21 +575,36 @@ public class Controller {
 	}
 
 	void doTheSave(File selectedFile) {
+		
+		// TODO: Add imported images to this once implemented
 
-		// File hierarchy of a .venn file:
+		// Hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
-		// ..... (0) Title, (1) Titles color, (2) Background color, (3) Intersection
-		// item text color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale,
-		// (3) Item text color
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale,
-		// (3) Item text color
+		// ..... (0) Title, (1) Titles color, (2) Background color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
+		// ..... (0) Intersection color, (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist
-		// ..... (0) Item text, (1) item color, (2) item x, (3) item y, (4) item
-		// description
+		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) text color
+		
+		// Encryption?
+		// String test = "abcdefg";
+		// StringBuilder sb = new StringBuilder(test);
+		// for (int i = 0; i < test.length(); i++) {
+		//     sb.setCharAt(i, (char)((((sb.charAt(i) + 7) * 12) - 6) * 21));
+		// }
+		// test = sb.toString();
+		// System.out.println(test);
+		// sb = new StringBuilder(test);
+		// for (int i = 0; i < test.length(); i++) {
+		//     sb.setCharAt(i, (char)((((sb.charAt(i) / 21) + 6) / 12) - 7));
+		// }
+		// test = sb.toString();
+		// System.out.println(test);
+
 
 		try {
 			FileOutputStream fos = new FileOutputStream(selectedFile);
@@ -593,12 +612,10 @@ public class Controller {
 
 			File config = new File("Config.vlist");
 			StringBuilder sb = new StringBuilder();
-			sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱"
-					+ colorBackground.getValue().toString() + "𔓱" + colorIntersectionItems.getValue().toString() + "\n");
-			sb.append(circleLeftTitle.getText() + "𔓱" + colorLeft.getValue().toString() + "𔓱" + circleLeft.getScaleX()
-					+ "𔓱" + colorLeftItems.getValue().toString() + "\n");
-			sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱"
-					+ circleRight.getScaleX() + "𔓱" + colorRightItems.getValue().toString());
+			sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱" + colorBackground.getValue().toString() + "\n");
+			sb.append(circleLeftTitle.getText() + "𔓱" + colorLeft.getValue().toString() + "𔓱" + circleLeft.getScaleX() + "𔓱" + colorLeftItems.getValue().toString() + "\n");
+			sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱" + circleRight.getScaleX() + "𔓱" + colorRightItems.getValue().toString() + "\n");
+			sb.append(colorIntersection.getValue().toString() + "𔓱" + colorIntersectionItems.getValue().toString());
 			BufferedWriter bw = new BufferedWriter(new FileWriter(config));
 			bw.write(sb.toString());
 			bw.close();
@@ -624,8 +641,7 @@ public class Controller {
 			sb = new StringBuilder();
 			for (int i = 0; i < itemsInDiagram.size(); i++) {
 				DraggableItem d = itemsInDiagram.get(i);
-				sb.append(d.getText() + "𔓱" + d.getLabel().getTextFill().toString() + "𔓱" + d.getLayoutX() + "𔓱"
-						+ d.getLayoutY() + "𔓱" + "item description");
+				sb.append(d.getText() + "𔓱" + d.getLayoutX() + "𔓱" + d.getLayoutY() + "𔓱" + "item description" + "𔓱" + d.getLabel().getTextFill().toString());
 				if (i != itemsInDiagram.size() - 1) {
 					sb.append("\n");
 				}
@@ -720,7 +736,7 @@ public class Controller {
 		}
 	}
 
-	ObservableList<String> importCSV(File csv) throws Exception {
+	ObservableList<String> doTheCSV(File csv) throws Exception {
 		ObservableList<String> list = FXCollections.observableArrayList();
 		String line;
 		BufferedReader br = new BufferedReader(new FileReader(csv));
@@ -737,30 +753,30 @@ public class Controller {
 
 	void doTheLoad() {
 
-		// File hierarchy of a .venn file:
+		// TODO: Add imported images to this once implemented
+
+		// Hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
-		// ..... (0) Title, (1) Titles color, (2) Background color, (3) Intersection
-		// item text color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale,
-		// (3) Item text color
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale,
-		// (3) Item text color
+		// ..... (0) Title, (1) Titles color, (2) Background color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
+		// ..... (0) Intersection color, (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist
-		// ..... (0) Item text, (1) item color, (2) item x, (3) item y, (4) item
-		// description
+		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) text color
 
+		File file = null;
 		try {
 			FileChooser fc = new FileChooser();
 			List<String> extensions = new ArrayList<String>();
 			extensions.add("*.venn");
 
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
-			File file = fc.showOpenDialog(pane.getScene().getWindow());
+			file = fc.showOpenDialog(pane.getScene().getWindow());
 			String line, title, leftTitle, rightTitle, elements[];
-			Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, intersectionTextColor;
+			Color bgColor, leftColor, rightColor, intersectionColor, titleColor, leftTextColor, rightTextColor, intersectionTextColor;
 			double leftScale, rightScale;
 			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
 			ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
@@ -774,7 +790,6 @@ public class Controller {
 			title = elements[0];
 			titleColor = Color.web(elements[1]);
 			bgColor = Color.web(elements[2]);
-			intersectionTextColor = Color.web(elements[3]);
 
 			elements = br.readLine().split("𔓱");
 			leftTitle = elements[0];
@@ -787,6 +802,10 @@ public class Controller {
 			rightColor = Color.web(elements[1]);
 			rightScale = Double.parseDouble(elements[2]);
 			rightTextColor = Color.web(elements[3]);
+
+			elements = br.readLine().split("𔓱");
+			intersectionColor = Color.web(elements[0]);
+			intersectionTextColor = Color.web(elements[1]);
 			br.close();
 
 			// Unassigned
@@ -806,10 +825,10 @@ public class Controller {
 			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
 			while ((line = br.readLine()) != null) {
 				elements = line.split("𔓱");
-				DraggableItem a = new DraggableItem(Double.parseDouble(elements[2]), Double.parseDouble(elements[3]),
+				DraggableItem a = new DraggableItem(Double.parseDouble(elements[1]), Double.parseDouble(elements[2]),
 						elements[0]);
-				a.setColor(Color.web(elements[1]));
-				a.setDescription(elements[4]);
+				a.setDescription(elements[3]);
+				a.setColor(Color.web(elements[4]));
 				inDiagram.add(a);
 			}
 			br.close();
@@ -824,6 +843,8 @@ public class Controller {
 			this.changeColorLeft();
 			this.colorRight.setValue(rightColor);
 			this.changeColorRight();
+			this.colorIntersection.setValue(intersectionColor);
+			this.updateIntersection();
 			this.colorTitles.setValue(titleColor);
 			this.changeColorTitles();
 			this.leftSizeSlider.setValue(leftScale * 100);
@@ -839,22 +860,22 @@ public class Controller {
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
 			this.colorIntersectionItems.setValue(intersectionTextColor);
-			this.changeColorItems();
 
 			openFile = file;
 			changesMade = false;
 			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 			Main.setWindowTitle(openFile.getName());
-		} catch (NullPointerException e) {
 		} catch (Exception e) {
-			System.out.println("Error: File not opened.");
-			System.out.println(e);
-			e.printStackTrace();
-			a.setAlertType(AlertType.ERROR);
-			a.setHeaderText("File could not be opened");
-			a.setContentText("");
-			a.setTitle("Error");
-			a.show();
+			if (file != null) {
+				System.out.println("Error: File not opened.");
+				System.out.println(e);
+				e.printStackTrace();
+				a.setAlertType(AlertType.ERROR);
+				a.setHeaderText("File could not be opened");
+				a.setContentText("");
+				a.setTitle("Error");
+				a.show();
+			}
 		}
 	}
 
@@ -944,9 +965,6 @@ public class Controller {
 
 	@FXML
 	void changeColorItems() {
-		leftColor = colorLeftItems.getValue();
-		rightColor = colorRightItems.getValue();
-		intersectionColor = colorIntersectionItems.getValue();
 		for (DraggableItem d : itemsInDiagram) {
 			d.checkBounds();
 		}
@@ -1068,9 +1086,21 @@ public class Controller {
 			changesMade();
 		}
 	}
-
+	
 	@FXML
-	void importFile() {
+	void importCSV() {
+		importFile("csv");
+	}
+	@FXML
+	void importImage() {
+		importFile("img");
+	}
+	@FXML
+	void importAnswer() {
+		importFile("ans");
+	}
+
+	void importFile(String type) {
 		// TODO: Set up as SplitMenuButton and split into different methods
 		// One for each import type, plus a generic catch-all (fc.setSelectedExtensionFilter(filter)?)
 		try {
@@ -1086,10 +1116,18 @@ public class Controller {
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
 			fc.getExtensionFilters().add(ansFilter);
+			
+			if (type.equals("csv")) {
+				fc.setSelectedExtensionFilter(csvFilter);
+			} else if (type.equals("img")) {
+				fc.setSelectedExtensionFilter(imgFilter);
+			} else /*if (type.equals("ans"))*/ {
+				fc.setSelectedExtensionFilter(ansFilter);
+			}
 
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
 			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
-				itemsList.getItems().addAll(importCSV(file));
+				itemsList.getItems().addAll(doTheCSV(file));
 			} else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
 				System.out.println("Image: " + file.getAbsolutePath());
 				a.setAlertType(AlertType.INFORMATION);
@@ -1162,6 +1200,27 @@ public class Controller {
 		}
 		multiSelect = false;
 	}
+	
+	@FXML
+	void showAboutWindow() {
+		a.setAlertType(AlertType.INFORMATION);
+		a.setTitle("About Venn");
+		a.setHeaderText("Venn 3.0");
+		a.setContentText("Toolbar icon images by ThoseIcons on FlatIcon.com");
+		ButtonType linkButton = new ButtonType("View ThoseIcons");
+		a.getButtonTypes().add(linkButton);
+		Optional<ButtonType> result = a.showAndWait();
+		if (result.get() == linkButton) {
+			try {
+				java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}			
+		} else {
+			a.close();
+		}
+		a.getButtonTypes().remove(linkButton);
+	}
 
 
 	// This method is called by the FXMLLoader when initialization is complete
@@ -1171,10 +1230,12 @@ public class Controller {
 			@Override
 			public void run() {
 				pane.requestFocus();
-//				// FIXME: Keyboard shortcuts run twice when this is used...?
+//				// FIXME: Keyboard shortcuts run twice when this is used...? Also toolbar sits too low
 //				String os = System.getProperty("os.name");
-//				if (os != null && os.startsWith("Mac"))
+//				if (os != null && os.startsWith("Mac")) {
 //					menuBar.useSystemMenuBarProperty().set(true);
+//					toolBar.setLayoutY(0);
+//				}
 				doTheNew();
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
@@ -1225,6 +1286,7 @@ public class Controller {
 				} else {
 					event.consume();
 				}
+				a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
 			} else {
 				event.consume();
 				Main.primaryStage.close();
