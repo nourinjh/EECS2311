@@ -12,13 +12,11 @@
 
 .button {
 	-fx-text-fill: black;
-	-fx-opacity: 1.0;
 }
 
 .button:disabled {
 	-fx-background-color: lightgrey;
 	-fx-text-fill: grey;
-	-fx-opacity: 0.8;
 }
 
 .list-view {

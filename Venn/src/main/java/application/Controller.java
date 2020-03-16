@@ -59,6 +59,8 @@ import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -90,9 +92,10 @@ public class Controller {
 	private final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
 	private final String DEFAULT_LEFT_COLOR = "0xf59f9f";
 	private final String DEFAULT_RIGHT_COLOR = "0xebe071";
+	private final String DEFAULT_INTERSECTION_COLOR = "0xccb26e";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffffff";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_BOTH_ITEM_COLOR = "0xffffff";
+	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffffff";
 	private final double DEFAULT_CIRCLE_OPACTIY = 0.6;
 	
 	private boolean multiSelect = false;
@@ -109,19 +112,14 @@ public class Controller {
 	private Circle circleLeft;
 	@FXML
 	private Circle circleRight;
+	private Shape circleIntersection;
 
 	@FXML
 	private AnchorPane pane;
 
 	@FXML
 	private VBox floatingMenu;
-	@FXML
-	private GridPane buttonGrid;
 
-	@FXML
-	private TitledPane settingsPane;
-	@FXML
-	private VBox settingsBox;
 	@FXML
 	private ColorPicker colorLeft;
 	@FXML
@@ -139,7 +137,9 @@ public class Controller {
 	@FXML
 	private TextField rightSizeField;
 	@FXML
-	private ColorPicker colorBothItems;
+	private ColorPicker colorIntersection;
+	@FXML
+	private ColorPicker colorIntersectionItems;
 
 	@FXML
 	private MenuBar menuBar;
@@ -181,9 +181,6 @@ public class Controller {
 	@FXML
 	private ListView<String> itemsList;
 
-	@FXML
-	private Button makeDummyItemButton;
-
 	@FXML // ResourceBundle that was given to the FXMLLoader
 	private ResourceBundle resources;
 
@@ -195,20 +192,15 @@ public class Controller {
 
 	private static File openFile = null;
 
-	private enum InCircle {
-		LEFT, RIGHT, BOTH, NONE;
-	}
-
 	private Color leftColor;
 	private Color rightColor;
-	private Color bothColor;
-	private Color noneColor;
+	private Color intersectionColor;
+	private Color noneColor = Color.WHITE;
 
 	class DraggableItem extends StackPane {
 		private Label text = new Label();
 		private String description;
 		private Color color;
-		private InCircle circle;
 
 		DraggableItem(double x, double y) {
 			relocate(x - 5.0D, y - 5.0D);
@@ -216,9 +208,8 @@ public class Controller {
 			text.setTextFill(Color.WHITE);
 
 			setPadding(new Insets(10));
-			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
+			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 			requestFocus();
-			circle = InCircle.NONE;
 			this.text.setMaxWidth(85);
 			this.text.setWrapText(true);
 
@@ -234,21 +225,21 @@ public class Controller {
 					if (!hasFocus.booleanValue()
 							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
 						for (DraggableItem d : selectedItems) {
-							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(2))));						
-
+							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1), new BorderWidths(5), new Insets(0))));						
 						}
 						selectedItems.clear();
 					}
 					if (hasFocus.booleanValue()) {
+						toFront();
 						if (!multiSelect) {
 							for (DraggableItem d : selectedItems) {
 								d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
-										new CornerRadii(1), new BorderWidths(5), new Insets(2))));
+										new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 							}
 							selectedItems.clear();
 						}
 						selectedItems.add(this);
-						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(2))));
+						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID, new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
 				} catch (Exception e) {
 					removeFocus();
@@ -286,10 +277,6 @@ public class Controller {
 
 		public Label getLabel() {
 			return this.text;
-		}
-
-		public InCircle getCircle() {
-			return this.circle;
 		}
 
 		public String getText() {
@@ -379,7 +366,7 @@ public class Controller {
 			});
 		}
 
-		private boolean checkBounds() {
+		public boolean checkBounds() {
 			changesMade();
 			Point2D centreLeft = new Point2D((circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX())/2, (circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY())/2);
 			Point2D centreRight = new Point2D((circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX())/2, (circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY())/2);
@@ -387,21 +374,21 @@ public class Controller {
 			double distanceToLeft = itemLocation.distance(centreLeft);
 			double distanceToRight = itemLocation.distance(centreRight);
 			
-			if (distanceToLeft <= circleLeft.getRadius() && distanceToRight <= circleRight.getRadius()) {
-				this.setColor(bothColor);
-				circle = InCircle.BOTH;
+			if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() && distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
+				this.setColor(intersectionColor);
+				this.setBackground(null);
 				return true;
-			} else if (distanceToLeft <= circleLeft.getRadius()) {
+			} else if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()) {
 				this.setColor(leftColor);
-				circle = InCircle.LEFT;
+				this.setBackground(null);
 				return true;
-			} else if (distanceToRight <= circleRight.getRadius()) {
+			} else if (distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(rightColor);
-				circle = InCircle.RIGHT;
+				this.setBackground(null);
 				return true;
 			} else {
 				this.setColor(noneColor);
-				circle = InCircle.NONE;
+				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 				return false;
 			}
 		}
@@ -607,7 +594,7 @@ public class Controller {
 			File config = new File("Config.vlist");
 			StringBuilder sb = new StringBuilder();
 			sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱"
-					+ colorBackground.getValue().toString() + "𔓱" + colorBothItems.getValue().toString() + "\n");
+					+ colorBackground.getValue().toString() + "𔓱" + colorIntersectionItems.getValue().toString() + "\n");
 			sb.append(circleLeftTitle.getText() + "𔓱" + colorLeft.getValue().toString() + "𔓱" + circleLeft.getScaleX()
 					+ "𔓱" + colorLeftItems.getValue().toString() + "\n");
 			sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱"
@@ -773,7 +760,7 @@ public class Controller {
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
 			String line, title, leftTitle, rightTitle, elements[];
-			Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, bothTextColor;
+			Color bgColor, leftColor, rightColor, titleColor, leftTextColor, rightTextColor, intersectionTextColor;
 			double leftScale, rightScale;
 			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
 			ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
@@ -787,7 +774,7 @@ public class Controller {
 			title = elements[0];
 			titleColor = Color.web(elements[1]);
 			bgColor = Color.web(elements[2]);
-			bothTextColor = Color.web(elements[3]);
+			intersectionTextColor = Color.web(elements[3]);
 
 			elements = br.readLine().split("𔓱");
 			leftTitle = elements[0];
@@ -851,7 +838,7 @@ public class Controller {
 			this.itemsInDiagram.addAll(inDiagram);
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
-			this.colorBothItems.setValue(bothTextColor);
+			this.colorIntersectionItems.setValue(intersectionTextColor);
 			this.changeColorItems();
 
 			openFile = file;
@@ -877,6 +864,7 @@ public class Controller {
 			a.setAlertType(AlertType.CONFIRMATION);
 			a.setHeaderText("Are you sure you want to open another file?");
 			a.setContentText("You will lose any unsaved changes");
+			a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 			Optional<ButtonType> result = a.showAndWait();
 			if (result.get() == ButtonType.OK) {
 				doTheLoad();
@@ -914,6 +902,7 @@ public class Controller {
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOR));
 		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOR));
+		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
 		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
 		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOR));
 		changeColorBackground();
@@ -926,7 +915,7 @@ public class Controller {
 		itemsInDiagram.clear();
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
-		colorBothItems.setValue(Color.web(DEFAULT_BOTH_ITEM_COLOR));
+		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
 		changeColorItems();
 
 		openFile = null;
@@ -957,15 +946,9 @@ public class Controller {
 	void changeColorItems() {
 		leftColor = colorLeftItems.getValue();
 		rightColor = colorRightItems.getValue();
-		bothColor = colorBothItems.getValue();
+		intersectionColor = colorIntersectionItems.getValue();
 		for (DraggableItem d : itemsInDiagram) {
-			if (d.getCircle() == InCircle.LEFT) {
-				d.setColor(leftColor);
-			} else if (d.getCircle() == InCircle.RIGHT) {
-				d.setColor(rightColor);
-			} else if (d.getCircle() == InCircle.BOTH) {
-				d.setColor(bothColor);
-			}
+			d.checkBounds();
 		}
 		changesMade();
 	}
@@ -1005,7 +988,23 @@ public class Controller {
 		circleLeft.setScaleX(leftSizeSlider.getValue() / 100.0);
 		circleLeft.setScaleY(leftSizeSlider.getValue() / 100.0);
 		leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
+		updateIntersection();
+		changeColorItems();
 		changesMade();
+	}
+	
+	@FXML
+	void updateIntersection() {
+//		pane.getChildren().remove(circleIntersection);
+//		circleIntersection = Shape.intersect(circleLeft, circleRight);
+//		circleIntersection.setFill(colorIntersection.getValue());
+//		circleIntersection.setOnDragDropped(event -> {
+//			dropItem(event);
+//		});
+//		circleIntersection.mouseTransparentProperty().set(true);
+//		pane.getChildren().add(circleIntersection);
+//		changeColorItems();
+//		changesMade();
 	}
 
 	@FXML
@@ -1028,8 +1027,10 @@ public class Controller {
 			} catch (Exception e) {
 				leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
 			}
+			updateIntersection();
+			changeColorItems();
+			changesMade();
 		}
-		changesMade();
 	}
 
 	@FXML
@@ -1037,6 +1038,8 @@ public class Controller {
 		circleRight.setScaleX(rightSizeSlider.getValue() / 100.0);
 		circleRight.setScaleY(rightSizeSlider.getValue() / 100.0);
 		rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
+		updateIntersection();
+		changeColorItems();
 		changesMade();
 	}
 
@@ -1060,8 +1063,10 @@ public class Controller {
 			} catch (Exception e) {
 				rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
 			}
+			updateIntersection();
+			changeColorItems();
+			changesMade();
 		}
-		changesMade();
 	}
 
 	@FXML
@@ -1102,6 +1107,7 @@ public class Controller {
 				a.setTitle("Feature not available");
 				a.show();
 			}
+		} catch (NullPointerException e) {
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
@@ -1112,15 +1118,6 @@ public class Controller {
 			a.show();
 		}
 		changesMade();
-	}
-
-	@FXML
-	void makeDummyItem() {
-
-		removeFocus();
-		String[] words = {"foobar", "foo", "bar", "baz", "qux", "quux", "quuz", "corge", "grault", "garply", "waldo", "flub", "plugh", "xyzzy", "thud", "wibble", "wobble", "wubble", "flob", "supercalifragilisticexpialidocious", "This is a very long string. Extremely long, in fact. This is to test how it handles long strings!"};
-		addItemToDiagram(floatingMenu.getLayoutX() + floatingMenu.getWidth() + 20, circleLeftTitle.getLayoutY() + 5*circleLeftTitle.getHeight(), words[(int)(Math.random() * words.length)]);
-
 	}
 
 	@FXML
@@ -1179,14 +1176,6 @@ public class Controller {
 //				if (os != null && os.startsWith("Mac"))
 //					menuBar.useSystemMenuBarProperty().set(true);
 				doTheNew();
-				settingsPane.setExpanded(false);
-				settingsPane.expandedProperty().addListener(listener -> {
-					if (settingsPane.expandedProperty().getValue().equals(true)) {
-						floatingMenu.setLayoutY(floatingMenu.getLayoutY() - (settingsPane.getHeight() / 2));
-					} else {
-						floatingMenu.setLayoutY(floatingMenu.getLayoutY() + (settingsPane.getHeight() / 2));
-					}
-				});
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
 				frameRect.setOnMouseReleased(mouseEvent -> {
@@ -1212,8 +1201,14 @@ public class Controller {
 				ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
 				ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
 				ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+				a.setTitle("Save changes?");
+				if (openFile == null)
+					a.setHeaderText("Do you want to save your changes?");
+				else
+					a.setHeaderText("Do you want to save your changes to \"" + openFile.getName() + "\"?");
+				a.setContentText(null);
 				a.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
-				a.setContentText("Would you like to save your changes before quitting?");
+//				a.setContentText("Would you like to save your changes before quitting?");
 				Optional<ButtonType> result = a.showAndWait();
 				if (result.get().equals(dontSaveButton)) {
 					event.consume();
@@ -1239,18 +1234,11 @@ public class Controller {
 		for (Node n : pane.getChildren()) {
 			n.setFocusTraversable(false);
 		}
-		for (Node n : buttonGrid.getChildren()) {
-			n.setFocusTraversable(false);
-		}
 		for (Node n : frameRect.getChildren()) {
 			n.setFocusTraversable(false);
 		}
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);
-		settingsPane.setFocusTraversable(false);
-		for (Node n : settingsBox.getChildren()) {
-			n.setFocusTraversable(false);
-		}
 		leftSizeSlider.setFocusTraversable(false);
 		rightSizeSlider.setFocusTraversable(false);
 		leftSizeField.setFocusTraversable(false);
