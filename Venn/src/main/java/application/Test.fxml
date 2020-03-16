@@ -74,9 +74,9 @@
                   </MenuItem>
                   <Menu mnemonicParsing="false" text="Import...">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="Image" />
-                        <MenuItem mnemonicParsing="false" text="CSV File" />
-                        <MenuItem mnemonicParsing="false" text="Answer Key" />
+                      <MenuItem mnemonicParsing="false" onAction="#importImage" text="Image" />
+                        <MenuItem mnemonicParsing="false" onAction="#importCSV" text="CSV File" />
+                        <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
                     </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />

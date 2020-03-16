@@ -40,6 +40,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -404,6 +405,8 @@ public class Controller {
 	}
 	
 	void changesMade() {
+		if (!changesMade && openFile != null)
+			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
 		changesMade = true;
 //		redoStack.clear();
 	}
@@ -675,7 +678,7 @@ public class Controller {
 			}
 
 			openFile = selectedFile;
-			Main.setWindowTitle(selectedFile.getName());
+			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
 		} catch (NullPointerException e) {
 		} catch (Exception e) {
@@ -865,7 +868,7 @@ public class Controller {
 			openFile = file;
 			changesMade = false;
 			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-			Main.setWindowTitle(openFile.getName());
+			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 		} catch (Exception e) {
 			if (file != null) {
 				System.out.println("Error: File not opened.");
@@ -943,7 +946,7 @@ public class Controller {
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 
-		Main.setWindowTitle();
+		Main.primaryStage.setTitle("Venn");
 		changesMade = false;
 	}
 
@@ -1204,23 +1207,34 @@ public class Controller {
 	
 	@FXML
 	void showAboutWindow() {
-		a.setAlertType(AlertType.INFORMATION);
+		Alert a = new Alert(AlertType.NONE);
 		a.setTitle("About Venn");
 		a.setHeaderText("Venn 3.0");
-		a.setContentText("Toolbar icon images by ThoseIcons on FlatIcon.com");
+		StringBuilder sb = new StringBuilder("");
+		sb.append("Credits\n\n");
+		sb.append("Lead Developer: Andrew Hocking\n");
+		sb.append("Assistant Developer: Nourin Abd El Hadi\n");
+		sb.append("Documentation: Nabi Khalid and Anika Prova\n");
+		sb.append("Toolbar icon images: ThoseIcons on FlatIcon.com");
+		a.setContentText(sb.toString());
 		ButtonType linkButton = new ButtonType("View ThoseIcons");
 		a.getButtonTypes().add(linkButton);
+		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon50.png").toExternalForm()));
+		a.setGraphic(iconView);
 		Optional<ButtonType> result = a.showAndWait();
-		if (result.get() == linkButton) {
-			try {
-				java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}			
-		} else {
+		try {
+			if (result.get() == linkButton) {
+				try {
+					java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}			
+			} else {
+				a.close();
+			}
+		} catch (Exception e) {
 			a.close();
 		}
-		a.getButtonTypes().remove(linkButton);
 	}
 
 

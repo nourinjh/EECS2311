@@ -21,14 +21,6 @@ public class Main extends Application {
 		primaryStage.show();
 	}
 
-	public static void setWindowTitle(String title) {
-		primaryStage.setTitle(title + " - Venn");
-	}
-
-	public static void setWindowTitle() {
-		primaryStage.setTitle("Venn");
-	}
-
 	public static void main(String[] args) {
 		launch(args);
 	}
