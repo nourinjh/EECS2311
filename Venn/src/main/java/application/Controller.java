@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -53,7 +54,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuBar;
-
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.MenuItem;
 
@@ -66,6 +67,7 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -151,8 +153,6 @@ public class Controller {
 	private ToolBar toolBar;
 
 	@FXML
-	private Button screenshotButton;
-	@FXML
 	private Pane frameRect;
 
 	@FXML
@@ -161,16 +161,7 @@ public class Controller {
 	private ColorPicker colorTitles;
 
 	@FXML
-	private Button deleteButton;
-	@FXML
 	private MenuItem deleteItemMenu;
-	@FXML
-	private Button clearButton;
-
-	@FXML
-	private Button loadButton;
-	@FXML
-	private Button saveButton;
 
 	@FXML
 	private TextField title;
@@ -424,6 +415,22 @@ public class Controller {
 	}
 	
 	@FXML
+	void zoomIn() {
+		if (frameRect.getScaleX() < 2) {
+			frameRect.setScaleX(frameRect.getScaleX() + 0.1);
+			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
+		}
+	}
+	
+	@FXML
+	void zoomOut() {
+		if (frameRect.getScaleX() > 0.3) {
+			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
+			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
+		}
+	}
+	
+	@FXML
 	void addItemToList() {
 		String newItem = addItemField.getText();
 		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
@@ -491,8 +498,23 @@ public class Controller {
 	}
 
 	@FXML
-	void dragOntoItemsList() {
+	void dragOntoItemsList(DragEvent event) {
 		itemsList.setBlendMode(BlendMode.DIFFERENCE);
+		try {
+			@SuppressWarnings("unchecked")
+			List<File> dragged = (ArrayList<File>)event.getDragboard().getContent(DataFormat.FILES);
+			for (File file : dragged) {
+				System.out.println(file.getName().substring(file.getName().length()-4));
+				if (file.getName().length() > 4 && file.getName().substring(file.getName().length()-4).equals(".csv")) {
+					try {
+						doTheCSV(file);
+						System.out.println("Imported");
+					} catch (Exception e) {
+						System.out.println("Drag import failed");
+					}
+				}
+			}
+		} catch (Exception e) {}
 	}
 
 	@FXML
@@ -1251,12 +1273,49 @@ public class Controller {
 //					menuBar.useSystemMenuBarProperty().set(true);
 //					toolBar.setLayoutY(0);
 //				}
+				toolBar.toFront();
+				menuBar.toFront();
 				doTheNew();
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
 				frameRect.setOnMouseReleased(mouseEvent -> {
 					frameRect.getScene().setCursor(Cursor.DEFAULT);
 					mouseEvent.consume();
+				});
+				pane.getScene().getWindow().setOnCloseRequest(event -> {
+					if (changesMade) {
+						a.setAlertType(AlertType.CONFIRMATION);
+						ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
+						ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
+						ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+						a.setTitle("Save changes?");
+						if (openFile == null)
+							a.setHeaderText("Do you want to save your changes?");
+						else
+							a.setHeaderText("Do you want to save your changes to \"" + openFile.getName() + "\"?");
+						a.setContentText(null);
+						a.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
+						Optional<ButtonType> result = a.showAndWait();
+						if (result.get().equals(dontSaveButton)) {
+							event.consume();
+							Main.primaryStage.close();
+						} else if (result.get().equals(saveButton)){
+							try {
+								save();
+								if (openFile == null) throw new Exception();
+								event.consume();
+								Main.primaryStage.close();
+							} catch (Exception e) {					
+								event.consume();
+							}
+						} else {
+							event.consume();
+						}
+						a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
+					} else {
+						event.consume();
+						Main.primaryStage.close();
+					}
 				});
 			}
 		});
@@ -1270,42 +1329,6 @@ public class Controller {
 			changesMade();
 		});
 		
-		Main.primaryStage.setOnCloseRequest(event -> {
-			if (changesMade) {
-				a.setAlertType(AlertType.CONFIRMATION);
-				ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
-				ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
-				ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-				a.setTitle("Save changes?");
-				if (openFile == null)
-					a.setHeaderText("Do you want to save your changes?");
-				else
-					a.setHeaderText("Do you want to save your changes to \"" + openFile.getName() + "\"?");
-				a.setContentText(null);
-				a.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
-//				a.setContentText("Would you like to save your changes before quitting?");
-				Optional<ButtonType> result = a.showAndWait();
-				if (result.get().equals(dontSaveButton)) {
-					event.consume();
-					Main.primaryStage.close();
-				} else if (result.get().equals(saveButton)){
-					try {
-						save();
-						if (openFile == null) throw new Exception();
-						event.consume();
-						Main.primaryStage.close();
-					} catch (Exception e) {					
-						event.consume();
-					}
-				} else {
-					event.consume();
-				}
-				a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
-			} else {
-				event.consume();
-				Main.primaryStage.close();
-			}
-		});
 
 		for (Node n : pane.getChildren()) {
 			n.setFocusTraversable(false);
