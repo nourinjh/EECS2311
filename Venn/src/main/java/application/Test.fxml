@@ -104,6 +104,11 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Y" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#redo" text="HIDDEN: Redo" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select All">
                      <accelerator>
@@ -114,6 +119,11 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="HIDDEN: Delete Selected Items" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="BACK_SPACE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
+                     </accelerator>
+                  </MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#clearDiagram" text="Clear Venn Diagram" />
             </items>
           </Menu>
@@ -122,6 +132,11 @@
                 <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="PLUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="HIDDEN: Zoom In" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="EQUALS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
@@ -134,6 +149,11 @@
                         <KeyCodeCombination alt="UP" code="DIGIT0" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#zoomActualSize" text="HIDDEN: Actual Size" visible="false">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="NUMPAD0" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
+                     </accelerator>
+                  </MenuItem>
               </items>
             </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -142,60 +162,34 @@
                   <MenuItem mnemonicParsing="false" onAction="#showAboutWindow" text="About Venn" />
             </items>
           </Menu>
-            <Menu mnemonicParsing="false" text="Hidden Items" visible="false">
-               <items>
-                  <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="Zoom In" visible="false">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="EQUALS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
-                     </accelerator>
-                  </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#zoomActualSize" text="Actual Size">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="NUMPAD0" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
-                     </accelerator>
-                  </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo" visible="false">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
-                     </accelerator>
-                  </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items" visible="false">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="BACK_SPACE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
-                     </accelerator>
-                  </MenuItem>
-               </items>
-            </Menu>
+            <Menu mnemonicParsing="false" text="Hidden Items" visible="false" />
         </menus>
       </MenuBar>
-      <Pane fx:id="frameRect" layoutX="407.0" layoutY="55.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0" AnchorPane.bottomAnchor="50.0" AnchorPane.rightAnchor="67.0" AnchorPane.topAnchor="100.0">
+      <Pane fx:id="frameRect" layoutX="408.0" layoutY="100.0" mouseTransparent="true" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="408.0" AnchorPane.rightAnchor="67.0" AnchorPane.topAnchor="100.0">
          <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="407.0" radius="230.0" strokeType="INSIDE" />
       		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
       
-                        <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                      <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
       
-                           <font>
+                                                         <font>
                   <Font name="Arial" size="32.0" />
                </font>
                <cursor>
                   <Cursor fx:constant="TEXT" />
                </cursor>
             </TextField>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="113.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="105.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="296.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
             </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="412.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="403.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="296.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
             </TextField>
          </children>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
       </Pane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
