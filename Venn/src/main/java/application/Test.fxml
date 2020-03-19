@@ -12,6 +12,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Slider?>
@@ -162,35 +163,45 @@
                   <MenuItem mnemonicParsing="false" onAction="#showAboutWindow" text="About Venn" />
             </items>
           </Menu>
-            <Menu mnemonicParsing="false" text="Hidden Items" visible="false" />
         </menus>
       </MenuBar>
-      <Pane fx:id="frameRect" layoutX="408.0" layoutY="100.0" mouseTransparent="true" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="408.0" AnchorPane.rightAnchor="67.0" AnchorPane.topAnchor="100.0">
-         <children>
-      		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="407.0" radius="230.0" strokeType="INSIDE" />
-      		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
-      
-                                                      <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
-      
-                                                         <font>
-                  <Font name="Arial" size="32.0" />
-               </font>
-               <cursor>
-                  <Cursor fx:constant="TEXT" />
-               </cursor>
-            </TextField>
-            <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="105.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="296.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-            <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="403.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="296.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
-               <font>
-                  <Font name="Arial" size="18.0" />
-               </font>
-            </TextField>
-         </children>
-      </Pane>
+      <ScrollPane fx:id="scrollPane" layoutX="407.0" layoutY="67.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="407.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
+         <content>
+            <AnchorPane>
+               <children>
+                  <Pane fx:id="frameRect" layoutY="34.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
+                     <children>
+                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+                  
+                                                                  <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                  
+                                                                     <font>
+                              <Font name="Arial" size="32.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="TEXT" />
+                           </cursor>
+                        </TextField>
+                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="113.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                        </TextField>
+                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="412.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                           <font>
+                              <Font name="Arial" size="18.0" />
+                           </font>
+                        </TextField>
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </Pane>
+               </children>
+            </AnchorPane>
+         </content>
+      </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
           <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save">

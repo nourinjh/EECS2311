@@ -58,7 +58,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.MenuItem;
-
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextField;
@@ -123,6 +123,8 @@ public class Controller {
 
 	@FXML
 	private AnchorPane pane;
+	@FXML
+	private ScrollPane scrollPane;
 
 	@FXML
 	private VBox floatingMenu;
@@ -446,19 +448,22 @@ public class Controller {
 
 	@FXML
 	void zoomIn() {
-		if ((frameRect.getBoundsInParent().getMinX() > floatingMenu.getBoundsInParent().getMaxX() + 20)
-				&& (frameRect.getBoundsInParent().getMaxX() < frameRect.getScene().getWidth() - 20)
-				&& (frameRect.getBoundsInParent().getMinY() > toolBar.getBoundsInParent().getMaxY() + 20)
-				&& (frameRect.getBoundsInParent().getMaxY() < frameRect.getScene().getHeight() - 20)) {
+		if (frameRect.getScaleX() < 2) {
+//		if ((frameRect.getBoundsInParent().getMinX() > floatingMenu.getBoundsInParent().getMaxX() + 20)
+//				&& (frameRect.getBoundsInParent().getMaxX() < frameRect.getScene().getWidth() - 20)
+//				&& (frameRect.getBoundsInParent().getMinY() > toolBar.getBoundsInParent().getMaxY() + 20)
+//				&& (frameRect.getBoundsInParent().getMaxY() < frameRect.getScene().getHeight() - 20)) {
 			frameRect.setScaleX(frameRect.getScaleX() + 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
+			scrollPane.setVvalue(scrollPane.getVmax()/2.0 + 0.05);
+			scrollPane.setHvalue(scrollPane.getHmax()/2.0);
 			updateIntersection();
 		}
 	}
 
 	@FXML
 	void zoomOut() {
-		if (frameRect.getScaleX() > 0.3) {
+		if (frameRect.getScaleX() > 0.5) {
 			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
 			updateIntersection();
@@ -676,8 +681,6 @@ public class Controller {
 		}
 		itemsInDiagram.clear();
 		changesMade();
-		System.out.println(frameRect.getHeight());
-		System.out.println(frameRect.getWidth());
 	}
 
 	void doTheSave(File selectedFile) {
@@ -1124,15 +1127,17 @@ public class Controller {
 
 	@FXML
 	void updateIntersection() {
-		pane.getChildren().remove(circleIntersection);
+		frameRect.getChildren().remove(circleIntersection);
 		circleIntersection = Shape.intersect(circleLeft, circleRight);
 		circleIntersection.setFill(colorIntersection.getValue());
 		circleIntersection.setOnDragDropped(event -> {
 			dropItem(event);
 		});
 		circleIntersection.mouseTransparentProperty().set(true);
+		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
+		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
 		circleIntersection.setOpacity(0.8);
-		pane.getChildren().add(circleIntersection);
+		frameRect.getChildren().add(circleIntersection);
 		for (DraggableItem d : itemsInDiagram) {
 			d.toFront();
 		}
@@ -1413,11 +1418,14 @@ public class Controller {
 					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 						zoomOut();
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
 						updateIntersection();
 					}
 					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 						zoomIn();
+//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
 						updateIntersection();
 					}
 				});
@@ -1427,14 +1435,19 @@ public class Controller {
 					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 						zoomOut();
+//						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
 						updateIntersection();
 					}
 					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 						zoomIn();
+//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
 						updateIntersection();
 					}
 				});
+				Main.primaryStage.getScene().getWindow().centerOnScreen();
 			}
 		});
 		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
@@ -1442,7 +1455,7 @@ public class Controller {
 				changeSizeLeftField(new KeyEvent(null, null, null, KeyCode.ENTER, true, true, true, true));
 			}
 		});
-
+		
 		title.textProperty().addListener(changed -> {
 			changesMade();
 		});
