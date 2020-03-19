@@ -50,6 +50,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -95,14 +96,14 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class Controller {
 
 	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
-	private final String DEFAULT_TITLE_COLOR = "0xFFFFFF";
-	private final String DEFAULT_LEFT_COLOR = "0xf59f9f";
-	private final String DEFAULT_RIGHT_COLOR = "0xebe071";
-	private final String DEFAULT_INTERSECTION_COLOR = "0xccb26e";
+	private final String DEFAULT_TITLE_COLOR = "0xffffff";
+	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
+	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
+	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffffff";
-	private final double DEFAULT_CIRCLE_OPACTIY = 0.6;
+	private final String DEFAULT_RIGHT_ITEM_COLOR = "0x000000";
+	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0x00fa92";
+	private final double DEFAULT_CIRCLE_OPACTIY = 1;
 	
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
@@ -182,9 +183,6 @@ public class Controller {
 
 	@FXML // URL location of the FXML file that was given to the FXMLLoader
 	private URL location;
-
-	@FXML
-	Alert a = new Alert(AlertType.NONE);
 
 	private static File openFile = null;
 
@@ -284,6 +282,10 @@ public class Controller {
 			this.color = c;
 			changesMade();
 		}
+		
+		public Color getColor() {
+			return this.color;
+		}
 
 		public void setDescription(String desc) {
 			this.description = desc;
@@ -312,32 +314,48 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
-				double newX = getLayoutX() + mouseEvent.getX() - dragDelta.x;
-				double newY = getLayoutY() + mouseEvent.getY() - dragDelta.y;
-				setLayoutX(newX);
-				setLayoutY(newY);
-
-				if (checkBounds()) { 
-					this.setBackground(null);
-					this.text.setTextFill(this.color);
-					getScene().setCursor(Cursor.CLOSED_HAND);
-					setOnMouseReleased(mouseEvent2 -> {
-						getScene().setCursor(Cursor.HAND);
-						checkBounds();
-						mouseEvent.consume();
-					});
-				} else {
-
+				boolean deleteThis = false;
+				for (DraggableItem d : selectedItems) {
+					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
+					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
+					d.setLayoutX(newX);
+					d.setLayoutY(newY);
+					if (d.checkBounds()) { 
+						setOnMouseReleased(mouseEvent2 -> {
+							d.getScene().setCursor(Cursor.HAND);
+							d.checkBounds();
+							mouseEvent.consume();
+						});
+						d.setBackground(null);
+						d.getLabel().setTextFill(d.getColor());
+						d.getScene().setCursor(Cursor.CLOSED_HAND);
+					} else {
+						if (d != this) {
+							setOnMouseReleased(mouseEvent2 -> {
+								d.getScene().setCursor(Cursor.DEFAULT);
+								frameRect.getChildren().remove(d);
+								itemsInDiagram.remove(d);
+								itemsList.getItems().add(d.getText());
+							});
+							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+						} else {
+							deleteThis = true;
+						}
+					}
+				}
+				if (deleteThis) {
 					this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
-
-					this.text.setTextFill(Color.WHITE);
-					getScene().setCursor(Cursor.DISAPPEAR);
-					setOnMouseReleased(mouseEvent2 -> {
-						getScene().setCursor(Cursor.DEFAULT);
+					this.getLabel().setTextFill(Color.WHITE);
+					this.getScene().setCursor(Cursor.DISAPPEAR);
+					this.setOnMouseReleased(mouseEvent2 -> {
+						this.getScene().setCursor(Cursor.DEFAULT);
 						frameRect.getChildren().remove(this);
 						itemsInDiagram.remove(this);
 						itemsList.getItems().add(this.getText());
 					});
+
 				}
 				mouseEvent.consume();
 				changesMade();
@@ -428,6 +446,12 @@ public class Controller {
 			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
 		}
+	}
+	
+	@FXML
+	void zoomActualSize() {
+		frameRect.setScaleX(1);
+		frameRect.setScaleY(1);
 	}
 	
 	@FXML
@@ -577,7 +601,7 @@ public class Controller {
 		} catch (Exception e) {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
-			a.setAlertType(AlertType.ERROR);
+			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
 			a.setTitle("Error");
@@ -707,7 +731,7 @@ public class Controller {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
 			e.printStackTrace();
-			a.setAlertType(AlertType.ERROR);
+			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
 			a.show();
@@ -755,7 +779,7 @@ public class Controller {
 			System.out.println("Error: File not saved.");
 			System.out.println(e);
 			e.printStackTrace();
-			a.setAlertType(AlertType.ERROR);
+			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
 			a.show();
@@ -896,7 +920,7 @@ public class Controller {
 				System.out.println("Error: File not opened.");
 				System.out.println(e);
 				e.printStackTrace();
-				a.setAlertType(AlertType.ERROR);
+				Alert a = new Alert(AlertType.ERROR);
 				a.setHeaderText("File could not be opened");
 				a.setContentText("");
 				a.setTitle("Error");
@@ -908,7 +932,7 @@ public class Controller {
 	@FXML
 	void loadFromFile() {
 		if (changesMade) {
-			a.setAlertType(AlertType.CONFIRMATION);
+			Alert a = new Alert(AlertType.CONFIRMATION);
 			a.setHeaderText("Are you sure you want to open another file?");
 			a.setContentText("You will lose any unsaved changes");
 			a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
@@ -924,7 +948,7 @@ public class Controller {
 	@FXML
 	void newDiagram() {
 		if (changesMade) {
-			a.setAlertType(AlertType.CONFIRMATION);
+			Alert a = new Alert(AlertType.CONFIRMATION);
 			a.setHeaderText("Are you sure you want to open a new file?");
 			a.setContentText("You will lose any unsaved changes");
 			Optional<ButtonType> result = a.showAndWait();
@@ -964,7 +988,7 @@ public class Controller {
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
 		changeColorItems();
-
+		
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 
@@ -1039,16 +1063,21 @@ public class Controller {
 	
 	@FXML
 	void updateIntersection() {
-//		pane.getChildren().remove(circleIntersection);
-//		circleIntersection = Shape.intersect(circleLeft, circleRight);
-//		circleIntersection.setFill(colorIntersection.getValue());
-//		circleIntersection.setOnDragDropped(event -> {
-//			dropItem(event);
-//		});
-//		circleIntersection.mouseTransparentProperty().set(true);
-//		pane.getChildren().add(circleIntersection);
-//		changeColorItems();
-//		changesMade();
+		frameRect.getChildren().remove(circleIntersection);
+		circleIntersection = Shape.intersect(circleLeft, circleRight);
+		circleIntersection.setFill(colorIntersection.getValue());
+		circleIntersection.setOnDragDropped(event -> {
+			dropItem(event);
+		});
+		circleIntersection.setLayoutX(circleLeft.getCenterX() - 407);
+		circleIntersection.setLayoutY(circleLeft.getCenterY() - 100);
+		circleIntersection.mouseTransparentProperty().set(true);
+		frameRect.getChildren().add(circleIntersection);
+		for (DraggableItem d : itemsInDiagram) {
+			d.toFront();
+		}
+		changeColorItems();
+		changesMade();
 	}
 
 	@FXML
@@ -1156,7 +1185,7 @@ public class Controller {
 				itemsList.getItems().addAll(doTheCSV(file));
 			} else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
 				System.out.println("Image: " + file.getAbsolutePath());
-				a.setAlertType(AlertType.INFORMATION);
+				Alert a = new Alert(AlertType.INFORMATION);
 				a.setHeaderText("Feature coming soon");
 				a.setContentText("Adding images is not yet available. This feature will be coming in a future release.");
 				a.setTitle("Feature not available");
@@ -1165,7 +1194,7 @@ public class Controller {
 				// Compare current file to answers
 				// Change backgrounds of items to bright red or green for wrong or right
 				System.out.println("Answer file: " + file.getAbsolutePath());
-				a.setAlertType(AlertType.INFORMATION);
+				Alert a = new Alert(AlertType.INFORMATION);
 				a.setHeaderText("Feature coming soon");
 				a.setContentText("Comparing answers is not yet available. This feature will be coming in a future release.");
 				a.setTitle("Feature not available");
@@ -1175,7 +1204,7 @@ public class Controller {
 		} catch (Exception e) {
 			System.out.println("Error: File not opened.");
 			System.out.println(e);
-			a.setAlertType(AlertType.ERROR);
+			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be opened");
 			a.setContentText("");
 			a.setTitle("Error");
@@ -1284,7 +1313,7 @@ public class Controller {
 				});
 				pane.getScene().getWindow().setOnCloseRequest(event -> {
 					if (changesMade) {
-						a.setAlertType(AlertType.CONFIRMATION);
+						Alert a = new Alert(AlertType.CONFIRMATION);
 						ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
 						ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
 						ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -1315,6 +1344,11 @@ public class Controller {
 					} else {
 						event.consume();
 						Main.primaryStage.close();
+					}
+				});
+				leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
+					if (!hasFocus.booleanValue()) {
+						changeSizeLeftField(new KeyEvent(null, null, null, KeyCode.ENTER, true, true, true, true));
 					}
 				});
 			}
