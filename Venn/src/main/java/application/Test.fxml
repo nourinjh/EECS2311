@@ -116,15 +116,7 @@
                         <KeyCodeCombination alt="UP" code="A" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem fx:id="deleteItemMenu" mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="DELETE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
-                     </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="HIDDEN: Delete Selected Items" visible="false">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="BACK_SPACE" control="UP" meta="UP" shift="UP" shortcut="ANY" />
-                     </accelerator>
-                  </MenuItem>
+              <MenuItem fx:id="deleteItemMenu" mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items" />
                   <MenuItem mnemonicParsing="false" onAction="#clearDiagram" text="Clear Venn Diagram" />
             </items>
           </Menu>
@@ -220,7 +212,7 @@
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@images/folder.png" />
+                        <Image url="@images/open.png" />
                      </image>
                   </ImageView>
                </graphic>
@@ -243,6 +235,23 @@
                </items>
                <tooltip>
                   <Tooltip text="Import" />
+               </tooltip>
+            </MenuButton>
+            <MenuButton focusTraversable="false" mnemonicParsing="false">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/export.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <items>
+                  <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Image" />
+                  <MenuItem mnemonicParsing="false" onAction="#exportCSV" text="CSV File" />
+                  <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
+               </items>
+               <tooltip>
+                  <Tooltip text="Export" />
                </tooltip>
             </MenuButton>
             <Separator orientation="VERTICAL">
@@ -481,7 +490,7 @@
                      <graphic>
                         <Label text="Intersection" />
                      </graphic></MenuItem>
-                  <CustomMenuItem hideOnClick="false" mnemonicParsing="false" text="Color">
+                  <CustomMenuItem disable="true" hideOnClick="false" mnemonicParsing="false" text="Color" visible="false">
                      <content>
                         <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                            <children>

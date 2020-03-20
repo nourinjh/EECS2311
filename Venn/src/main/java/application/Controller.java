@@ -101,9 +101,9 @@ public class Controller {
 	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
 	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_RIGHT_ITEM_COLOR = "0x000000";
-	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0x00fa92";
-	private final double DEFAULT_CIRCLE_OPACTIY = 1;
+	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xffffff";
+	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffffff";
+	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
@@ -1127,22 +1127,22 @@ public class Controller {
 
 	@FXML
 	void updateIntersection() {
-		frameRect.getChildren().remove(circleIntersection);
-		circleIntersection = Shape.intersect(circleLeft, circleRight);
-		circleIntersection.setFill(colorIntersection.getValue());
-		circleIntersection.setOnDragDropped(event -> {
-			dropItem(event);
-		});
-		circleIntersection.mouseTransparentProperty().set(true);
-		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
-		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
-		circleIntersection.setOpacity(0.8);
-		frameRect.getChildren().add(circleIntersection);
-		for (DraggableItem d : itemsInDiagram) {
-			d.toFront();
-		}
-		changeColorItems();
-		changesMade();
+//		frameRect.getChildren().remove(circleIntersection);
+//		circleIntersection = Shape.intersect(circleLeft, circleRight);
+//		circleIntersection.setFill(colorIntersection.getValue());
+//		circleIntersection.setOnDragDropped(event -> {
+//			dropItem(event);
+//		});
+//		circleIntersection.mouseTransparentProperty().set(true);
+//		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
+//		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
+//		circleIntersection.setOpacity(0.8);
+//		frameRect.getChildren().add(circleIntersection);
+//		for (DraggableItem d : itemsInDiagram) {
+//			d.toFront();
+//		}
+//		changeColorItems();
+//		changesMade();
 	}
 
 	@FXML
@@ -1279,6 +1279,111 @@ public class Controller {
 		}
 		changesMade();
 	}
+	
+	@FXML
+	void exportCSV() {
+		try {
+			String name;
+			if (openFile != null) {
+				name = openFile.getName();
+			} else if (!title.getText().equals("")) {
+				name = title.getText() + ".csv";
+			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
+				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".csv";
+			} else {
+				name = "Venn Diagram.csv";
+			}
+
+			FileChooser fc = new FileChooser();
+			fc.setTitle("Save");
+			fc.setInitialFileName(name);
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv"));
+			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+
+			if (selectedFile != null) {
+				if (!(selectedFile.getName().length() > 5 && selectedFile.getName()
+						.substring(selectedFile.getName().length() - 5).toLowerCase().equals(".csv"))) {
+					selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".csv"));
+				}
+				List<String> allItems = new ArrayList<String>();
+				allItems.addAll(items);
+				for (DraggableItem d : itemsInDiagram) {
+					allItems.add(d.getText());
+				}
+				BufferedWriter bw = new BufferedWriter(new FileWriter(selectedFile));
+				if (!allItems.isEmpty()) {
+					bw.write(allItems.get(0));
+					if (allItems.size() > 1) {
+						for (int i = 1; i < allItems.size(); i++) {
+							if (allItems.get(i).contains(",")) {
+								bw.append("\n\"" + allItems.get(i) + "\"");
+							} else {
+								bw.append("\n" + allItems.get(i));
+							}
+						}
+					}
+				}
+				bw.close();
+			}
+		} catch (Exception e) {
+			System.out.println("Error: File not saved.");
+			System.out.println(e);
+			e.printStackTrace();
+			Alert a = new Alert(AlertType.ERROR);
+			a.setHeaderText("File could not be saved");
+			a.setContentText("");
+			a.show();
+		}
+	}
+	
+	@FXML
+	void exportAnswer() {
+		List<String> leftItems = new ArrayList<String>();
+		List<String> rightItems = new ArrayList<String>();
+		List<String> intersectionItems = new ArrayList<String>();
+		for (DraggableItem d : itemsInDiagram) {
+			if (d.getColor().equals(colorLeftItems.getValue())) {
+				leftItems.add(d.getText());
+			} else if (d.getColor().equals(colorRightItems.getValue())) {
+				rightItems.add(d.getText());
+			} else if (d.getColor().equals(colorIntersectionItems.getValue())) {
+				intersectionItems.add(d.getText());
+			}
+		}
+
+//		// For checking answers, not for saving, but just while I think of it:
+//		List<String> leftItemsAnswers = new ArrayList<String>();
+//		List<String> rightItemsAnswers = new ArrayList<String>();
+//		List<String> intersectionItemsAnswers = new ArrayList<String>();
+//		List<String> itemsAnswers = new ArrayList<String>();
+//		for (DraggableItem d : leftItems) {
+//			if (leftItemsAnswers.contains(d.getText())) {
+//				d.setImage("images/correct.png");
+//			} else {
+//				d.setImage("images/incorrect.png");
+//			}
+//		}
+//		for (DraggableItem d : rightItems) {
+//			if (rightItemsAnswers.contains(d.getText())) {
+//				d.setImage("images/correct.png");
+//			} else {
+//				d.setImage("images/incorrect.png");
+//			}
+//		}
+//		for (DraggableItem d : intersectionItems) {
+//			if (intersectionItemsAnswers.contains(d.getText())) {
+//				d.setImage("images/correct.png");
+//			} else {
+//				d.setImage("images/incorrect.png");
+//			}
+//		}
+//		for (String d : items) {
+//			if (!leftItemsAnswers.contains(d)) {
+//				itemsList.getSelectionModel().select(d);
+//				d.setImage("images/correct.png");
+//			}
+//		}
+	}
 
 	@FXML
 	void removeFocusEnter(KeyEvent event) {
@@ -1334,24 +1439,39 @@ public class Controller {
 		sb.append("Documentation: Nabi Khalid and Anika Prova\n");
 		sb.append("Toolbar icon images: ThoseIcons on FlatIcon.com");
 		a.setContentText(sb.toString());
-		ButtonType linkButton = new ButtonType("View ThoseIcons");
+		ButtonType linkButton = new ButtonType("ThoseIcons");
+		ButtonType githubButton = new ButtonType("Source Code");
+		a.getButtonTypes().add(ButtonType.CLOSE);
 		a.getButtonTypes().add(linkButton);
-		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon50.png").toExternalForm()));
+		a.getButtonTypes().add(githubButton);
+		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon100.png").toExternalForm()));
 		a.setGraphic(iconView);
-		Optional<ButtonType> result = a.showAndWait();
-		try {
-			if (result.get() == linkButton) {
-				try {
-					java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			} else {
+		Button link = (Button) a.getDialogPane().lookupButton(linkButton);
+		Button github = (Button) a.getDialogPane().lookupButton(githubButton);
+		Button close = (Button) a.getDialogPane().lookupButton(ButtonType.CLOSE);
+		close.setDefaultButton(true);
+		link.setOnAction(event -> {
+			try {
+				java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
+			} catch (Exception e) {
 				a.close();
 			}
-		} catch (Exception e) {
+			event.consume();
+		});
+		github.setOnAction(event -> {
+			try {
+				java.awt.Desktop.getDesktop().browse(new URI("https://github.com/nourinjh/EECS2311/"));
+			} catch (Exception e) {
+				a.close();
+			}
+			event.consume();
+		});
+		close.setOnAction(event -> {
 			a.close();
-		}
+			event.consume();
+		});
+		a.show();
+		a.setWidth(a.getWidth() + 100);
 	}
 
 	// This method is called by the FXMLLoader when initialization is complete
