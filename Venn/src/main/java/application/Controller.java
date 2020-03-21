@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,9 +49,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -61,6 +64,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.SplitMenuButton;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
@@ -85,11 +89,13 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -107,7 +113,6 @@ public class Controller {
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
-	private boolean answersAreShowing = false;
 
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
@@ -191,7 +196,7 @@ public class Controller {
 	private Button addItemButton;
 	@FXML
 	private ListView<String> itemsList;
-
+	
 	@FXML // ResourceBundle that was given to the FXMLLoader
 	private ResourceBundle resources;
 
@@ -202,10 +207,10 @@ public class Controller {
 
 	class DraggableItem extends StackPane {
 		private Label text = new Label();
-		private String description;
+		private String description = "";
 		private Color color;
 		private ImageView image = new ImageView();
-		private final int MAX_WIDTH = 85;
+		private final int MAX_WIDTH = 120;
 		private char circle;
 
 		public DraggableItem(double x, double y) {
@@ -214,11 +219,14 @@ public class Controller {
 			getChildren().add(this.image);
 
 			this.text.setPadding(new Insets(10));
-			this.text.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
+			this.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
 					new BorderWidths(5), new Insets(0))));
 			requestFocus();
+			this.text.setTextAlignment(TextAlignment.CENTER);
 			this.text.setMaxWidth(MAX_WIDTH);
 			this.text.setWrapText(true);
+//			this.text.setVisible(false);
+//			this.setImage("images/icon100.png");
 
 			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				if (!hasFocus.booleanValue() && getParent() != null && getParent() instanceof Pane
@@ -232,7 +240,7 @@ public class Controller {
 					if (!hasFocus.booleanValue()
 							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
 						for (DraggableItem d : selectedItems) {
-							d.getLabel().setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 									new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 						}
 						selectedItems.clear();
@@ -241,7 +249,7 @@ public class Controller {
 						toFront();
 						if (!multiSelect) {
 							for (DraggableItem d : selectedItems) {
-								d.getLabel().setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+								d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 										new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 							}
 							selectedItems.clear();
@@ -252,7 +260,7 @@ public class Controller {
 						} else {
 							deleteItemMenu.setText("Delete Selected Item");
 						}
-						this.text.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
+						this.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
 								new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
 				} catch (Exception e) {
@@ -278,6 +286,67 @@ public class Controller {
 					multiSelect = false;
 				}
 				keyEvent.consume();
+			});
+			
+			this.setOnMouseClicked(event -> {
+				if (event.getClickCount() == 2) {
+					Alert a = new Alert(AlertType.INFORMATION);
+
+					// Create expandable Exception.
+					TextField textField = new TextField(this.getText());
+					textField.setPromptText("Enter a title for this item");
+
+					TextArea textArea = new TextArea(description);
+					textArea.setPromptText("Enter a description for this item");
+					textArea.setEditable(true);
+					textArea.setWrapText(true);
+
+					textArea.setMaxWidth(Double.MAX_VALUE);
+					textArea.setMaxHeight(Double.MAX_VALUE);
+					GridPane.setVgrow(textArea, Priority.ALWAYS);
+					GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+					GridPane content = new GridPane();
+					content.setMaxWidth(Double.MAX_VALUE);
+					content.add(textField, 0, 0);
+					content.add(textArea, 0, 1);
+
+					// Set expandable Exception into the dialog pane.
+					a.getDialogPane().setContent(content);
+					
+					a.setTitle("Item details");
+					String t = this.getText().length() > 50 ? this.getText().substring(0, 50) + "..." : this.getText();
+					
+					a.setHeaderText("Item details for \"" + t + "\":");
+					ButtonType saveButton = new ButtonType("Save", ButtonData.OK_DONE);
+					a.getButtonTypes().setAll(ButtonType.CANCEL, saveButton);
+					Button save = (Button) a.getDialogPane().lookupButton(saveButton);
+					Button cancel = (Button) a.getDialogPane().lookupButton(ButtonType.CANCEL);
+					textField.textProperty().addListener(listener -> {
+						if (textField.textProperty().getValue().equals("")) {
+							save.setDisable(true);
+							a.headerTextProperty().setValue("Title field cannot be blank");
+						} else {
+							String txt = textField.textProperty().getValue().length() > 50 ? textField.textProperty().getValue().substring(0, 50) + "..." : textField.textProperty().getValue();
+							save.setDisable(false);
+							a.headerTextProperty().setValue("Item details for \"" + txt + "\":");
+						}
+					});
+					save.setOnAction(e -> {
+						this.text.setText(textField.getText());
+						setDescription(textArea.getText());
+						e.consume();
+						a.close();
+						event.consume();
+						changesMade();
+					});
+					cancel.setOnAction(e -> {
+						a.close();
+						e.consume();
+						event.consume();
+					});
+					a.show();
+				}
 			});
 			
 			enableDrag();
@@ -560,6 +629,7 @@ public class Controller {
 		dragBoard.setContent(content);
 		Label tempLabel = new Label(dragBoard.getString());
 		pane.getChildren().add(tempLabel);
+		tempLabel.setTextAlignment(TextAlignment.CENTER);
 		tempLabel.setLayoutX(35);
 		tempLabel.setLayoutY(35);
 		tempLabel.setMaxWidth(105);
@@ -785,10 +855,10 @@ public class Controller {
 			sb = new StringBuilder();
 			for (int i = 0; i < itemsInDiagram.size(); i++) {
 				DraggableItem d = itemsInDiagram.get(i);
-				sb.append(d.getText() + "𔓱" + d.getLayoutX() + "𔓱" + d.getLayoutY() + "𔓱" + "item description" + "𔓱"
+				sb.append(d.getText() + "𔓱" + d.getLayoutX() + "𔓱" + d.getLayoutY() + "𔓱" + d.getDescription() + "𔓱"
 						+ d.getLabel().getTextFill().toString());
 				if (i != itemsInDiagram.size() - 1) {
-					sb.append("\n");
+					sb.append("𔓱𔓱𔓱");
 				}
 			}
 			bw = new BufferedWriter(new FileWriter(inDiagram));
@@ -962,8 +1032,19 @@ public class Controller {
 			// InDiagram
 			ze = vennFile.getEntry("InDiagram.vlist");
 			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+			StringBuilder sb = new StringBuilder("");
+			boolean isFirstLine = true;
 			while ((line = br.readLine()) != null) {
-				elements = line.split("𔓱");
+                if(isFirstLine) {
+                    sb.append(line);
+                    isFirstLine = false;
+                } else {
+                    sb.append("\n").append(line);
+                }
+			}
+			String[] items = sb.toString().split("𔓱𔓱𔓱");
+			for (String s : items) {
+				elements = s.split("𔓱");
 				DraggableItem a = new DraggableItem(Double.parseDouble(elements[1]), Double.parseDouble(elements[2]),
 						elements[0]);
 				a.setDescription(elements[3]);
@@ -1597,7 +1678,6 @@ public class Controller {
 				itemsList.getSelectionModel().select(d);
 			}
 		}
-		answersAreShowing = true;
 		hideAnswersButton.setDisable(false);
 	}
 	
@@ -1607,7 +1687,6 @@ public class Controller {
 			d.clearImage();
 		}
 		itemsList.getSelectionModel().clearSelection();
-		answersAreShowing = false;
 		hideAnswersButton.setDisable(true);
 	}
 
