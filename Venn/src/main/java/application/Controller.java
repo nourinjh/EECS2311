@@ -107,6 +107,7 @@ public class Controller {
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
+	private boolean answersAreShowing = false;
 
 	@FXML
 	private ObservableList<String> items = FXCollections.observableArrayList();
@@ -114,6 +115,12 @@ public class Controller {
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
 	@FXML
 	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList();
+	
+
+	private List<String> leftItemsAnswers = new ArrayList<String>();
+	private List<String> rightItemsAnswers = new ArrayList<String>();
+	private List<String> intersectionItemsAnswers = new ArrayList<String>();
+	private List<String> unassignedItemsAnswers = new ArrayList<String>();
 
 	@FXML
 	private Circle circleLeft;
@@ -172,6 +179,11 @@ public class Controller {
 	private TextField circleLeftTitle;
 	@FXML
 	private TextField circleRightTitle;
+	
+	@FXML
+	private Button hideAnswersButton;
+	@FXML
+	private Button checkAnswersButton;
 
 	@FXML
 	private TextField addItemField;
@@ -192,17 +204,20 @@ public class Controller {
 		private Label text = new Label();
 		private String description;
 		private Color color;
+		private ImageView image = new ImageView();
+		private final int MAX_WIDTH = 85;
+		private char circle;
 
-		DraggableItem(double x, double y) {
-			relocate(x - 5.0D, y - 5.0D);
+		public DraggableItem(double x, double y) {
+			relocate(x - 5, y - 5);
 			getChildren().add(this.text);
-			text.setTextFill(Color.WHITE);
+			getChildren().add(this.image);
 
-			setPadding(new Insets(10));
-			setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
+			this.text.setPadding(new Insets(10));
+			this.text.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
 					new BorderWidths(5), new Insets(0))));
 			requestFocus();
-			this.text.setMaxWidth(85);
+			this.text.setMaxWidth(MAX_WIDTH);
 			this.text.setWrapText(true);
 
 			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
@@ -217,7 +232,7 @@ public class Controller {
 					if (!hasFocus.booleanValue()
 							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
 						for (DraggableItem d : selectedItems) {
-							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+							d.getLabel().setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 									new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 						}
 						selectedItems.clear();
@@ -226,7 +241,7 @@ public class Controller {
 						toFront();
 						if (!multiSelect) {
 							for (DraggableItem d : selectedItems) {
-								d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+								d.getLabel().setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 										new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 							}
 							selectedItems.clear();
@@ -237,7 +252,7 @@ public class Controller {
 						} else {
 							deleteItemMenu.setText("Delete Selected Item");
 						}
-						setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
+						this.text.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
 								new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
 				} catch (Exception e) {
@@ -264,7 +279,7 @@ public class Controller {
 				}
 				keyEvent.consume();
 			});
-
+			
 			enableDrag();
 			checkBounds();
 		}
@@ -290,6 +305,14 @@ public class Controller {
 
 		public Color getColor() {
 			return this.color;
+		}
+		
+		public void setImage(String image) {
+			this.image.setImage(new Image(getClass().getResource(image).toExternalForm()));
+		}
+		
+		public void clearImage() {
+			this.image.setImage(null);
 		}
 
 		public void setDescription(String desc) {
@@ -321,6 +344,7 @@ public class Controller {
 			setOnMouseDragged(mouseEvent -> {
 				boolean deleteThis = false;
 				for (DraggableItem d : selectedItems) {
+					d.clearImage();
 					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
 					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
 					d.setLayoutX(newX);
@@ -404,21 +428,29 @@ public class Controller {
 			if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()
 					&& distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorIntersectionItems.getValue());
+				this.circle = 'i';
 				this.setBackground(null);
 				return true;
 			} else if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()) {
 				this.setColor(colorLeftItems.getValue());
+				this.circle = 'l';
 				this.setBackground(null);
 				return true;
 			} else if (distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorRightItems.getValue());
+				this.circle = 'r';
 				this.setBackground(null);
 				return true;
 			} else {
 				this.setColor(Color.WHITE);
+				this.circle = 'x';
 				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 				return false;
 			}
+		}
+		
+		public char getCircle() {
+			return this.circle;
 		}
 
 		private class Delta {
@@ -655,8 +687,6 @@ public class Controller {
 			ImageIO.write(capture, "png", selectedFile);
 		} catch (IllegalArgumentException e) {
 		} catch (Exception e) {
-			System.out.println("Error: File not saved.");
-			System.out.println(e);
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
@@ -793,8 +823,6 @@ public class Controller {
 			changesMade = false;
 		} catch (NullPointerException e) {
 		} catch (Exception e) {
-			System.out.println("Error: File not saved.");
-			System.out.println(e);
 			e.printStackTrace();
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
@@ -841,9 +869,6 @@ public class Controller {
 				doTheSave(selectedFile);
 			}
 		} catch (Exception e) {
-			System.out.println("Error: File not saved.");
-			System.out.println(e);
-			e.printStackTrace();
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
@@ -885,8 +910,6 @@ public class Controller {
 		File file = null;
 		try {
 			FileChooser fc = new FileChooser();
-			List<String> extensions = new ArrayList<String>();
-			extensions.add("*.venn");
 
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			file = fc.showOpenDialog(pane.getScene().getWindow());
@@ -984,9 +1007,6 @@ public class Controller {
 			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 		} catch (Exception e) {
 			if (file != null) {
-				System.out.println("Error: File not opened.");
-				System.out.println(e);
-				e.printStackTrace();
 				Alert a = new Alert(AlertType.ERROR);
 				a.setHeaderText("File could not be opened");
 				a.setContentText("");
@@ -1231,7 +1251,7 @@ public class Controller {
 			extensions.add("*.jpeg");
 
 			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
-			ExtensionFilter ansFilter = new ExtensionFilter("Answer key files (*.venn)", "*.venn");
+			ExtensionFilter ansFilter = new ExtensionFilter("Venn Answer Key files (*.vansr)", "*.vansr");
 			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions);
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
@@ -1246,9 +1266,12 @@ public class Controller {
 			}
 
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
+			
 			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
 				itemsList.getItems().addAll(doTheCSV(file));
-			} else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
+			}
+			
+			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
 				System.out.println("Image: " + file.getAbsolutePath());
 				Alert a = new Alert(AlertType.INFORMATION);
 				a.setHeaderText("Feature coming soon");
@@ -1256,21 +1279,72 @@ public class Controller {
 						"Adding images is not yet available. This feature will be coming in a future release.");
 				a.setTitle("Feature not available");
 				a.show();
-			} else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
-				// Compare current file to answers
-				// Change backgrounds of items to bright red or green for wrong or right
-				System.out.println("Answer file: " + file.getAbsolutePath());
-				Alert a = new Alert(AlertType.INFORMATION);
-				a.setHeaderText("Feature coming soon");
-				a.setContentText(
-						"Comparing answers is not yet available. This feature will be coming in a future release.");
-				a.setTitle("Feature not available");
-				a.show();
+			}
+			
+			else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
+				List<String> left = new ArrayList<String>();
+				List<String> right = new ArrayList<String>();
+				List<String> intersection = new ArrayList<String>();
+				List<String> unassigned = new ArrayList<String>();
+				ZipFile answerFile = new ZipFile(file);
+				ZipEntry ze;
+				BufferedReader br;
+				String line;
+				
+				ze = answerFile.getEntry("leftAnswers.csv");
+				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+				while ((line = br.readLine()) != null) {
+					if (line.contains(",")) {
+						line = line.substring(1, line.length() - 1);
+					}
+					left.add(line);
+
+				}
+				br.close();
+				
+				ze = answerFile.getEntry("rightAnswers.csv");
+				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+				while ((line = br.readLine()) != null) {
+					if (line.contains(",")) {
+						line = line.substring(1, line.length() - 1);
+					}
+					right.add(line);
+
+				}
+				br.close();
+				
+				ze = answerFile.getEntry("intersectionAnswers.csv");
+				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+				while ((line = br.readLine()) != null) {
+					if (line.contains(",")) {
+						line = line.substring(1, line.length() - 1);
+					}
+					intersection.add(line);
+
+				}
+				br.close();
+				
+				ze = answerFile.getEntry("unassignedAnswers.csv");
+				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+				while ((line = br.readLine()) != null) {
+					if (line.contains(",")) {
+						line = line.substring(1, line.length() - 1);
+					}
+					unassigned.add(line);
+				}
+				br.close();
+				answerFile.close();
+				
+				leftItemsAnswers = left;
+				rightItemsAnswers = right;
+				intersectionItemsAnswers = intersection;
+				unassignedItemsAnswers = unassigned;
+				
+				checkAnswersButton.setDisable(false);;
+				checkAnswers();
 			}
 		} catch (NullPointerException e) {
 		} catch (Exception e) {
-			System.out.println("Error: File not opened.");
-			System.out.println(e);
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be opened");
 			a.setContentText("");
@@ -1326,9 +1400,6 @@ public class Controller {
 				bw.close();
 			}
 		} catch (Exception e) {
-			System.out.println("Error: File not saved.");
-			System.out.println(e);
-			e.printStackTrace();
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
 			a.setContentText("");
@@ -1338,51 +1409,206 @@ public class Controller {
 	
 	@FXML
 	void exportAnswer() {
-		List<String> leftItems = new ArrayList<String>();
-		List<String> rightItems = new ArrayList<String>();
-		List<String> intersectionItems = new ArrayList<String>();
+		try {
+			String name;
+			if (openFile != null) {
+				name = openFile.getName().substring(0, openFile.getName().length()-5);
+			} else if (!title.getText().equals("")) {
+				name = title.getText() + ".vansr";
+			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
+				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".vansr";
+			} else {
+				name = "Venn Diagram.vansr";
+			}
+
+			FileChooser fc = new FileChooser();
+			fc.setTitle("Save");
+			fc.setInitialFileName(name);
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn Answer Key files (*.vansr)", "*.vansr"));
+			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
+
+			if (selectedFile != null) {
+				if (!(selectedFile.getName().length() > 5 && selectedFile.getName()
+						.substring(selectedFile.getName().length() - 5).toLowerCase().equals(".vansr"))) {
+					selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".vansr"));
+				}
+				
+				List<String> leftItems = new ArrayList<String>();
+				List<String> rightItems = new ArrayList<String>();
+				List<String> intersectionItems = new ArrayList<String>();
+				for (DraggableItem d : itemsInDiagram) {
+					if (d.getColor().equals(colorLeftItems.getValue())) {
+						leftItems.add(d.getText());
+					} else if (d.getColor().equals(colorRightItems.getValue())) {
+						rightItems.add(d.getText());
+					} else if (d.getColor().equals(colorIntersectionItems.getValue())) {
+						intersectionItems.add(d.getText());
+					}
+				}
+				FileOutputStream fos = new FileOutputStream(selectedFile);
+				ZipOutputStream zos = new ZipOutputStream(fos);
+				BufferedWriter bw;
+
+				File leftFile = new File("leftAnswers.csv");
+				bw = new BufferedWriter(new FileWriter(leftFile));
+				if (!leftItems.isEmpty()) {
+					bw.write(leftItems.get(0));
+					if (leftItems.size() > 1) {
+						for (int i = 1; i < leftItems.size(); i++) {
+							if (leftItems.get(i).contains(",")) {
+								bw.append("\n\"" + leftItems.get(i) + "\"");
+							} else {
+								bw.append("\n" + leftItems.get(i));
+							}
+						}
+					}
+				}
+				bw.close();
+
+				File rightFile = new File("rightAnswers.csv");
+				bw = new BufferedWriter(new FileWriter(rightFile));
+				if (!rightItems.isEmpty()) {
+					bw.write(rightItems.get(0));
+					if (rightItems.size() > 1) {
+						for (int i = 1; i < rightItems.size(); i++) {
+							if (rightItems.get(i).contains(",")) {
+								bw.append("\n\"" + rightItems.get(i) + "\"");
+							} else {
+								bw.append("\n" + rightItems.get(i));
+							}
+						}
+					}
+				}
+				bw.close();
+
+				File intersectionFile = new File("intersectionAnswers.csv");
+				bw = new BufferedWriter(new FileWriter(intersectionFile));
+				if (!intersectionItems.isEmpty()) {
+					bw.write(intersectionItems.get(0));
+					if (intersectionItems.size() > 1) {
+						for (int i = 1; i < intersectionItems.size(); i++) {
+							if (intersectionItems.get(i).contains(",")) {
+								bw.append("\n\"" + intersectionItems.get(i) + "\"");
+							} else {
+								bw.append("\n" + intersectionItems.get(i));
+							}
+						}
+					}
+				}
+				bw.close();
+				
+				File unassignedFile = new File("unassignedAnswers.csv");
+				bw = new BufferedWriter(new FileWriter(unassignedFile));
+				if (!items.isEmpty()) {
+					bw.write(items.get(0));
+					if (items.size() > 1) {
+						for (int i = 1; i < items.size(); i++) {
+							if (items.get(i).contains(",")) {
+								bw.append("\n\"" + items.get(i) + "\"");
+							} else {
+								bw.append("\n" + items.get(i));
+							}
+						}
+					}
+				}
+				bw.close();
+				
+				
+
+				File[] files = { leftFile, rightFile, intersectionFile, unassignedFile };
+				byte[] buffer = new byte[128];
+				for (int i = 0; i < files.length; i++) {
+					File f = files[i];
+					if (!f.isDirectory()) {
+						ZipEntry entry = new ZipEntry(f.getName());
+						FileInputStream fis = new FileInputStream(f);
+						zos.putNextEntry(entry);
+						int read = 0;
+						while ((read = fis.read(buffer)) != -1) {
+							zos.write(buffer, 0, read);
+						}
+						zos.closeEntry();
+						fis.close();
+					}
+				}
+				zos.close();
+				fos.close();
+
+				for (File f : files) {
+					f.delete();
+				}
+			}
+		} catch (NullPointerException e) {
+		} catch (Exception e) {
+			Alert a = new Alert(AlertType.ERROR);
+			a.setHeaderText("File could not be saved");
+			a.setContentText("");
+			a.show();
+		}
+				
+	}
+	
+	@FXML
+	void checkAnswers() {
+		List<DraggableItem> leftItems = new ArrayList<DraggableItem>();
+		List<DraggableItem> rightItems = new ArrayList<DraggableItem>();
+		List<DraggableItem> intersectionItems = new ArrayList<DraggableItem>();
 		for (DraggableItem d : itemsInDiagram) {
-			if (d.getColor().equals(colorLeftItems.getValue())) {
-				leftItems.add(d.getText());
-			} else if (d.getColor().equals(colorRightItems.getValue())) {
-				rightItems.add(d.getText());
-			} else if (d.getColor().equals(colorIntersectionItems.getValue())) {
-				intersectionItems.add(d.getText());
+			d.checkBounds();
+			if (d.getCircle() == 'l') {
+				leftItems.add(d);
+			} else if (d.getCircle() == 'r') {
+				rightItems.add(d);
+			} else if (d.getCircle() == 'i') {
+				intersectionItems.add(d);
+			} else {
+				d.setImage("images/incorrect.png");
 			}
 		}
-
-//		// For checking answers, not for saving, but just while I think of it:
-//		List<String> leftItemsAnswers = new ArrayList<String>();
-//		List<String> rightItemsAnswers = new ArrayList<String>();
-//		List<String> intersectionItemsAnswers = new ArrayList<String>();
-//		List<String> itemsAnswers = new ArrayList<String>();
-//		for (DraggableItem d : leftItems) {
-//			if (leftItemsAnswers.contains(d.getText())) {
-//				d.setImage("images/correct.png");
-//			} else {
-//				d.setImage("images/incorrect.png");
-//			}
-//		}
-//		for (DraggableItem d : rightItems) {
-//			if (rightItemsAnswers.contains(d.getText())) {
-//				d.setImage("images/correct.png");
-//			} else {
-//				d.setImage("images/incorrect.png");
-//			}
-//		}
-//		for (DraggableItem d : intersectionItems) {
-//			if (intersectionItemsAnswers.contains(d.getText())) {
-//				d.setImage("images/correct.png");
-//			} else {
-//				d.setImage("images/incorrect.png");
-//			}
-//		}
-//		for (String d : items) {
-//			if (!leftItemsAnswers.contains(d)) {
-//				itemsList.getSelectionModel().select(d);
-//				d.setImage("images/correct.png");
-//			}
-//		}
+		
+		List<String> leftItemsAnswers = new ArrayList<String>(this.leftItemsAnswers);
+		List<String> rightItemsAnswers = new ArrayList<String>(this.rightItemsAnswers);
+		List<String> intersectionItemsAnswers = new ArrayList<String>(this.intersectionItemsAnswers);
+		List<String> unassignedItemsAnswers = new ArrayList<String>(this.unassignedItemsAnswers);
+		
+		for (DraggableItem d : leftItems) {
+			if (leftItemsAnswers.remove(d.getText())) {
+				d.setImage("images/correct.png");
+			} else {
+				d.setImage("images/incorrect.png");
+			}
+		}
+		for (DraggableItem d : rightItems) {
+			if (rightItemsAnswers.remove(d.getText())) {
+				d.setImage("images/correct.png");
+			} else {
+				d.setImage("images/incorrect.png");
+			}
+		}
+		for (DraggableItem d : intersectionItems) {
+			if (intersectionItemsAnswers.remove(d.getText())) {
+				d.setImage("images/correct.png");
+			} else {
+				d.setImage("images/incorrect.png");
+			}
+		}
+		for (String d : items) {
+			if (!unassignedItemsAnswers.remove(d)) {
+				itemsList.getSelectionModel().select(d);
+			}
+		}
+		answersAreShowing = true;
+		hideAnswersButton.setDisable(false);
+	}
+	
+	@FXML
+	void hideAnswers() {
+		for (DraggableItem d : itemsInDiagram) {
+			d.clearImage();
+		}
+		itemsList.getSelectionModel().clearSelection();
+		answersAreShowing = false;
+		hideAnswersButton.setDisable(true);
 	}
 
 	@FXML
@@ -1402,19 +1628,25 @@ public class Controller {
 	@FXML
 	void dropItem(DragEvent event) {
 		String item = event.getDragboard().getString();
-		addItemToDiagram(event.getX(), event.getY(), item);
-		itemsList.getItems().remove(item);
+		if (addItemToDiagram(event.getX(), event.getY(), item)) {
+			itemsList.getItems().remove(item);
+		}
 		event.setDropCompleted(true);
 		event.consume();
 		changesMade();
 	}
 
-	void addItemToDiagram(double x, double y, String text) {
+	boolean addItemToDiagram(double x, double y, String text) {
 		DraggableItem a = new DraggableItem(x, y, text);
-		frameRect.getChildren().add(a);
-		itemsInDiagram.add(a);
-		a.toFront();
-		changesMade();
+		if (a.checkBounds()) {
+			frameRect.getChildren().add(a);
+			itemsInDiagram.add(a);
+			a.toFront();
+			changesMade();
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@FXML

@@ -248,7 +248,7 @@
                <items>
                   <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Image" />
                   <MenuItem mnemonicParsing="false" onAction="#exportCSV" text="CSV File" />
-                  <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
+                  <MenuItem mnemonicParsing="false" onAction="#exportAnswer" text="Answer Key" />
                </items>
                <tooltip>
                   <Tooltip text="Export" />
@@ -259,18 +259,35 @@
                   <Insets left="5.0" right="5.0" />
                </padding>
             </Separator>
-            <Button focusTraversable="false" layoutX="52.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#takeScreenshot">
+            <Button fx:id="checkAnswersButton" disable="true" focusTraversable="false" layoutX="52.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#checkAnswers">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@images/camera.png" />
+                        <Image url="@images/correct.png" />
                      </image>
                   </ImageView>
                </graphic>
                <tooltip>
-                  <Tooltip text="Save as Image" />
+                  <Tooltip text="Check Answers" />
                </tooltip>
             </Button>
+            <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/hide.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Hide Answers" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="5.0" right="5.0" />
+               </padding>
+            </Separator>
             <Button focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
