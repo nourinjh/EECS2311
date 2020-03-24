@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ColorPicker?>
@@ -166,9 +167,9 @@
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
                   
-                                                                  <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                                        <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
-                                                                     <font>
+                                                                           <font>
                               <Font name="Arial" size="32.0" />
                            </font>
                            <cursor>
@@ -196,19 +197,22 @@
       </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
-          <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save">
+          <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/save.png" />
                      </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
                   </ImageView>
                </graphic>
                <tooltip>
                   <Tooltip text="Save" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile">
+            <Button focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -220,7 +224,7 @@
                   <Tooltip text="Open" />
                </tooltip>
             </Button>
-            <MenuButton focusTraversable="false" mnemonicParsing="false">
+            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -237,7 +241,7 @@
                   <Tooltip text="Import" />
                </tooltip>
             </MenuButton>
-            <MenuButton focusTraversable="false" mnemonicParsing="false">
+            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -254,12 +258,12 @@
                   <Tooltip text="Export" />
                </tooltip>
             </MenuButton>
-            <Separator orientation="VERTICAL">
+            <Separator orientation="VERTICAL" prefHeight="30.0">
                <padding>
-                  <Insets left="5.0" right="5.0" />
+                  <Insets left="3.0" />
                </padding>
             </Separator>
-            <Button fx:id="checkAnswersButton" disable="true" focusTraversable="false" layoutX="52.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#checkAnswers">
+            <Button fx:id="checkAnswersButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#importAnswer" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -271,9 +275,9 @@
                   <Tooltip text="Check Answers" />
                </tooltip>
             </Button>
-            <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers">
+            <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers" prefHeight="30.0">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="hideAnswersButtonImage" fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/hide.png" />
                      </image>
@@ -283,12 +287,12 @@
                   <Tooltip text="Hide Answers" />
                </tooltip>
             </Button>
-            <Separator orientation="VERTICAL">
+            <Separator orientation="VERTICAL" prefHeight="30.0">
                <padding>
-                  <Insets left="5.0" right="5.0" />
+                  <Insets left="3.0" />
                </padding>
             </Separator>
-            <Button focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem">
+            <Button fx:id="deleteButton" focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -297,10 +301,10 @@
                   </ImageView>
                </graphic>
                <tooltip>
-                  <Tooltip text="Delete Item" />
+                  <Tooltip text="Delete Selected Items" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram">
+            <Button focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -312,12 +316,12 @@
                   <Tooltip text="Clear Diagram" />
                </tooltip>
             </Button>
-            <Separator orientation="VERTICAL">
+            <Separator orientation="VERTICAL" prefHeight="30.0">
                <padding>
-                  <Insets left="5.0" right="5.0" />
+                  <Insets left="3.0" />
                </padding>
             </Separator>
-            <MenuButton focusTraversable="false" mnemonicParsing="false">
+            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
