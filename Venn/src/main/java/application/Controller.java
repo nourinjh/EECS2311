@@ -18,6 +18,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -371,6 +372,10 @@ public class Controller {
 		public String getText() {
 			return this.text.getText();
 		}
+		
+		public String toString() {
+			return this.getText();
+		}
 
 		public void setColor(Color c) {
 			this.text.setTextFill(c);
@@ -546,7 +551,8 @@ public class Controller {
 				Image image;
 				image = new Image(imageFile.toURI().toURL().toExternalForm());
 				this.imageFile = new File("imgs/" + title);
-				Files.copy(imageFile, this.imageFile);
+				if (!imageFile.equals(this.imageFile))
+					Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
 				this.image.setImage(image);
@@ -601,9 +607,15 @@ public class Controller {
 							save.setDisable(true);
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
-							String txt = textField.textProperty().getValue().length() > 50 ? textField.textProperty().getValue().substring(0, 50) + "..." : textField.textProperty().getValue();
-							save.setDisable(false);
-							a.headerTextProperty().setValue("Item details for \"" + txt + "\":");
+							String name = textField.getText().endsWith(".png") ? textField.getText() : textField.getText() + ".png";
+							if (!name.equals(this.getText()) && new File("imgs/" + name).exists()) {
+								save.setDisable(true);
+								a.headerTextProperty().setValue("An image called \"" + textField.getText() + "\" already exists");
+							} else {
+								String txt = textField.textProperty().getValue().length() > 50 ? textField.textProperty().getValue().substring(0, 50) + "..." : textField.textProperty().getValue();
+								save.setDisable(false);
+								a.headerTextProperty().setValue("Item details for \"" + txt + "\":");
+							}
 						}
 					});
 					save.setOnAction(e -> {
@@ -619,7 +631,6 @@ public class Controller {
 							this.imageFile.deleteOnExit();
 							itemImages.add(this.imageFile);
 						}
-						itemImages.forEach(f -> System.out.println(f.getName()));
 						setDescription(textArea.getText());
 						e.consume();
 						a.close();
@@ -1104,7 +1115,7 @@ public class Controller {
 			sb = new StringBuilder();
 			bw = new BufferedWriter(new FileWriter(imagesList));
 			if (!itemImages.isEmpty()) {
-				bw.write(itemImages.get(0).getName());
+				bw.write("\"" + itemImages.get(0).getName() + "\"");
 				if (itemImages.size() > 1) {
 					for (int i = 1; i < itemImages.size(); i++) {
 						bw.append("\n\"" + itemImages.get(i).getName() + "\"");
@@ -1162,7 +1173,6 @@ public class Controller {
 			zos.closeEntry();
 			File[] imgs = imgsDir.listFiles();
 			for (File f : imgs) {
-				System.out.println(f.getName());
 				if (!f.isHidden()) {
 					ZipEntry entry = new ZipEntry(imgsDir.getName() + "/" + f.getName());
 					FileInputStream fis = new FileInputStream(f);
@@ -1257,7 +1267,7 @@ public class Controller {
 
 	private void doTheLoad() {
 
-		// TODO: Add imported images to this once implemented
+		// TODO: Add imported images items, and then update hierarchy
 
 		// Hierarchy of a .venn file:
 		// . Diagram.venn:
@@ -1284,30 +1294,44 @@ public class Controller {
 			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
 			ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
 			List<File> images = new ArrayList<File>();
+			List<String> imgStrings = new ArrayList<String>();
 			ZipFile vennFile = new ZipFile(file);
 			ZipEntry ze;
 			BufferedReader br;
 			
 			// Images
-			File dir = new File("openFile/imgs");
-			dir.mkdirs();
-			dir.getParentFile().deleteOnExit();
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(file.getAbsolutePath()));
-			byte[] buffer = new byte[1024];
-            int len;
-			while ((ze = zis.getNextEntry()) != null) {
-				System.out.println(ze.getName());
-				File newFile = new File("openFile/" + ze.getName());
-				newFile.deleteOnExit();
-                FileOutputStream fos = new FileOutputStream(newFile);
-                while ((len = zis.read(buffer)) > 0) {
-                	fos.write(buffer, 0, len);
-                }
-                fos.close();
-                images.add(newFile);
-				zis.closeEntry();
+			ze = vennFile.getEntry("Images.csv");
+			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+			while ((line = br.readLine()) != null) {
+				String fileName = "imgs/" + line.substring(1, line.length() - 1);
+				ze = vennFile.getEntry(fileName);
+				File newImage = new File(fileName);
+				if (!newImage.exists())
+					java.nio.file.Files.copy(vennFile.getInputStream(ze), Paths.get(fileName));
+				images.add(newImage);
+				imgStrings.add(line.substring(1, line.length() - 1));
+				newImage.deleteOnExit();
 			}
-			zis.close();
+			br.close();
+//			File dir = new File("openFile/imgs");
+//			dir.mkdirs();
+//			dir.getParentFile().deleteOnExit();
+//			ZipInputStream zis = new ZipInputStream(new FileInputStream(file.getAbsolutePath()));
+//			byte[] buffer = new byte[1024];
+//          int len;
+//			while ((ze = zis.getNextEntry()) != null) {
+//				System.out.println(ze.getName());
+//				File newFile = new File("openFile/" + ze.getName());
+//				newFile.deleteOnExit();
+//                FileOutputStream fos = new FileOutputStream(newFile);
+//                while ((len = zis.read(buffer)) > 0) {
+//                	fos.write(buffer, 0, len);
+//                }
+//                fos.close();
+//                images.add(newFile);
+//				zis.closeEntry();
+//			}
+//			zis.close();
 
 			// Config
 			ze = vennFile.getEntry("Config.vlist");
@@ -1363,8 +1387,19 @@ public class Controller {
 			String[] items = sb.toString().split("𔓱𔓱𔓱");
 			for (String s : items) {
 				elements = s.split("𔓱");
-				DraggableItem a = new DraggableItem(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5,
-						elements[0]);
+				DraggableItem a = null;
+				if (elements[0].endsWith(".png")) {
+					for (File f : images) {
+						if (elements[0].equals(f.getName())) {
+							a = new DraggableImage(Double.parseDouble(elements[1]) + 5,
+									Double.parseDouble(elements[2]) + 5, elements[0], f);
+							break;
+						}
+					}
+				}
+				else {
+					a = new DraggableItem(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0]);
+				}
 				a.setDescription(elements[3]);
 				a.setColor(Color.web(elements[4]));
 				inDiagram.add(a);
@@ -1398,6 +1433,7 @@ public class Controller {
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
 			this.colorIntersectionItems.setValue(intersectionTextColor);
+			this.itemImages = images;
 
 			openFile = file;
 			changesMade = false;
@@ -1407,6 +1443,7 @@ public class Controller {
 			hideAnswers();
 			clearAnswerKey();
 		} catch (Exception e) {
+			e.printStackTrace();
 			if (file != null) {
 				Alert a = new Alert(AlertType.ERROR);
 				a.setHeaderText("File could not be opened");
@@ -1492,6 +1529,10 @@ public class Controller {
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
 		changeColorItems();
+		for (File f : itemImages) {
+			f.delete();
+		}
+		itemImages.clear();
 		
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
