@@ -18,6 +18,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
-import com.google.common.io.Files;
+//import com.google.common.io.Files;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -109,9 +110,9 @@ public class Controller {
 	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
 	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
 	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
-	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xffffff";
-	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffffff";
+	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
+	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
+	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
 	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
 
 	private boolean multiSelect = false;
@@ -542,7 +543,6 @@ public class Controller {
 	private class DraggableImage extends DraggableItem {
 		private ImageView image = new ImageView();
 		private File imageFile;
-		private String imageType;
 		
 		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
@@ -551,10 +551,10 @@ public class Controller {
 				image = new Image(imageFile.toURI().toURL().toExternalForm());
 				this.imageFile = new File("imgs/" + title);
 				if (!imageFile.equals(this.imageFile))
-					Files.copy(imageFile, this.imageFile);
+					Files.copy(new FileInputStream(imageFile), Paths.get("imgs/" + title));
+//					Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
-				this.imageType = "." + Files.getFileExtension(imageFile.getName());
 				this.image.setImage(image);
 				this.image.setPreserveRatio(true);
 				this.image.setFitWidth(100);
@@ -683,7 +683,7 @@ public class Controller {
 			} else {
 				this.setColor(Color.WHITE);
 				this.circle = 'x';
-				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
+				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
 //				this.image.setOpacity(0.75);
 				result = false;
 			}
@@ -701,7 +701,7 @@ public class Controller {
 			setOnMousePressed(mouseEvent -> {
 				toFront();
 
-				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(0), new Insets(-5))));
+				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(5), new Insets(-5))));
 				dragDelta.x = mouseEvent.getX();
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
@@ -732,7 +732,7 @@ public class Controller {
 							d.checkBounds();
 							mouseEvent.consume();
 						});
-						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(0), new Insets(-5))));
+						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
@@ -744,7 +744,7 @@ public class Controller {
 								itemsList.getItems().add(d.getText());
 							});
 							d.setBackground(
-									new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
+									new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
 							d.getLabel().setTextFill(Color.WHITE);
 							d.getScene().setCursor(Cursor.DISAPPEAR);
 						} else {
@@ -754,7 +754,7 @@ public class Controller {
 				}
 				if (deleteThis) {
 					this.setBackground(
-							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
+							new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
 					this.getLabel().setTextFill(Color.WHITE);
 					this.getScene().setCursor(Cursor.DISAPPEAR);
 					this.setOnMouseReleased(mouseEvent2 -> {
@@ -1324,7 +1324,7 @@ public class Controller {
 				ze = vennFile.getEntry(fileName);
 				File newImage = new File(fileName);
 				if (!newImage.exists())
-					java.nio.file.Files.copy(vennFile.getInputStream(ze), Paths.get(fileName));
+					Files.copy(vennFile.getInputStream(ze), Paths.get(fileName));
 				images.add(newImage);
 				imgStrings.add(line.substring(1, line.length() - 1));
 				newImage.deleteOnExit();
