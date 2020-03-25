@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
@@ -213,7 +214,7 @@ public class Controller {
 		protected Label text = new Label();
 		protected String description = "";
 		private Color color;
-		private ImageView answerImage = new ImageView();
+		protected ImageView answerImage = new ImageView();
 		private final int MAX_WIDTH = 120;
 		protected char circle;
 
@@ -544,7 +545,7 @@ public class Controller {
 			try {
 				Image image;
 				image = new Image(imageFile.toURI().toURL().toExternalForm());
-				this.imageFile = new File(title);
+				this.imageFile = new File("imgs/" + title);
 				Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
@@ -555,6 +556,7 @@ public class Controller {
 				this.text.setMaxWidth(image.getWidth());
 				this.text.setWrapText(false);
 				this.getChildren().add(this.image);
+				this.answerImage.toFront();
 				enableDrag();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -606,12 +608,12 @@ public class Controller {
 					});
 					save.setOnAction(e -> {
 						if (!textField.getText().equals(this.getText())) {
-							if (textField.getText().length() < 4 || !textField.getText().substring(textField.getText().length() - 4).equals(".png")) {
+							if (!textField.getText().endsWith(".png")) {
 								textField.setText(textField.getText() + ".png");
 							}
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
-							File newImageFile = new File(textField.getText());
+							File newImageFile = new File("imgs/" + textField.getText());
 							this.imageFile.renameTo(newImageFile);
 							this.imageFile = newImageFile;
 							this.imageFile.deleteOnExit();
@@ -654,22 +656,23 @@ public class Controller {
 					&& distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorIntersectionItems.getValue().brighter());
 				this.circle = 'i';
-//				this.setBackground(null);
+//				this.image.setOpacity(1);
 				result = true;
 			} else if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()) {
 				this.setColor(colorLeftItems.getValue());
 				this.circle = 'l';
-//				this.setBackground(null);
+//				this.image.setOpacity(1);
 				result = true;
 			} else if (distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorRightItems.getValue());
 				this.circle = 'r';
-//				this.setBackground(null);
+//				this.image.setOpacity(1);
 				result = true;
 			} else {
 				this.setColor(Color.WHITE);
 				this.circle = 'x';
 				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+//				this.image.setOpacity(0.75);
 				result = false;
 			}
 			return result;
@@ -774,7 +777,6 @@ public class Controller {
 		}
 		
 		public void deleteImage() {
-			// TODO Auto-generated method stub
 			this.imageFile.delete();
 			itemImages.remove(this.imageFile);
 		}
@@ -931,8 +933,7 @@ public class Controller {
 			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
 			for (File file : dragged) {
 				System.out.println(file.getName().substring(file.getName().length() - 4));
-				if (file.getName().length() > 4
-						&& file.getName().substring(file.getName().length() - 4).equals(".csv")) {
+				if (file.getName().endsWith(".csv")) {
 					try {
 						doTheCSV(file);
 						System.out.println("Imported");
@@ -1098,6 +1099,19 @@ public class Controller {
 				}
 			}
 			bw.close();
+			
+			File imagesList = new File("Images.csv");
+			sb = new StringBuilder();
+			bw = new BufferedWriter(new FileWriter(imagesList));
+			if (!itemImages.isEmpty()) {
+				bw.write(itemImages.get(0).getName());
+				if (itemImages.size() > 1) {
+					for (int i = 1; i < itemImages.size(); i++) {
+						bw.append("\n\"" + itemImages.get(i).getName() + "\"");
+					}
+				}
+			}
+			bw.close();
 
 			File inDiagram = new File("InDiagram.vlist");
 			sb = new StringBuilder();
@@ -1113,10 +1127,9 @@ public class Controller {
 			bw.write(sb.toString());
 			bw.close();
 
-			File[] files = { config, unassigned, inDiagram };
+			File[] files = { config, unassigned, inDiagram, imagesList };
 			byte[] buffer = new byte[128];
-			for (int i = 0; i < files.length; i++) {
-				File f = files[i];
+			for (File f : files) {
 				if (!f.isDirectory()) {
 					ZipEntry entry = new ZipEntry(f.getName());
 					FileInputStream fis = new FileInputStream(f);
@@ -1129,6 +1142,40 @@ public class Controller {
 					fis.close();
 				}
 			}
+			
+//			for (File f : itemImages) {
+//				if (!f.isDirectory()) {
+//					ZipEntry entry = new ZipEntry(f.getName());
+//					FileInputStream fis = new FileInputStream(f);
+//					zos.putNextEntry(entry);
+//					int read = 0;
+//					while ((read = fis.read(buffer)) != -1) {
+//						zos.write(buffer, 0, read);
+//					}
+//					zos.closeEntry();
+//					fis.close();
+//				}
+//			}
+			
+			File imgsDir = new File("imgs");
+			zos.putNextEntry(new ZipEntry(imgsDir.getName() + "/"));
+			zos.closeEntry();
+			File[] imgs = imgsDir.listFiles();
+			for (File f : imgs) {
+				System.out.println(f.getName());
+				if (!f.isHidden()) {
+					ZipEntry entry = new ZipEntry(imgsDir.getName() + "/" + f.getName());
+					FileInputStream fis = new FileInputStream(f);
+					zos.putNextEntry(entry);
+					int read = 0;
+					while ((read = fis.read(buffer)) != -1) {
+						zos.write(buffer, 0, read);
+					}
+					zos.closeEntry();
+					fis.close();
+				}
+			}
+						
 			zos.close();
 			fos.close();
 
@@ -1180,8 +1227,7 @@ public class Controller {
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 
 			if (selectedFile != null) {
-				if (!(selectedFile.getName().length() > 5 && selectedFile.getName()
-						.substring(selectedFile.getName().length() - 5).toLowerCase().equals(".venn"))) {
+				if (!selectedFile.getName().endsWith(".venn")) {
 					selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".venn"));
 				}
 				doTheSave(selectedFile);
@@ -1228,7 +1274,7 @@ public class Controller {
 		File file = null;
 		try {
 			FileChooser fc = new FileChooser();
-
+			
 			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 			file = fc.showOpenDialog(pane.getScene().getWindow());
 			String line, title, leftTitle, rightTitle, elements[];
@@ -1237,11 +1283,35 @@ public class Controller {
 			double leftScale, rightScale;
 			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
 			ObservableList<DraggableItem> inDiagram = FXCollections.observableArrayList();
+			List<File> images = new ArrayList<File>();
 			ZipFile vennFile = new ZipFile(file);
+			ZipEntry ze;
+			BufferedReader br;
+			
+			// Images
+			File dir = new File("openFile/imgs");
+			dir.mkdirs();
+			dir.getParentFile().deleteOnExit();
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(file.getAbsolutePath()));
+			byte[] buffer = new byte[1024];
+            int len;
+			while ((ze = zis.getNextEntry()) != null) {
+				System.out.println(ze.getName());
+				File newFile = new File("openFile/" + ze.getName());
+				newFile.deleteOnExit();
+                FileOutputStream fos = new FileOutputStream(newFile);
+                while ((len = zis.read(buffer)) > 0) {
+                	fos.write(buffer, 0, len);
+                }
+                fos.close();
+                images.add(newFile);
+				zis.closeEntry();
+			}
+			zis.close();
 
 			// Config
-			ZipEntry ze = vennFile.getEntry("Config.vlist");
-			BufferedReader br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
+			ze = vennFile.getEntry("Config.vlist");
+			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
 
 			elements = br.readLine().split("𔓱");
 			title = elements[0];
@@ -1731,8 +1801,7 @@ public class Controller {
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 
 			if (selectedFile != null) {
-				if (!(selectedFile.getName().length() > 5 && selectedFile.getName()
-						.substring(selectedFile.getName().length() - 5).toLowerCase().equals(".csv"))) {
+				if (!selectedFile.getName().endsWith(".csv")) {
 					selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".csv"));
 				}
 				List<String> allItems = new ArrayList<String>();
@@ -1784,8 +1853,7 @@ public class Controller {
 			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 
 			if (selectedFile != null) {
-				if (!(selectedFile.getName().length() > 5 && selectedFile.getName()
-						.substring(selectedFile.getName().length() - 5).toLowerCase().equals(".vansr"))) {
+				if (!selectedFile.getName().endsWith(".vansr")) {
 					selectedFile.renameTo(new File(selectedFile.getAbsolutePath() + ".vansr"));
 				}
 				
@@ -2224,8 +2292,9 @@ public class Controller {
 					}
 				});
 				Main.primaryStage.getScene().getWindow().centerOnScreen();
-				
-				
+				File f = new File("imgs");
+				f.mkdir();
+				f.deleteOnExit();
 			}
 		});
 		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
