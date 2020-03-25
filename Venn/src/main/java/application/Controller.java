@@ -231,8 +231,6 @@ public class Controller {
 			this.text.setTextAlignment(TextAlignment.CENTER);
 			this.text.setMaxWidth(MAX_WIDTH);
 			this.text.setWrapText(true);
-//			this.text.setVisible(false);
-//			this.setImage("images/icon100.png");
 
 			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				if (!hasFocus.booleanValue() && getParent() != null && getParent() instanceof Pane
@@ -544,6 +542,7 @@ public class Controller {
 	private class DraggableImage extends DraggableItem {
 		private ImageView image = new ImageView();
 		private File imageFile;
+		private String imageType;
 		
 		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
@@ -555,6 +554,7 @@ public class Controller {
 					Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
+				this.imageType = "." + Files.getFileExtension(imageFile.getName());
 				this.image.setImage(image);
 				this.image.setPreserveRatio(true);
 				this.image.setFitWidth(100);
@@ -593,9 +593,10 @@ public class Controller {
 					content.add(textArea, 0, 1);
 
 					a.getDialogPane().setContent(content);
+					a.setGraphic(this.image);
 					
 					a.setTitle("Item details");
-					String t = this.getText().length() > 50 ? this.getText().substring(0, 50) + "..." : this.getText();
+					String t = this.getText().length() > 40 ? this.getText().substring(0, 50) + "..." : this.getText();
 					
 					a.setHeaderText("Item details for \"" + t + "\":");
 					ButtonType saveButton = new ButtonType("Save", ButtonData.OK_DONE);
@@ -682,7 +683,7 @@ public class Controller {
 			} else {
 				this.setColor(Color.WHITE);
 				this.circle = 'x';
-				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+				this.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
 //				this.image.setOpacity(0.75);
 				result = false;
 			}
@@ -700,7 +701,7 @@ public class Controller {
 			setOnMousePressed(mouseEvent -> {
 				toFront();
 
-				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(0), new Insets(5))));
+				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(0), new Insets(-5))));
 				dragDelta.x = mouseEvent.getX();
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
@@ -731,7 +732,7 @@ public class Controller {
 							d.checkBounds();
 							mouseEvent.consume();
 						});
-						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(0), new Insets(5))));
+						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(0), new Insets(-5))));
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
@@ -743,7 +744,7 @@ public class Controller {
 								itemsList.getItems().add(d.getText());
 							});
 							d.setBackground(
-									new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+									new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
 							d.getLabel().setTextFill(Color.WHITE);
 							d.getScene().setCursor(Cursor.DISAPPEAR);
 						} else {
@@ -753,7 +754,7 @@ public class Controller {
 				}
 				if (deleteThis) {
 					this.setBackground(
-							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
 					this.getLabel().setTextFill(Color.WHITE);
 					this.getScene().setCursor(Cursor.DISAPPEAR);
 					this.setOnMouseReleased(mouseEvent2 -> {
@@ -889,20 +890,35 @@ public class Controller {
 		ClipboardContent content = new ClipboardContent();
 		content.putString(itemsList.getSelectionModel().getSelectedItem());
 		dragBoard.setContent(content);
-		Label tempLabel = new Label(dragBoard.getString());
-		pane.getChildren().add(tempLabel);
-		tempLabel.setTextAlignment(TextAlignment.CENTER);
-		tempLabel.setLayoutX(35);
-		tempLabel.setLayoutY(35);
-		tempLabel.setMaxWidth(105);
-		tempLabel.setWrapText(true);
-		tempLabel.setPadding(new Insets(10));
-		tempLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(0), new Insets(0))));
-		tempLabel.setTextFill(Color.BLACK);
-		dragBoard.setDragView(tempLabel.snapshot(null, null));
-		dragBoard.setDragViewOffsetX(tempLabel.getWidth() / 2);
-		dragBoard.setDragViewOffsetY(-tempLabel.getHeight() / 2);
-		pane.getChildren().remove(tempLabel);
+		if (new File("imgs/" + dragBoard.getString()).exists()) {
+			try {
+				ImageView image = new ImageView(new Image(new File("imgs/" + dragBoard.getString()).toURI().toURL().toExternalForm()));
+				pane.getChildren().add(image);
+				image.setPreserveRatio(true);
+				image.setFitWidth(100);
+				double pixelScale = 2.0;
+			    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*image.getBoundsInParent().getWidth()), (int)Math.rint(pixelScale*image.getBoundsInParent().getHeight()));
+			    SnapshotParameters spa = new SnapshotParameters();
+			    spa.setFill(Color.TRANSPARENT);
+				dragBoard.setDragView(image.snapshot(spa, writableImage), image.getBoundsInParent().getWidth(), -image.getBoundsInParent().getHeight());
+				pane.getChildren().remove(image);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			Label tempLabel = new Label(dragBoard.getString());
+			pane.getChildren().add(tempLabel);
+			tempLabel.setTextAlignment(TextAlignment.CENTER);
+			tempLabel.setLayoutX(35);
+			tempLabel.setLayoutY(35);
+			tempLabel.setMaxWidth(105);
+			tempLabel.setWrapText(true);
+			tempLabel.setPadding(new Insets(10));
+			tempLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(0), new Insets(0))));
+			tempLabel.setTextFill(Color.BLACK);
+			dragBoard.setDragView(tempLabel.snapshot(null, null), tempLabel.getWidth() / 2, -tempLabel.getHeight() / 2);
+			pane.getChildren().remove(tempLabel);
+		}
 		changesMade();
 	}
 
@@ -1388,14 +1404,9 @@ public class Controller {
 			for (String s : items) {
 				elements = s.split("𔓱");
 				DraggableItem a = null;
-				if (elements[0].endsWith(".png")) {
-					for (File f : images) {
-						if (elements[0].equals(f.getName())) {
-							a = new DraggableImage(Double.parseDouble(elements[1]) + 5,
-									Double.parseDouble(elements[2]) + 5, elements[0], f);
-							break;
-						}
-					}
+				File f = new File(elements[0]);
+				if (f.exists()) {
+					a = new DraggableImage(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0], f);
 				}
 				else {
 					a = new DraggableItem(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0]);
@@ -1703,14 +1714,14 @@ public class Controller {
 	private void importFile(String type) {
 		try {
 			FileChooser fc = new FileChooser();
-			List<String> extensions = new ArrayList<String>();
-			extensions.add("*.png");
-			extensions.add("*.jpg");
-			extensions.add("*.jpeg");
+//			List<String> extensions = new ArrayList<String>();
+//			extensions.add("*.png");
+//			extensions.add("*.jpg");
+//			extensions.add("*.jpeg");
 
 			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
 			ExtensionFilter ansFilter = new ExtensionFilter("Venn Answer Key files (*.vansr)", "*.vansr");
-			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png, *.jpg, *.jpeg)", extensions);
+			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png)", "*.png");
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
 			fc.getExtensionFilters().add(ansFilter);
@@ -1730,22 +1741,7 @@ public class Controller {
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
-//				System.out.println(file.toURI().toURL().toExternalForm());
 				addImageToDiagram(frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50, file.getName(), file);
-//				addItemToDiagram(200, 200, file.getName());
-//				addImageToDiagram(200, 200, file.getName(), new Image(getClass().getResource("images/icon.png").toExternalForm()));
-//				for (DraggableItem d : itemsInDiagram) {
-//					if (d instanceof DraggableImage) {
-//						((DraggableImage) d).scaleImage(0.5);
-//					}
-//				}
-//				System.out.println("Image: " + file.getAbsolutePath());
-//				Alert a = new Alert(AlertType.INFORMATION);
-//				a.setHeaderText("Feature coming soon");
-//				a.setContentText(
-//						"Adding images is not yet available. This feature will be coming in a future release.");
-//				a.setTitle("Feature not available");
-//				a.show();
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
@@ -2119,15 +2115,20 @@ public class Controller {
 	}
 
 	boolean addItemToDiagram(double x, double y, String text) {
-		DraggableItem a = new DraggableItem(x, y, text);
-		if (a.checkBounds()) {
-			frameRect.getChildren().add(a);
-			itemsInDiagram.add(a);
-			a.toFront();
-			changesMade();
-			return true;
+		DraggableItem a = null;
+		if (new File("imgs/" + text).exists()) {
+			return addImageToDiagram(x, y, text, new File("imgs/" + text));
 		} else {
-			return false;
+			a = new DraggableItem(x, y, text);
+			if (a.checkBounds()) {
+				frameRect.getChildren().add(a);
+				itemsInDiagram.add(a);
+				a.toFront();
+				changesMade();
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	
