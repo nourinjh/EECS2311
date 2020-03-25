@@ -1061,22 +1061,21 @@ public class Controller {
 
 	private void doTheSave(File selectedFile) {
 
-		// TODO: Add imported images to this once implemented
-
 		// Hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
 		// ..... (0) Title, (1) Titles color, (2) Background color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale,
-		// (3) Item text color
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale,
-		// (3) Item text color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
 		// ..... (0) Intersection color, (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
-		// ... InDiagram.vlist
-		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) text
-		// color
+		// ... InDiagram.vlist:
+		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) color
+		// ... Images.csv:
+		// ..... Image file names separated by new lines
+		// ... imgs: (Directory)
+		// ..... Image files
 
 		// Encryption?
 		//		String test = "abcdefg";
@@ -1283,19 +1282,21 @@ public class Controller {
 
 	private void doTheLoad() {
 
-		// TODO: Add imported images items, and then update hierarchy
-
 		// Hierarchy of a .venn file:
 		// . Diagram.venn:
 		// ... Config.vlist:
 		// ..... (0) Title, (1) Titles color, (2) Background color
-		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
-		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
+		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item color
+		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item color
 		// ..... (0) Intersection color, (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
-		// ... InDiagram.vlist
-		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) text color
+		// ... InDiagram.vlist:
+		// ..... (0) Item text, (1) item x, (2) item y, (3) item description, (4) color
+		// ... Images.csv:
+		// ..... Image file names separated by new lines
+		// ... imgs: (Directory)
+		// ..... Image files
 
 		File file = null;
 		try {
@@ -1404,7 +1405,7 @@ public class Controller {
 			for (String s : items) {
 				elements = s.split("𔓱");
 				DraggableItem a = null;
-				File f = new File(elements[0]);
+				File f = new File("imgs/" + elements[0]);
 				if (f.exists()) {
 					a = new DraggableImage(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0], f);
 				}
