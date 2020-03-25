@@ -4,28 +4,23 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Main extends Application {
 
-	private static Stage primaryStage;
+	public static Stage primaryStage;
 
 	@Override
 	public void start(Stage stage) throws Exception {
 		primaryStage = stage;
+		
 		Parent root = FXMLLoader.load(getClass().getResource("/application/Test.fxml"));
 
 		primaryStage.setScene(new Scene(root));
 		primaryStage.setTitle("Venn");
+		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("images/icon.png")));
 		primaryStage.show();
-	}
-
-	public static void setWindowTitle(String title) {
-		primaryStage.setTitle(title + " - Venn");
-	}
-
-	public static void setWindowTitle() {
-		primaryStage.setTitle("Venn");
 	}
 
 	public static void main(String[] args) {
