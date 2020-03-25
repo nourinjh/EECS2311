@@ -37,13 +37,23 @@ public class venn_diagram {
 		this.sets.remove(v);
 	}
 	
-	public static Set<String> intersection(List<venn_set> setsToBeIntersected){
+	public static venn_set intersection(venn_set s1, venn_set s2){
 		
 		// perform set intersection
 		
 		// retainAll();
 		
-		return new HashSet<String>();
+		venn_set result = new venn_set("Intersection");
+		
+		for(String text : s1.getValues) {
+			
+			if(s2.getValues.contains(text)) {
+				result.addValue(text);
+			}
+			
+		}
+		
+		return result;
 		
 	}
 	
