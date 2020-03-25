@@ -15,6 +15,7 @@
 package application;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,6 +27,8 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
+
+import com.google.common.io.Files;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -117,7 +120,7 @@ public class Controller {
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
 	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList();
-	
+	private List<File> itemImages = new ArrayList<File>();
 
 	private List<String> leftItemsAnswers = new ArrayList<String>();
 	private List<String> rightItemsAnswers = new ArrayList<String>();
@@ -210,7 +213,7 @@ public class Controller {
 		protected Label text = new Label();
 		protected String description = "";
 		private Color color;
-		protected ImageView answerImage = new ImageView();
+		private ImageView answerImage = new ImageView();
 		private final int MAX_WIDTH = 120;
 		protected char circle;
 
@@ -395,7 +398,7 @@ public class Controller {
 			return this.description;
 		}
 
-		private void enableDrag() {
+		protected void enableDrag() {
 			Delta dragDelta = new Delta();
 			setOnMousePressed(mouseEvent -> {
 				toFront();
@@ -526,24 +529,109 @@ public class Controller {
 			return this.circle;
 		}
 
-		private class Delta {
+		protected class Delta {
 			double x;
 			double y;
 		}
 	}
 
 	private class DraggableImage extends DraggableItem {
-		ImageView image = new ImageView();
+		private ImageView image = new ImageView();
+		private File imageFile;
 		
-		public DraggableImage (double x, double y, String title, Image image) {
+		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
-			this.image.setImage(image);
-			this.image.setPreserveRatio(true);
-			this.image.setFitWidth(100);
-			this.text.setVisible(false);
-			this.text.setMaxWidth(image.getWidth());
-			this.text.setWrapText(false);
-			this.getChildren().add(this.image);
+			try {
+				Image image;
+				image = new Image(imageFile.toURI().toURL().toExternalForm());
+				this.imageFile = new File(title);
+				Files.copy(imageFile, this.imageFile);
+				this.imageFile.deleteOnExit();
+				itemImages.add(this.imageFile);
+				this.image.setImage(image);
+				this.image.setPreserveRatio(true);
+				this.image.setFitWidth(100);
+				this.text.setVisible(false);
+				this.text.setMaxWidth(image.getWidth());
+				this.text.setWrapText(false);
+				this.getChildren().add(this.image);
+				enableDrag();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			this.setOnMouseClicked(event -> {
+				if (event.getClickCount() == 2) {
+					Alert a = new Alert(AlertType.INFORMATION);
+
+					// Create expandable Exception.
+					TextField textField = new TextField(this.getText());
+					textField.setPromptText("Enter a title for this item");
+
+					TextArea textArea = new TextArea(description);
+					textArea.setPromptText("Enter a description for this item");
+					textArea.setEditable(true);
+					textArea.setWrapText(true);
+
+					textArea.setMaxWidth(Double.MAX_VALUE);
+					textArea.setMaxHeight(Double.MAX_VALUE);
+					GridPane.setVgrow(textArea, Priority.ALWAYS);
+					GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+					GridPane content = new GridPane();
+					content.setMaxWidth(Double.MAX_VALUE);
+					content.add(textField, 0, 0);
+					content.add(textArea, 0, 1);
+
+					a.getDialogPane().setContent(content);
+					
+					a.setTitle("Item details");
+					String t = this.getText().length() > 50 ? this.getText().substring(0, 50) + "..." : this.getText();
+					
+					a.setHeaderText("Item details for \"" + t + "\":");
+					ButtonType saveButton = new ButtonType("Save", ButtonData.OK_DONE);
+					a.getButtonTypes().setAll(ButtonType.CANCEL, saveButton);
+					Button save = (Button) a.getDialogPane().lookupButton(saveButton);
+					Button cancel = (Button) a.getDialogPane().lookupButton(ButtonType.CANCEL);
+					textField.textProperty().addListener(listener -> {
+						if (textField.textProperty().getValue().equals("")) {
+							save.setDisable(true);
+							a.headerTextProperty().setValue("Title field cannot be blank");
+						} else {
+							String txt = textField.textProperty().getValue().length() > 50 ? textField.textProperty().getValue().substring(0, 50) + "..." : textField.textProperty().getValue();
+							save.setDisable(false);
+							a.headerTextProperty().setValue("Item details for \"" + txt + "\":");
+						}
+					});
+					save.setOnAction(e -> {
+						if (!textField.getText().equals(this.getText())) {
+							if (textField.getText().length() < 4 || !textField.getText().substring(textField.getText().length() - 4).equals(".png")) {
+								textField.setText(textField.getText() + ".png");
+							}
+							this.text.setText(textField.getText());
+							itemImages.remove(this.imageFile);
+							File newImageFile = new File(textField.getText());
+							this.imageFile.renameTo(newImageFile);
+							this.imageFile = newImageFile;
+							this.imageFile.deleteOnExit();
+							itemImages.add(this.imageFile);
+						}
+						itemImages.forEach(f -> System.out.println(f.getName()));
+						setDescription(textArea.getText());
+						e.consume();
+						a.close();
+						event.consume();
+						changesMade();
+					});
+					cancel.setOnAction(e -> {
+						a.close();
+						e.consume();
+						event.consume();
+					});
+					a.show();
+				}
+			});
 		}
 		
 		@Override
@@ -566,17 +654,17 @@ public class Controller {
 					&& distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorIntersectionItems.getValue().brighter());
 				this.circle = 'i';
-				this.setBackground(null);
+//				this.setBackground(null);
 				result = true;
 			} else if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX()) {
 				this.setColor(colorLeftItems.getValue());
 				this.circle = 'l';
-				this.setBackground(null);
+//				this.setBackground(null);
 				result = true;
 			} else if (distanceToRight <= circleRight.getRadius() * circleRight.getScaleX()) {
 				this.setColor(colorRightItems.getValue());
 				this.circle = 'r';
-				this.setBackground(null);
+//				this.setBackground(null);
 				result = true;
 			} else {
 				this.setColor(Color.WHITE);
@@ -591,6 +679,106 @@ public class Controller {
 			this.image.setFitWidth(this.image.getImage().getWidth() * value);
 			this.image.autosize();
 		}
+		
+		@Override
+		protected void enableDrag() {
+			Delta dragDelta = new Delta();
+			setOnMousePressed(mouseEvent -> {
+				toFront();
+
+				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(0), new Insets(5))));
+				dragDelta.x = mouseEvent.getX();
+				dragDelta.y = mouseEvent.getY();
+				getScene().setCursor(Cursor.CLOSED_HAND);
+				requestFocus();
+
+				mouseEvent.consume();
+			});
+			setOnMouseReleased(mouseEvent -> {
+				this.setBackground(null);
+				getScene().setCursor(Cursor.HAND);
+				checkBounds();
+				mouseEvent.consume();
+			});
+			setOnMouseDragged(mouseEvent -> {
+				boolean deleteThis = false;
+				for (DraggableItem d : selectedItems) {
+					if (answersAreShowing) {
+						hideAnswers();
+					}
+					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
+					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
+					d.setLayoutX(newX);
+					d.setLayoutY(newY);
+					if (d.checkBounds()) {
+						setOnMouseReleased(mouseEvent2 -> {
+							d.setBackground(null);
+							d.getScene().setCursor(Cursor.HAND);
+							d.checkBounds();
+							mouseEvent.consume();
+						});
+						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(0), new Insets(5))));
+						d.getLabel().setTextFill(d.getColor());
+						d.getScene().setCursor(Cursor.CLOSED_HAND);
+					} else {
+						if (d != this) {
+							setOnMouseReleased(mouseEvent2 -> {
+								d.getScene().setCursor(Cursor.DEFAULT);
+								frameRect.getChildren().remove(d);
+								itemsInDiagram.remove(d);
+								itemsList.getItems().add(d.getText());
+							});
+							d.setBackground(
+									new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+						} else {
+							deleteThis = true;
+						}
+					}
+				}
+				if (deleteThis) {
+					this.setBackground(
+							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+					this.getLabel().setTextFill(Color.WHITE);
+					this.getScene().setCursor(Cursor.DISAPPEAR);
+					this.setOnMouseReleased(mouseEvent2 -> {
+						this.getScene().setCursor(Cursor.DEFAULT);
+						frameRect.getChildren().remove(this);
+						itemsInDiagram.remove(this);
+						itemsList.getItems().add(this.getText());
+					});
+
+				}
+				mouseEvent.consume();
+				changesMade();
+			});
+			setOnMouseEntered(mouseEvent -> {
+				if (!mouseEvent.isPrimaryButtonDown()) {
+					getScene().setCursor(Cursor.HAND);
+					mouseEvent.consume();
+				}
+				frameRect.setOnMouseClicked(mouseEvent2 -> {
+				});
+				pane.setOnMouseClicked(mouseEvent2 -> {
+				});
+			});
+			setOnMouseExited(mouseEvent -> {
+				if (!mouseEvent.isPrimaryButtonDown())
+					getScene().setCursor(Cursor.DEFAULT);
+				mouseEvent.consume();
+
+				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
+			});
+		}
+		
+		public void deleteImage() {
+			// TODO Auto-generated method stub
+			this.imageFile.delete();
+			itemImages.remove(this.imageFile);
+		}
+
 	}
 	
 	private void changesMade() {
@@ -714,6 +902,9 @@ public class Controller {
 			}
 		} else {
 			for (DraggableItem d : selectedItems) {
+				if (d instanceof DraggableImage) {
+					((DraggableImage) d).deleteImage();
+				}
 				frameRect.getChildren().remove(d);
 			}
 			itemsInDiagram.removeAll(selectedItems);
@@ -1428,12 +1619,15 @@ public class Controller {
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
-				addImageToDiagram(circleLeft.getBoundsInParent().getMaxX(), circleLeft.getBoundsInParent().getMaxY(), file.getName(), new Image(getClass().getResource("images/icon.png").toExternalForm()));
-				for (DraggableItem d : itemsInDiagram) {
-					if (d instanceof DraggableImage) {
-						((DraggableImage) d).scaleImage(0.5);
-					}
-				}
+//				System.out.println(file.toURI().toURL().toExternalForm());
+				addImageToDiagram(frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50, file.getName(), file);
+//				addItemToDiagram(200, 200, file.getName());
+//				addImageToDiagram(200, 200, file.getName(), new Image(getClass().getResource("images/icon.png").toExternalForm()));
+//				for (DraggableItem d : itemsInDiagram) {
+//					if (d instanceof DraggableImage) {
+//						((DraggableImage) d).scaleImage(0.5);
+//					}
+//				}
 //				System.out.println("Image: " + file.getAbsolutePath());
 //				Alert a = new Alert(AlertType.INFORMATION);
 //				a.setHeaderText("Feature coming soon");
@@ -1828,8 +2022,8 @@ public class Controller {
 		}
 	}
 	
-	boolean addImageToDiagram(double x, double y, String title, Image image) {
-		DraggableImage a = new DraggableImage(x, y, title, image);
+	boolean addImageToDiagram(double x, double y, String title, File imageFile) {
+		DraggableImage a = new DraggableImage(x, y, title, imageFile);
 		if (a.checkBounds()) {
 			frameRect.getChildren().add(a);
 			itemsInDiagram.add(a);
