@@ -869,10 +869,10 @@ public class Controller {
 	@FXML
 	private void addItemToList() {
 		String newItem = addItemField.getText();
-		if (!(newItem.equals("") || itemsList.getItems().contains(newItem))) {
+		if (!(newItem.equals("") || new File("imgs/" + newItem).exists())) {
 			itemsList.getItems().add(newItem);
-			addItemField.setText("");
 		}
+		addItemField.setText("");
 		changesMade();
 	}
 
@@ -1281,6 +1281,8 @@ public class Controller {
 	}
 
 	private void doTheLoad() {
+		
+		// FIXME: NullPointerException on cancel?
 
 		// Hierarchy of a .venn file:
 		// . Diagram.venn:
@@ -1449,13 +1451,11 @@ public class Controller {
 
 			openFile = file;
 			changesMade = false;
-			// FIXME: Crashes the JUnit tests because they don't have a title bar on the
-			// window to change
+			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
 		} catch (Exception e) {
-			e.printStackTrace();
 			if (file != null) {
 				Alert a = new Alert(AlertType.ERROR);
 				a.setHeaderText("File could not be opened");
@@ -1742,7 +1742,17 @@ public class Controller {
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
-				addImageToDiagram(frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50, file.getName(), file);
+				String imgName = "imgs/" + file.getName();
+				imgName.lastIndexOf('.');
+				if (new File(imgName).exists()) {
+					int i = 2;
+					imgName = imgName.substring(0, imgName.lastIndexOf('.')) + " " + i + imgName.substring(imgName.lastIndexOf('.'));
+					while (new File(imgName).exists()) {
+						i++;
+						imgName = imgName.substring(0, imgName.lastIndexOf('.') - 1) + i + imgName.substring(imgName.lastIndexOf('.'));
+					}
+				}
+				addImageToDiagram(frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50, imgName.substring(5), file);
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
@@ -1823,7 +1833,7 @@ public class Controller {
 		try {
 			String name;
 			if (openFile != null) {
-				name = openFile.getName();
+				name = openFile.getName().substring(0, openFile.getName().length() - 5) + ".csv";
 			} else if (!title.getText().equals("")) {
 				name = title.getText() + ".csv";
 			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
@@ -2299,41 +2309,41 @@ public class Controller {
 						Main.primaryStage.close();
 					}
 				});
-				Main.primaryStage.widthProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						updateIntersection();
-					}
-				});
-				Main.primaryStage.heightProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						updateIntersection();
-					}
-				});
+//				Main.primaryStage.widthProperty().addListener(listener -> {
+//					double width = Main.primaryStage.getWidth();
+//					double height = Main.primaryStage.getHeight();
+//					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+//							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+//						zoomOut();
+////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
+//						updateIntersection();
+//					}
+//					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+//							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+//						zoomIn();
+////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
+//						updateIntersection();
+//					}
+//				});
+//				Main.primaryStage.heightProperty().addListener(listener -> {
+//					double width = Main.primaryStage.getWidth();
+//					double height = Main.primaryStage.getHeight();
+//					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+//							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+//						zoomOut();
+////						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
+////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
+//						updateIntersection();
+//					}
+//					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+//							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+//						zoomIn();
+////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
+//						updateIntersection();
+//					}
+//				});
 				Main.primaryStage.getScene().getWindow().centerOnScreen();
 				File f = new File("imgs");
 				f.mkdir();

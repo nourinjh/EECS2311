@@ -167,9 +167,9 @@
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
                   
-                                                                        <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                                                    <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
-                                                                           <font>
+                                                                                       <font>
                               <Font name="Arial" size="32.0" />
                            </font>
                            <cursor>
