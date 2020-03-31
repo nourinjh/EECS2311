@@ -197,7 +197,7 @@
       </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
-          <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save" prefHeight="30.0">
+          <Button fx:id="saveButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -212,7 +212,7 @@
                   <Tooltip text="Save" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="30.0">
+            <Button fx:id="openButton" focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -224,7 +224,7 @@
                   <Tooltip text="Open" />
                </tooltip>
             </Button>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="importButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -241,7 +241,7 @@
                   <Tooltip text="Import" />
                </tooltip>
             </MenuButton>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="exportButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -304,7 +304,7 @@
                   <Tooltip text="Delete Selected Items" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
+            <Button fx:id="clearButton" focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -321,7 +321,7 @@
                   <Insets left="3.0" />
                </padding>
             </Separator>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="settingsButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>

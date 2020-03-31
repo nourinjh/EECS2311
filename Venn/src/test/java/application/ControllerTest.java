@@ -2,9 +2,11 @@ package application;
 
 import static org.junit.Assert.*;
 
+import org.testfx.api.FxRobot;
 //import org.junit.*;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.service.query.EmptyNodeQueryException;
 
 //import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,6 +22,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import junit.framework.Assert;
 
 //import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -44,6 +47,8 @@ import org.junit.Test;
 //import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
+import application.Controller.DraggableItem;
+
 import java.io.File;
 //import java.io.IOException;
 import java.util.ArrayList;
@@ -59,16 +64,13 @@ public class ControllerTest extends ApplicationTest {
 	/*
 	 * ObservableList<String> items; ObservableList<String> circleLeftItems;
 	 * ObservableList<String> circleRightItems; ObservableList<String> bothItems;
-	 * ListView<String> circleLeftItemsList; ListView<String> circleRightItemsList;
-	 * ListView<String> bothItemsList;
+	 * ListView<String> circleLeft; ListView<String> circleRight;
+	 * ListView<String> both;
 	 */
 	Circle circleLeft;
 	Circle circleRight;
 	AnchorPane pane;
 	VBox floatingMenu;
-	GridPane buttonGrid;
-	TitledPane settingsPane;
-	VBox settingsBox;
 	ColorPicker colorLeft;
 	String DEFAULT_LEFT_COLOUR = "0xf59f9f";
 	Slider leftSizeSlider;
@@ -125,34 +127,31 @@ public class ControllerTest extends ApplicationTest {
 		/*
 		 * circleLeftItems=find("#circleLeftItems");
 		 * circleRightItems=find("#circleRightItems"); bothItems=find("#bothItems");
-		 * circleLeftItemsList=find("#circleLeftItemsList");
-		 * circleRightItemsList=find("#circleRightItemsList");
-		 * bothItemsList=find("#bothItemsList");
+		 * circleLeft=find("#circleLeft");
+		 * circleRight=find("#circleRight");
+		 * both=find("#both");
 		 */
 		circleLeft = find("#circleLeft");
 		circleRight = find("#circleRight");
 		pane = find("#pane");
 		floatingMenu = find("#floatingMenu");
-		buttonGrid = find("#buttonGrid");
-		settingsPane = find("#settingsPane");
-		settingsBox = find("#settingsBox");
-		colorLeft = find("#colorLeft");
+//		colorLeft = find("#colorLeft");
 		// DEFAULT_LEFT_COLOUR = "0xf59f9f";
-		leftSizeSlider = find("#leftSizeSlider");
-		leftSizeField = find("#leftSizeField");
-		colorRight = find("#colorRight");
+//		leftSizeSlider = find("#leftSizeSlider");
+//		leftSizeField = find("#leftSizeField");
+//		colorRight = find("#colorRight");
 		// DEFAULT_RIGHT_COLOUR = "0xebe071";
-		rightSizeSlider = find("#rightSizeSlider");
-		rightSizeField = find("#rightSizeField");
+//		rightSizeSlider = find("#rightSizeSlider");
+//		rightSizeField = find("#rightSizeField");
 		menuBar = find("#menuBar");
-		screenshotButton = find("#screenshotButton");
+//		screenshotButton = find("#screenshotButton");
 		frameRect = find("#frameRect");
-		colorBackground = find("#colorBackground");
-		colorTitles = find("#colorTitles");
-		deleteButton = find("#deleteButton");
-		clearButton = find("#clearButton");
-		loadButton = find("#loadButton");
-		saveButton = find("#saveButton");
+//		colorBackground = find("#colorBackground");
+//		colorTitles = find("#colorTitles");
+//		deleteButton = find("#deleteButton");
+//		clearButton = find("#clearButton");
+//		loadButton = find("#loadButton");
+//		saveButton = find("#saveButton");
 
 		title = find("#title");
 		circleLeftTitle = find("#circleLeftTitle");
@@ -160,9 +159,9 @@ public class ControllerTest extends ApplicationTest {
 		addItemField = find("#addItemField");
 		addItemButton = find("#addItemButton");
 		itemsList = find("#itemsList");
-		addImageButton = find("#addImageButton");
+//		addImageButton = find("#addImageButton");
 		// controller= find("#items");
-
+//		itemsInDiagram = find("#itemsInDiagram");
 	}
 
 	// clearing events
@@ -183,70 +182,32 @@ public class ControllerTest extends ApplicationTest {
 	}
 
 	@Test
-	public void testWidgetsExist() {
-		final String errorMsg = "One or more widget dont exist";
-
-		/*
-		 * assertNotNull(errorMsg,items); assertNotNull(errorMsg,circleLeftItems);
-		 * assertNotNull(errorMsg, circleRightItems); assertNotNull(errorMsg,
-		 * bothItems); assertNotNull(errorMsg,circleLeftItemsList);
-		 * assertNotNull(errorMsg,circleRightItemsList); assertNotNull(errorMsg,
-		 * bothItemsList);
-		 */
-		assertNotNull(errorMsg, circleLeft);
-		assertNotNull(errorMsg, circleRight);
-		assertNotNull(errorMsg, pane);
-		assertNotNull(errorMsg, floatingMenu);
-		assertNotNull(errorMsg, buttonGrid);
-		assertNotNull(errorMsg, settingsPane);
-		assertNotNull(errorMsg, settingsBox);
-		assertNotNull(errorMsg, colorLeft);
-
-		assertNotNull(errorMsg, leftSizeSlider);
-		assertNotNull(errorMsg, leftSizeField);
-		assertNotNull(errorMsg, colorRight);
-
-		assertNotNull(errorMsg, rightSizeSlider);
-		assertNotNull(errorMsg, rightSizeField);
-		assertNotNull(errorMsg, menuBar);
-		assertNotNull(errorMsg, screenshotButton);
-		assertNotNull(errorMsg, frameRect);
-		assertNotNull(errorMsg, colorBackground);
-		assertNotNull(errorMsg, colorTitles);
-		assertNotNull(errorMsg, deleteButton);
-		assertNotNull(errorMsg, clearButton);
-		assertNotNull(errorMsg, loadButton);
-		assertNotNull(errorMsg, saveButton);
-
-		assertNotNull(errorMsg, title);
-		assertNotNull(errorMsg, circleLeftTitle);
-		assertNotNull(errorMsg, circleRightTitle);
-		assertNotNull(errorMsg, addItemField);
-		assertNotNull(errorMsg, addItemButton);
-		assertNotNull(errorMsg, itemsList);
-		assertNotNull(errorMsg, addImageButton);
-
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
 	public void testAddingItems() {
-		final int totalItems = 15;
-		final int itemsPerCircle = 3;
+		final int totalItems = 10;
+		clickOn("#addItemField");
 		for (int i = 1; i <= totalItems; i++) {
-			clickOn("#addItemField").write("Item " + i);
+			write("Item " + i);
 			clickOn("#addItemButton");
+			WaitForAsyncUtils.waitForFxEvents();
 		}
-		for (int i = 0; i < itemsPerCircle; i++) {
-			drag("#itemsList").dropTo("#circleLeftItemsList");
-			drag("#itemsList").dropTo("#bothItemsList");
-			drag("#itemsList").dropTo("#circleRightItemsList");
+		for (int i = 0; i < 9; i += 3) {
+			drag("Item " + (i + 1)).moveTo("#circleLeft").dropBy(-100, (Math.random() * 200) - 100);
+			WaitForAsyncUtils.waitForFxEvents();
+			drag("Item " + (i + 2)).moveTo("#circleLeft").dropBy(circleLeft.getBoundsInParent().getWidth() / 2 - 110, (Math.random() * 150) - 75);
+			WaitForAsyncUtils.waitForFxEvents();
+			drag("Item " + (i + 3)).moveTo("#circleRight").dropBy(-40, (Math.random() * 200) - 100);
+			WaitForAsyncUtils.waitForFxEvents();
 		}
-
-		assertEquals(((ListView<String>) (find("#itemsList"))).getItems().size(), totalItems - (3 * itemsPerCircle));
-		assertEquals(((ListView<String>) (find("#circleLeftItemsList"))).getItems().size(), itemsPerCircle);
-		assertEquals(((ListView<String>) (find("#bothItemsList"))).getItems().size(), itemsPerCircle);
-		assertEquals(((ListView<String>) (find("#circleRightItemsList"))).getItems().size(), itemsPerCircle);
+		
+		assertEquals(((DraggableItem)(find("Item 1").getParent())).getCircle(), 'l');
+		assertEquals(((DraggableItem)(find("Item 2").getParent())).getCircle(), 'i');
+		assertEquals(((DraggableItem)(find("Item 3").getParent())).getCircle(), 'r');
+		assertEquals(((DraggableItem)(find("Item 4").getParent())).getCircle(), 'l');
+		assertEquals(((DraggableItem)(find("Item 5").getParent())).getCircle(), 'i');
+		assertEquals(((DraggableItem)(find("Item 6").getParent())).getCircle(), 'r');
+		assertEquals(((DraggableItem)(find("Item 7").getParent())).getCircle(), 'l');
+		assertEquals(((DraggableItem)(find("Item 8").getParent())).getCircle(), 'i');
+		assertEquals(((DraggableItem)(find("Item 9").getParent())).getCircle(), 'r');
 	}
 
 	// test input text
@@ -262,16 +223,6 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(((TextField) (find("#circleRightTitle"))).getText(), "Right Circle");
 	}
 
-	// Insert more tests here
-	@Test
-	public void testInput() {
-		// TextField newItem = (TextField) find("#newItem");
-
-		clickOn("#addItemField").write("This is a test input");
-		clickOn("#addItemButton");
-
-	}
-
 	// testing the buttons
 
 	@SuppressWarnings("unchecked")
@@ -280,7 +231,7 @@ public class ControllerTest extends ApplicationTest {
 	public void testDeleteButton() {
 		// TextField newItem = (TextField) find("#newItem");
 
-		for (int i = 1; i <= 6; i++) {
+		for (int i = 1; i < 6; i++) {
 			clickOn("#addItemField").write("Item " + i);
 			clickOn("#addItemButton");
 		}
@@ -289,12 +240,33 @@ public class ControllerTest extends ApplicationTest {
 
 		final int length = ((ListView<String>) (find("#itemsList"))).getItems().size();
 
-		clickOn("#itemsList");
+		clickOn("Item 1");
+		clickOn("#deleteButton");
+		drag("Item 2").moveTo("#circleLeft").dropBy(-100, 0);
+		drag("Item 3").moveTo("#circleRight").dropBy(-40, 0);
+		clickOn("Item 2");
+		clickOn("#deleteButton");
+		clickOn("Item 3");
 		clickOn("#deleteButton");
 
 		WaitForAsyncUtils.waitForFxEvents();
 
-		assertEquals(((ListView<String>) (find("#itemsList"))).getItems().size(), length - 1);
+		try {
+			find("Item 1");
+			fail();
+		} catch (EmptyNodeQueryException e) {
+			try {
+				find("Item 2");
+				fail();
+			} catch (EmptyNodeQueryException f) {
+				try {
+					find("Item 3");
+					fail();
+				} catch (EmptyNodeQueryException g) {
+				}
+			}
+		}
+		assertEquals(length - 3, ((ListView<String>) (find("#itemsList"))).getItems().size());
 
 	}
 
@@ -302,60 +274,79 @@ public class ControllerTest extends ApplicationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testClearButton() {
-		for (int i = 1; i <= 15; i++) {
+		final int ITEMS = 5;
+		for (int i = 1; i <= ITEMS; i++) {
 			clickOn("#addItemField").write("Item " + i);
 			clickOn("#addItemButton");
+			WaitForAsyncUtils.waitForFxEvents();
 		}
-
-		for (int i = 0; i < 3; i++) {
-			drag("#itemsList").dropTo("#circleLeftItemsList");
-			drag("#itemsList").dropTo("#bothItemsList");
-			drag("#itemsList").dropTo("#circleRightItemsList");
-		}
-		clickOn("#clearButton");
-
+		
+		drag("Item 1").moveTo("#circleLeft").dropBy(circleLeft.getBoundsInParent().getWidth() / 2 - 110, 0);
+		drag("Item 2").moveTo("#circleLeft").dropBy(-100, 0);
+		drag("Item 3").moveTo("#circleRight").dropBy(-40, 0);
 		WaitForAsyncUtils.waitForFxEvents();
-
-		assertEquals(((ListView<String>) (find("#circleLeftItemsList"))).getItems().size(), 0);
-		assertEquals(((ListView<String>) (find("#circleRightItemsList"))).getItems().size(), 0);
-		assertEquals(((ListView<String>) (find("#bothItemsList"))).getItems().size(), 0);
-
+		
+		assertNotEquals(ITEMS, ((ListView<String>) (find("#itemsList"))).getItems().size());
+		clickOn("#clearButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		assertEquals(ITEMS, ((ListView<String>) (find("#itemsList"))).getItems().size());
+		assertNotEquals(Label.class, find("Item 1").getClass());
 	}
 
 	// test screenshot button
+	@Test
 	public void testScreenShotButton() {
-
-		clickOn("#addItemField").write("dltstuff ");
+		String mainTitle = "Main";
+		String leftTitle = "Left";
+		clickOn("#title").write(mainTitle);
+		clickOn("#circleLeftTitle").write(leftTitle);
+		clickOn("#addItemField");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("Test");
 		clickOn("#addItemButton");
+		WaitForAsyncUtils.waitForFxEvents();
 
-		drag("#itemsList").dropTo("#bothItemsList");
-
-		clickOn("#screenshotButton");
+		drag("Test").dropTo("#frameRect");
+		clickOn("#exportButton").clickOn("Image");
 
 		WaitForAsyncUtils.waitForFxEvents();
 
+		try {
+		press(KeyCode.ENTER);
+		Thread.sleep(750);
+		release(KeyCode.ENTER);
+		Thread.sleep(750);
+		press(KeyCode.ENTER);
+		Thread.sleep(750);
+		release(KeyCode.ENTER);
+		Thread.sleep(750);
+		} catch (Exception e) {}
+		
+		assertEquals(mainTitle, ((TextField)(find("#title"))).getText());
+		assertEquals(leftTitle, ((TextField)(find("#circleLeftTitle"))).getText());
+		assertEquals("", ((TextField)(find("#circleRightTitle"))).getText());
 	}
 
 	// test colour picker
-	@Test
-	public void testColourPicker() {
-
-		// testing left colour
-		moveTo("#settingsPane").moveBy(0, -85).clickOn().moveBy(10, 10);
-		scroll(100, VerticalDirection.DOWN);
-		clickOn("#colorLeft").moveBy(10, 10).clickOn();
-
-		Circle left = find("#circleLeft");
-		left.setFill(Color.web("#000000"));
-		Paint color = left.getFill();
-		assertEquals(color, Color.web("#000000"));
-
-		// testing right colour
-
-		Circle right = find("#circleRight");
-		left.setFill(Color.web("#000000"));
-		Paint colorofright = right.getFill();
-		assertEquals(colorofright, Color.web("#000000"));
-
-	}
+//	public void testColourPicker() {
+//
+//		// testing left colour
+//		moveTo("#settingsPane").moveBy(0, -85).clickOn().moveBy(10, 10);
+//		scroll(100, VerticalDirection.DOWN);
+//		clickOn("#colorLeft").moveBy(10, 10).clickOn();
+//
+//		Circle left = find("#circleLeft");
+//		left.setFill(Color.web("#000000"));
+//		Paint color = left.getFill();
+//		assertEquals(color, Color.web("#000000"));
+//
+//		// testing right colour
+//
+//		Circle right = find("#circleRight");
+//		left.setFill(Color.web("#000000"));
+//		Paint colorofright = right.getFill();
+//		assertEquals(colorofright, Color.web("#000000"));
+//
+//	}
 }
