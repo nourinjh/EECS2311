@@ -114,6 +114,7 @@ public class Controller {
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
 	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
+	private String tempPath;
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
@@ -557,29 +558,31 @@ public class Controller {
 	class DraggableImage extends DraggableItem {
 		private ImageView image = new ImageView();
 		private File imageFile;
+		private final double MAX_WIDTH = 100;
 		
 		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
 			try {
 				Image image;
 				image = new Image(imageFile.toURI().toURL().toExternalForm());
-				this.imageFile = new File("imgs/" + title);
+				
+				this.imageFile = new File(tempPath + "imgs/" + title);
 				if (!imageFile.equals(this.imageFile))
-					Files.copy(new FileInputStream(imageFile), Paths.get("imgs/" + title));
+					Files.copy(new FileInputStream(imageFile), Paths.get(tempPath + "imgs/" + title));
 //					Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
 				this.image.setImage(image);
 				this.image.setPreserveRatio(true);
-				this.image.setFitWidth(100);
+				this.image.setFitWidth(MAX_WIDTH);
 				this.text.setVisible(false);
-				this.text.setMaxWidth(image.getWidth());
+				this.text.setMaxWidth(MAX_WIDTH);
 				this.text.setWrapText(false);
 				this.getChildren().add(this.image);
 				this.answerImage.toFront();
 				enableDrag();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				System.err.println("DraggableImage could not be created");
 				e.printStackTrace();
 			}
 			
@@ -610,12 +613,12 @@ public class Controller {
 					try {
 						image = new ImageView(new Image(this.imageFile.toURI().toURL().toExternalForm()));
 						image.setPreserveRatio(true);
-						image.setFitWidth(100);
+						image.setFitWidth(MAX_WIDTH);
 						a.setGraphic(image);
 					} catch (Exception e) {}
 					
 					a.setTitle("Item details");
-					String t = this.getText().length() > 40 ? this.getText().substring(0, 50) + "..." : this.getText();
+					String t = this.getText().length() > 40 ? this.getText().substring(0, 40) + "..." : this.getText();
 					
 					a.setHeaderText("Item details for \"" + t + "\":");
 					ButtonType saveButton = new ButtonType("Save", ButtonData.OK_DONE);
@@ -628,11 +631,11 @@ public class Controller {
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
 							String name = textField.getText().endsWith(".png") ? textField.getText() : textField.getText() + ".png";
-							if (!name.equals(this.getText()) && new File("imgs/" + name).exists()) {
+							if (!name.equals(this.getText()) && new File(tempPath + "imgs/" + name).exists()) {
 								save.setDisable(true);
 								a.headerTextProperty().setValue("An image called \"" + textField.getText() + "\" already exists");
 							} else {
-								String txt = textField.textProperty().getValue().length() > 50 ? textField.textProperty().getValue().substring(0, 50) + "..." : textField.textProperty().getValue();
+								String txt = textField.textProperty().getValue().length() > 40 ? textField.textProperty().getValue().substring(0, 40) + "..." : textField.textProperty().getValue();
 								save.setDisable(false);
 								a.headerTextProperty().setValue("Item details for \"" + txt + "\":");
 							}
@@ -645,7 +648,7 @@ public class Controller {
 							}
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
-							File newImageFile = new File("imgs/" + textField.getText());
+							File newImageFile = new File(tempPath + "imgs/" + textField.getText());
 							this.imageFile.renameTo(newImageFile);
 							this.imageFile = newImageFile;
 							this.imageFile.deleteOnExit();
@@ -816,8 +819,8 @@ public class Controller {
 	
 	private void changesMade() {
 		if (!changesMade && openFile != null)
-//			FIXME: Crashes JUnit test because there's no "real window"
-//			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
 		changesMade = true;
 //		redoStack.clear();
 	}
@@ -825,13 +828,19 @@ public class Controller {
 	@FXML
 	private void undo() {
 		System.out.println("Undo");
-		changesMade();
+		if (!changesMade && openFile != null)
+//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+		changesMade = true;
 	}
 
 	@FXML
 	private void redo() {
 		System.out.println("Redo");
-		changesMade();
+		if (!changesMade && openFile != null)
+//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+		changesMade = true;
 	}
 
 	@FXML
@@ -855,9 +864,6 @@ public class Controller {
 	}
 	
 	private boolean rectTooBig() {
-//		FIXME: Crashes JUnit test because there's no "real window"
-//		double width = Main.primaryStage.getWidth();
-//		double height = Main.primaryStage.getHeight();
 		double width = pane.getScene().getWindow().getWidth();
 		double height = pane.getScene().getWindow().getHeight();
 		return (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
@@ -865,9 +871,6 @@ public class Controller {
 	}
 	
 	private boolean rectTooSmall() {
-//		FIXME: Crashes JUnit test because there's no "real window"
-//		double width = Main.primaryStage.getWidth();
-//		double height = Main.primaryStage.getHeight();
 		double width = pane.getScene().getWindow().getWidth();
 		double height = pane.getScene().getWindow().getHeight();
 		return (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
@@ -895,7 +898,7 @@ public class Controller {
 	@FXML
 	private void addItemToList() {
 		String newItem = addItemField.getText();
-		if (!(newItem.equals("") || new File("imgs/" + newItem).exists())) {
+		if (!(newItem.equals("") || new File(tempPath + "imgs/" + newItem).exists())) {
 			itemsList.getItems().add(newItem);
 		}
 		addItemField.setText("");
@@ -916,9 +919,9 @@ public class Controller {
 		ClipboardContent content = new ClipboardContent();
 		content.putString(itemsList.getSelectionModel().getSelectedItem());
 		dragBoard.setContent(content);
-		if (new File("imgs/" + dragBoard.getString()).exists()) {
+		if (new File(tempPath + "imgs/" + dragBoard.getString()).exists()) {
 			try {
-				ImageView image = new ImageView(new Image(new File("imgs/" + dragBoard.getString()).toURI().toURL().toExternalForm()));
+				ImageView image = new ImageView(new Image(new File(tempPath + "imgs/" + dragBoard.getString()).toURI().toURL().toExternalForm()));
 				pane.getChildren().add(image);
 				image.setPreserveRatio(true);
 				image.setFitWidth(100);
@@ -929,6 +932,7 @@ public class Controller {
 				dragBoard.setDragView(image.snapshot(spa, writableImage), image.getBoundsInParent().getWidth(), -image.getBoundsInParent().getHeight());
 				pane.getChildren().remove(image);
 			} catch (Exception e) {
+				System.err.println("DraggableImage could not be created.");
 				e.printStackTrace();
 			}
 		} else {
@@ -1122,7 +1126,7 @@ public class Controller {
 			FileOutputStream fos = new FileOutputStream(selectedFile);
 			ZipOutputStream zos = new ZipOutputStream(fos);
 
-			File config = new File("Config.vlist");
+			File config = new File(tempPath + "Config.vlist");
 			StringBuilder sb = new StringBuilder();
 			sb.append(title.getText() + "𔓱" + colorTitles.getValue().toString() + "𔓱"
 					+ colorBackground.getValue().toString() + "\n");
@@ -1135,7 +1139,7 @@ public class Controller {
 			bw.write(sb.toString());
 			bw.close();
 
-			File unassigned = new File("Unassigned.csv");
+			File unassigned = new File(tempPath + "Unassigned.csv");
 			sb = new StringBuilder();
 			bw = new BufferedWriter(new FileWriter(unassigned));
 			if (!itemsList.getItems().isEmpty()) {
@@ -1152,7 +1156,7 @@ public class Controller {
 			}
 			bw.close();
 			
-			File imagesList = new File("Images.csv");
+			File imagesList = new File(tempPath + "Images.csv");
 			sb = new StringBuilder();
 			bw = new BufferedWriter(new FileWriter(imagesList));
 			if (!itemImages.isEmpty()) {
@@ -1165,7 +1169,7 @@ public class Controller {
 			}
 			bw.close();
 
-			File inDiagram = new File("InDiagram.vlist");
+			File inDiagram = new File(tempPath + "InDiagram.vlist");
 			sb = new StringBuilder();
 			for (int i = 0; i < itemsInDiagram.size(); i++) {
 				DraggableItem d = itemsInDiagram.get(i);
@@ -1209,7 +1213,7 @@ public class Controller {
 //				}
 //			}
 			
-			File imgsDir = new File("imgs");
+			File imgsDir = new File(tempPath + "imgs");
 			zos.putNextEntry(new ZipEntry(imgsDir.getName() + "/"));
 			zos.closeEntry();
 			File[] imgs = imgsDir.listFiles();
@@ -1235,10 +1239,9 @@ public class Controller {
 			}
 
 			openFile = selectedFile;
-//			FIXME: Crashes JUnit test because there's no "real window"
-//			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
+//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
-		} catch (NullPointerException e) {
 		} catch (Exception e) {
 			e.printStackTrace();
 			Alert a = new Alert(AlertType.ERROR);
@@ -1349,9 +1352,9 @@ public class Controller {
 			while ((line = br.readLine()) != null) {
 				String fileName = "imgs/" + line.substring(1, line.length() - 1);
 				ze = vennFile.getEntry(fileName);
-				File newImage = new File(fileName);
+				File newImage = new File(tempPath + fileName);
 				if (!newImage.exists())
-					Files.copy(vennFile.getInputStream(ze), Paths.get(fileName));
+					Files.copy(vennFile.getInputStream(ze), Paths.get(tempPath + fileName));
 				images.add(newImage);
 				imgStrings.add(line.substring(1, line.length() - 1));
 				newImage.deleteOnExit();
@@ -1433,7 +1436,7 @@ public class Controller {
 				for (String s : items) {
 					elements = s.split("𔓱");
 					DraggableItem a = null;
-					File f = new File("imgs/" + elements[0]);
+					File f = new File(tempPath + "imgs/" + elements[0]);
 					if (f.exists()) {
 						a = new DraggableImage(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0], f);
 					}
@@ -1479,12 +1482,12 @@ public class Controller {
 			openFile = file;
 			changesMade = false;
 			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-//			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
+			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
 		} catch (Exception e) {
-//			e.printStackTrace();
 			if (file != null) {
+				e.printStackTrace();
 				Alert a = new Alert(AlertType.ERROR);
 				a.setHeaderText("File could not be opened");
 				a.setContentText("");
@@ -1576,7 +1579,7 @@ public class Controller {
 		
 		openFile = null;
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-//		Main.primaryStage.setTitle("Venn");
+		Main.primaryStage.setTitle("Venn");
 		changesMade = false;
 	}
 
@@ -2154,8 +2157,8 @@ public class Controller {
 
 	boolean addItemToDiagram(double x, double y, String text) {
 		DraggableItem a = null;
-		if (new File("imgs/" + text).exists()) {
-			return addImageToDiagram(x, y, text, new File("imgs/" + text));
+		if (new File(tempPath + "imgs/" + text).exists()) {
+			return addImageToDiagram(x, y, text, new File(tempPath + "imgs/" + text));
 		} else {
 			a = new DraggableItem(x, y, text);
 			if (a.checkBounds()) {
@@ -2204,19 +2207,23 @@ public class Controller {
 		credits.setScaleY(1.2);
 		credits.setPadding(new Insets(0, 0, 7, 4));
 		Label leadDev = new Label("Lead Developer:");
-		Label me = new Label(" Andrew Hocking");
+		Label me1 = new Label("  Andrew Hocking");
 		Label assistDev = new Label("Assistant Developer:");
-		Label nourin = new Label(" Nourin Abd El Hadi");
+		Label nourin = new Label("  Nourin Abd El Hadi");
 		Label docs = new Label("Documentation:");
-		Label others = new Label(" Nabi Khalid and Anika Prova");
+		Label others = new Label("  Nabi Khalid and Anika Prova");
+		Label unitTesting = new Label("Unit testing:");
+		Label me2 = new Label("  Andrew Hocking");
+		Label icon = new Label("App icon:");
+		Label me3 = new Label("  Andrew Hocking");
 		Label imgs = new Label("Toolbar icon images:");
 		Hyperlink thoseicons = new Hyperlink("ThoseIcons on FlatIcon.com");
 		
 		GridPane pettiness = new GridPane();
-		Label petty1 = new Label("Corrected Documentation:");
-		Label petty2 = new Label("\tNourin Abd El Hadi and Andrew Hocking");
-		Label petty3 = new Label("Zero Usable Code:");
-		Label petty4 = new Label("\tNabi Khalid and Anika Prova");
+		Label petty1 = new Label(" Corrected Documentation:");
+		Label petty2 = new Label("\t\tNourin Abd El Hadi and Andrew Hocking");
+		Label petty3 = new Label(" Zero Usable Code:");
+		Label petty4 = new Label("\t\tNabi Khalid and Anika Prova");
 		for (Node n : pettiness.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
@@ -2224,13 +2231,17 @@ public class Controller {
 		GridPane content = new GridPane();
 		content.add(credits, 0, 0);
 		content.add(leadDev, 0, 1);
-		content.add(me, 1, 1);
+		content.add(me1, 1, 1);
 		content.add(assistDev, 0, 2);
 		content.add(nourin, 1, 2);
 		content.add(docs, 0, 3);
 		content.add(others, 1, 3);
-		content.add(imgs, 0, 4);
-		content.add(thoseicons, 1, 4);
+		content.add(unitTesting, 0, 4);
+		content.add(me2, 1, 4);
+		content.add(icon, 0, 5);
+		content.add(me3, 1, 5);
+		content.add(imgs, 0, 6);
+		content.add(thoseicons, 1, 6);
 		for (Node n : content.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
@@ -2246,7 +2257,9 @@ public class Controller {
 		ButtonType githubButton = new ButtonType("View Source Code");
 		a.getButtonTypes().add(ButtonType.CLOSE);
 		a.getButtonTypes().add(githubButton);
-		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon100.png").toExternalForm()));
+		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon.png").toExternalForm()));
+		iconView.setPreserveRatio(true);
+		iconView.setFitWidth(100);
 		a.setGraphic(iconView);
 		Button github = (Button) a.getDialogPane().lookupButton(githubButton);
 		Button close = (Button) a.getDialogPane().lookupButton(ButtonType.CLOSE);
@@ -2301,43 +2314,43 @@ public class Controller {
 					mouseEvent.consume();
 				});
 				
-//				FIXME: Crashes JUnit test because there's no "real window"
-//				pane.getScene().getWindow().setOnCloseRequest(event -> {
-//					if (changesMade) {
-//						Alert a = new Alert(AlertType.CONFIRMATION);
-//						ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
-//						ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
-//						ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-//						a.setTitle("Save changes?");
-//						if (openFile == null)
-//							a.setHeaderText("Do you want to save your changes?");
-//						else
-//							a.setHeaderText("Do you want to save your changes to \"" + openFile.getName() + "\"?");
-//						a.setContentText(null);
-//						a.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
-//						Optional<ButtonType> result = a.showAndWait();
-//						if (result.get().equals(dontSaveButton)) {
-//							event.consume();
-//							Main.primaryStage.close();
-//						} else if (result.get().equals(saveButton)) {
-//							try {
-//								save();
-//								if (openFile == null)
-//									throw new Exception();
-//								event.consume();
-//								Main.primaryStage.close();
-//							} catch (Exception e) {
-//								event.consume();
-//							}
-//						} else {
-//							event.consume();
-//						}
-//						a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
-//					} else {
-//						event.consume();
-//						Main.primaryStage.close();
-//					}
-//				});
+//				FIXME: Crashes JUnit test because there's no real "window" with TestFX
+				pane.getScene().getWindow().setOnCloseRequest(event -> {
+					if (changesMade) {
+						Alert a = new Alert(AlertType.CONFIRMATION);
+						ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.YES);
+						ButtonType dontSaveButton = new ButtonType("Don't Save", ButtonBar.ButtonData.NO);
+						ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+						a.setTitle("Save changes?");
+						if (openFile == null)
+							a.setHeaderText("Do you want to save your changes?");
+						else
+							a.setHeaderText("Do you want to save your changes to \"" + openFile.getName() + "\"?");
+						a.setContentText(null);
+						a.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
+						Optional<ButtonType> result = a.showAndWait();
+						if (result.get().equals(dontSaveButton)) {
+							event.consume();
+							Main.primaryStage.close();
+						} else if (result.get().equals(saveButton)) {
+							try {
+								save();
+								if (openFile == null)
+									throw new Exception();
+								event.consume();
+								Main.primaryStage.close();
+							} catch (Exception e) {
+								event.consume();
+							}
+						} else {
+							event.consume();
+						}
+						a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
+					} else {
+						event.consume();
+						Main.primaryStage.close();
+					}
+				});
 				
 //				Main.primaryStage.widthProperty().addListener(listener -> {
 //					double width = Main.primaryStage.getWidth();
@@ -2375,11 +2388,21 @@ public class Controller {
 //					}
 //				});
 				
-//				FIXME: Crashes JUnit test because there's no "real window"
-//				Main.primaryStage.getScene().getWindow().centerOnScreen();
-				File f = new File("imgs");
-				f.mkdir();
-				f.deleteOnExit();
+//				FIXME: Crashes JUnit test because there's no real "window" with TestFX
+				Main.primaryStage.getScene().getWindow().centerOnScreen();
+				
+				try {
+					File temp = File.createTempFile("venn", null);
+					tempPath = temp.getParent() + "/";
+					temp.delete();
+					File f = new File(tempPath + "imgs/");
+					f.mkdir();
+					f.deleteOnExit();
+				} catch (IOException e) {
+					System.err.println("Temp directory could not be created. Using current directory instead.");
+					tempPath = "";
+					e.printStackTrace();
+				}
 			}
 		});
 		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
@@ -2404,9 +2427,10 @@ public class Controller {
 		for (Node n : frameRect.getChildren()) {
 			n.setFocusTraversable(false);
 		}
-//		FIXME: Crashes JUnit test because there's no "real window"
-//		Main.primaryStage.setMinWidth(800);
-//		Main.primaryStage.setMinHeight(400);
+		
+//		FIXME: Crashes JUnit test because there's no real "window" with TestFX
+		Main.primaryStage.setMinWidth(800);
+		Main.primaryStage.setMinHeight(400);
 		
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);
