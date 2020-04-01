@@ -711,9 +711,9 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseReleased(mouseEvent -> {
-				this.setBackground(null);
 				getScene().setCursor(Cursor.HAND);
 				checkBounds();
+				this.setBackground(null);
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
@@ -729,6 +729,7 @@ public class Controller {
 						setOnMouseReleased(mouseEvent2 -> {
 							d.getScene().setCursor(Cursor.HAND);
 							d.checkBounds();
+							this.setBackground(null);
 							mouseEvent.consume();
 						});
 						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
