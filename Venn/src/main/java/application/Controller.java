@@ -14,8 +14,15 @@
 
 package application;
 
-import java.io.*;
-import java.net.MalformedURLException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
@@ -27,19 +34,15 @@ import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
-
-//import com.google.common.io.Files;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -53,8 +56,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -64,10 +65,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
-import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
@@ -80,7 +79,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -91,14 +89,13 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Shape;
+//import javafx.scene.shape.Shape;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Transform;
 import javafx.stage.FileChooser;
@@ -110,7 +107,7 @@ public class Controller {
 	private final String DEFAULT_TITLE_COLOR = "0xffffff";
 	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
 	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
-	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
+//	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
@@ -138,7 +135,7 @@ public class Controller {
 	private Circle circleLeft;
 	@FXML
 	private Circle circleRight;
-	private Shape circleIntersection;
+//	private Shape circleIntersection;
 
 	@FXML
 	private AnchorPane pane;
@@ -164,8 +161,8 @@ public class Controller {
 	private Slider rightSizeSlider;
 	@FXML
 	private TextField rightSizeField;
-	@FXML
-	private ColorPicker colorIntersection;
+//	@FXML
+//	private ColorPicker colorIntersection;
 	@FXML
 	private ColorPicker colorIntersectionItems;
 
@@ -250,13 +247,6 @@ public class Controller {
 			this.text.setMaxWidth(MAX_WIDTH);
 			this.text.setWrapText(true);
 
-			this.text.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
-				if (!hasFocus.booleanValue() && getParent() != null && getParent() instanceof Pane
-						&& (this.text.getText() == null || this.text.getText().trim().isEmpty())) {
-					((Pane) getParent()).getChildren().remove(this);
-				}
-			});
-
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				try {
 					if (!hasFocus.booleanValue()
@@ -299,14 +289,14 @@ public class Controller {
 				if (keyEvent.getCode() == KeyCode.ESCAPE) {
 					pane.requestFocus();
 				}
-				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = true;
 				}
 				keyEvent.consume();
 			});
 
 			this.setOnKeyReleased(keyEvent -> {
-				if (keyEvent.getCode() == KeyCode.SHORTCUT || keyEvent.getCode() == KeyCode.SHIFT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = false;
 				}
 				keyEvent.consume();
@@ -316,7 +306,6 @@ public class Controller {
 				if (event.getClickCount() == 2) {
 					Alert a = new Alert(AlertType.INFORMATION);
 
-					// Create expandable Exception.
 					TextField textField = new TextField(this.getText());
 					textField.setPromptText("Enter a title for this item");
 
@@ -440,7 +429,6 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
-				boolean deleteThis = false;
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
 						hideAnswers();
@@ -459,34 +447,19 @@ public class Controller {
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
-						if (d != this) {
-							setOnMouseReleased(mouseEvent2 -> {
-								d.getScene().setCursor(Cursor.DEFAULT);
-								frameRect.getChildren().remove(d);
-								itemsInDiagram.remove(d);
-								itemsList.getItems().add(d.getText());
+						setOnMouseReleased(mouseEvent2 -> {
+							d.getScene().setCursor(Cursor.DEFAULT);
+							selectedItems.forEach(each -> {
+								frameRect.getChildren().remove(each);
+								itemsInDiagram.remove(each);
+								itemsList.getItems().add(each.getText());
 							});
-							d.setBackground(
-									new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
-							d.getLabel().setTextFill(Color.WHITE);
-							d.getScene().setCursor(Cursor.DISAPPEAR);
-						} else {
-							deleteThis = true;
-						}
+							selectedItems.clear();
+						});
+						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+						d.getLabel().setTextFill(Color.WHITE);
+						d.getScene().setCursor(Cursor.DISAPPEAR);
 					}
-				}
-				if (deleteThis) {
-					this.setBackground(
-							new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
-					this.getLabel().setTextFill(Color.WHITE);
-					this.getScene().setCursor(Cursor.DISAPPEAR);
-					this.setOnMouseReleased(mouseEvent2 -> {
-						this.getScene().setCursor(Cursor.DEFAULT);
-						frameRect.getChildren().remove(this);
-						itemsInDiagram.remove(this);
-						itemsList.getItems().add(this.getText());
-					});
-
 				}
 				mouseEvent.consume();
 				changesMade();
@@ -742,7 +715,6 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
-				boolean deleteThis = false;
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
 						hideAnswers();
@@ -753,7 +725,6 @@ public class Controller {
 					d.setLayoutY(newY);
 					if (d.checkBounds()) {
 						setOnMouseReleased(mouseEvent2 -> {
-							d.setBackground(null);
 							d.getScene().setCursor(Cursor.HAND);
 							d.checkBounds();
 							mouseEvent.consume();
@@ -762,49 +733,32 @@ public class Controller {
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
-						if (d != this) {
-							setOnMouseReleased(mouseEvent2 -> {
-								d.getScene().setCursor(Cursor.DEFAULT);
-								frameRect.getChildren().remove(d);
-								itemsInDiagram.remove(d);
-								imagesInDiagram.remove(d.getText());
-								itemsList.getItems().add(d.getText());
+						setOnMouseReleased(mouseEvent2 -> {
+							d.getScene().setCursor(Cursor.DEFAULT);
+							selectedItems.forEach(each -> {
+								frameRect.getChildren().remove(each);
+								itemsInDiagram.remove(each);
+								itemsList.getItems().add(each.getText());
 							});
-							d.setBackground(
-									new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
-							d.getLabel().setTextFill(Color.WHITE);
-							d.getScene().setCursor(Cursor.DISAPPEAR);
-						} else {
-							deleteThis = true;
-						}
+							selectedItems.clear();
+						});
+						d.setBackground(
+								new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
+						d.getLabel().setTextFill(Color.WHITE);
+						d.getScene().setCursor(Cursor.DISAPPEAR);
 					}
-				}
-				if (deleteThis) {
-					this.setBackground(
-							new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
-					this.getLabel().setTextFill(Color.WHITE);
-					this.getScene().setCursor(Cursor.DISAPPEAR);
-					this.setOnMouseReleased(mouseEvent2 -> {
-						this.getScene().setCursor(Cursor.DEFAULT);
-						frameRect.getChildren().remove(this);
-						itemsInDiagram.remove(this);
-						imagesInDiagram.remove(this.getText());
-						itemsList.getItems().add(this.getText());
-					});
-
 				}
 				mouseEvent.consume();
 				changesMade();
 			});
+
 			setOnMouseEntered(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown()) {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {
-				});
-				pane.setOnMouseClicked(mouseEvent2 -> {
-				});
+				frameRect.setOnMouseClicked(mouseEvent2 -> {});
+				pane.setOnMouseClicked(mouseEvent2 -> {});
 			});
 			setOnMouseExited(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown())
@@ -856,7 +810,7 @@ public class Controller {
 			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
 			scrollPane.setVvalue(scrollPane.getVmax()/2.0 + 0.05);
 			scrollPane.setHvalue(scrollPane.getHmax()/2.0);
-			updateIntersection();
+			// updateIntersection();
 		}
 	}
 
@@ -865,7 +819,7 @@ public class Controller {
 		if (frameRect.getScaleX() > 0.5) {
 			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
-			updateIntersection();
+			// updateIntersection();
 		}
 	}
 	
@@ -976,6 +930,7 @@ public class Controller {
 			}
 			selectedItems.clear();
 		}
+		removeFocus();
 		changesMade();
 	}
 
@@ -1147,7 +1102,7 @@ public class Controller {
 					+ "𔓱" + colorLeftItems.getValue().toString() + "\n");
 			sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱"
 					+ circleRight.getScaleX() + "𔓱" + colorRightItems.getValue().toString() + "\n");
-			sb.append(colorIntersection.getValue().toString() + "𔓱" + colorIntersectionItems.getValue().toString());
+			sb.append(/*colorIntersection.getValue().toString()*/ "INTERSECTIONCOLOUR𔓱" + colorIntersectionItems.getValue().toString());
 			BufferedWriter bw = new BufferedWriter(new FileWriter(config));
 			bw.write(sb.toString());
 			bw.close();
@@ -1352,7 +1307,7 @@ public class Controller {
 
 		try {
 			String line, title, leftTitle, rightTitle, elements[];
-			Color bgColor, leftColor, rightColor, intersectionColor, titleColor, leftTextColor, rightTextColor,
+			Color bgColor, leftColor, rightColor, /*intersectionColor,*/ titleColor, leftTextColor, rightTextColor,
 					intersectionTextColor;
 			double leftScale, rightScale;
 			ObservableList<String> unassignedItems = FXCollections.observableArrayList();
@@ -1400,7 +1355,7 @@ public class Controller {
 			rightTextColor = Color.web(elements[3]);
 
 			elements = br.readLine().split("𔓱");
-			intersectionColor = Color.web(elements[0]);
+//			intersectionColor = Color.web(elements[0]);
 			intersectionTextColor = Color.web(elements[1]);
 			br.close();
 
@@ -1458,8 +1413,8 @@ public class Controller {
 			this.changeColorLeft();
 			this.colorRight.setValue(rightColor);
 			this.changeColorRight();
-			this.colorIntersection.setValue(intersectionColor);
-			this.updateIntersection();
+//			this.colorIntersection.setValue(intersectionColor);
+//			this.updateIntersection();
 			this.colorTitles.setValue(titleColor);
 			this.changeColorTitles();
 			this.leftSizeSlider.setValue(leftScale * 100);
@@ -1485,6 +1440,7 @@ public class Controller {
 			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
+			multiSelect = false;
 		} catch (Exception e) {
 			if (file != null) {
 				e.printStackTrace();
@@ -1557,7 +1513,7 @@ public class Controller {
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOR));
 		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOR));
-		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
+//		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
 		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
 		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOR));
 		changeColorBackground();
@@ -1582,6 +1538,7 @@ public class Controller {
 		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
 		Main.primaryStage.setTitle("Venn");
 		changesMade = false;
+//		redoStack.clear();
 	}
 
 	@FXML
@@ -1641,13 +1598,13 @@ public class Controller {
 		circleLeft.setScaleX(leftSizeSlider.getValue() / 100.0);
 		circleLeft.setScaleY(leftSizeSlider.getValue() / 100.0);
 		leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
-		updateIntersection();
+		// updateIntersection();
 		changeColorItems();
 		changesMade();
 	}
 
-	@FXML
-	private void updateIntersection() {
+//	@FXML
+//	private void updateIntersection() {
 //		frameRect.getChildren().remove(circleIntersection);
 //		circleIntersection = Shape.intersect(circleLeft, circleRight);
 //		circleIntersection.setFill(colorIntersection.getValue());
@@ -1664,7 +1621,7 @@ public class Controller {
 //		}
 //		changeColorItems();
 //		changesMade();
-	}
+//	}
 
 	@FXML
 	private void changeSizeLeftField(KeyEvent event) {
@@ -1686,7 +1643,7 @@ public class Controller {
 			} catch (Exception e) {
 				leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
 			}
-			updateIntersection();
+			// updateIntersection();
 			changeColorItems();
 			changesMade();
 		}
@@ -1697,7 +1654,7 @@ public class Controller {
 		circleRight.setScaleX(rightSizeSlider.getValue() / 100.0);
 		circleRight.setScaleY(rightSizeSlider.getValue() / 100.0);
 		rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
-		updateIntersection();
+		// updateIntersection();
 		changeColorItems();
 		changesMade();
 	}
@@ -1722,7 +1679,7 @@ public class Controller {
 			} catch (Exception e) {
 				rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
 			}
-			updateIntersection();
+			// updateIntersection();
 			changeColorItems();
 			changesMade();
 		}
@@ -2243,6 +2200,7 @@ public class Controller {
 	@FXML
 	private void selectAll() {
 		for (DraggableItem d : itemsInDiagram) {
+			System.out.println(d.getText());
 			multiSelect = true;
 			d.requestFocus();
 			selectedItems.add(d);
@@ -2413,14 +2371,14 @@ public class Controller {
 //							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 //						zoomOut();
 ////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-//						updateIntersection();
+//						// updateIntersection();
 //					}
 //					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 //							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 //						zoomIn();
 ////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
 ////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-//						updateIntersection();
+//						// updateIntersection();
 //					}
 //				});
 //				Main.primaryStage.heightProperty().addListener(listener -> {
@@ -2431,14 +2389,14 @@ public class Controller {
 //						zoomOut();
 ////						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
 ////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-//						updateIntersection();
+//						// updateIntersection();
 //					}
 //					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
 //							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
 //						zoomIn();
 ////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
 ////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-//						updateIntersection();
+//						// updateIntersection();
 //					}
 //				});
 				

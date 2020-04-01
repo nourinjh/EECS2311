@@ -523,8 +523,8 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorIntersection" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateIntersection" prefWidth="125.0" promptText="Background Colour" />
-                           </children>
+<!--                               <ColorPicker fx:id="colorIntersection" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateIntersection" prefWidth="125.0" promptText="Background Colour" />
+ -->                           </children>
                         </HBox>
                      </content>
                   </CustomMenuItem>
