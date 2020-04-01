@@ -2,100 +2,38 @@ package application;
 
 import static org.junit.Assert.*;
 
-import org.testfx.api.FxRobot;
-//import org.junit.*;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.service.query.EmptyNodeQueryException;
+import org.testfx.util.WaitForAsyncUtils;
 
-//import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.VerticalDirection;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import junit.framework.Assert;
-
-//import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-//import javafx.application.Platform;
-
-//import javafx.collections.FXCollections;
-//import javafx.collections.ObservableList;
 
 import javafx.scene.control.*;
-//import javafx.scene.control.Alert.AlertType;
-import javafx.scene.paint.Color;
-//import javafx.scene.paint.ColorBuilder;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-//import org.testfx.api.FxToolkit;
-//import org.testfx.framework.junit.ApplicationTest;
-import org.testfx.util.WaitForAsyncUtils;
 
 import application.Controller.DraggableItem;
 
-import java.io.File;
-//import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotEquals;
 
 public class ControllerTest extends ApplicationTest {
 
-	// widgets used
-	/*
-	 * ObservableList<String> items; ObservableList<String> circleLeftItems;
-	 * ObservableList<String> circleRightItems; ObservableList<String> bothItems;
-	 * ListView<String> circleLeft; ListView<String> circleRight;
-	 * ListView<String> both;
-	 */
-	Circle circleLeft;
-	Circle circleRight;
-	AnchorPane pane;
-	VBox floatingMenu;
-	ColorPicker colorLeft;
-	String DEFAULT_LEFT_COLOUR = "0xf59f9f";
-	Slider leftSizeSlider;
-	TextField leftSizeField;
-	ColorPicker colorRight;
-	String DEFAULT_RIGHT_COLOUR = "0xebe071";
-	Slider rightSizeSlider;
-	TextField rightSizeField;
-	MenuBar menuBar;
-	Button screenshotButton;
-	Pane frameRect;
-	ColorPicker colorBackground;
-	ColorPicker colorTitles;
-	Button deleteButton;
-	Button clearButton;
-	Button loadButton;
-	Button saveButton;
-
-	TextField title;
-	TextField circleLeftTitle;
-	TextField circleRightTitle;
-	TextField addItemField;
-	Button addItemButton;
-	ListView<String> itemsList;
-	Button addImageButton;
 	ControllerTest controller;
 	Parent mainNode;
 
@@ -118,50 +56,6 @@ public class ControllerTest extends ApplicationTest {
 	public <T extends Node> T find(final String query) {
 		/* TestFX provides many operations to retrieve elements from the loaded GUI. */
 		return lookup(query).query();
-	}
-
-	@Before
-	public void setUp() {
-		/* retrieving the tested widgets from the GUI. */
-
-		/*
-		 * circleLeftItems=find("#circleLeftItems");
-		 * circleRightItems=find("#circleRightItems"); bothItems=find("#bothItems");
-		 * circleLeft=find("#circleLeft");
-		 * circleRight=find("#circleRight");
-		 * both=find("#both");
-		 */
-		circleLeft = find("#circleLeft");
-		circleRight = find("#circleRight");
-		pane = find("#pane");
-		floatingMenu = find("#floatingMenu");
-//		colorLeft = find("#colorLeft");
-		// DEFAULT_LEFT_COLOUR = "0xf59f9f";
-//		leftSizeSlider = find("#leftSizeSlider");
-//		leftSizeField = find("#leftSizeField");
-//		colorRight = find("#colorRight");
-		// DEFAULT_RIGHT_COLOUR = "0xebe071";
-//		rightSizeSlider = find("#rightSizeSlider");
-//		rightSizeField = find("#rightSizeField");
-		menuBar = find("#menuBar");
-//		screenshotButton = find("#screenshotButton");
-		frameRect = find("#frameRect");
-//		colorBackground = find("#colorBackground");
-//		colorTitles = find("#colorTitles");
-//		deleteButton = find("#deleteButton");
-//		clearButton = find("#clearButton");
-//		loadButton = find("#loadButton");
-//		saveButton = find("#saveButton");
-
-		title = find("#title");
-		circleLeftTitle = find("#circleLeftTitle");
-		circleRightTitle = find("#circleRightTitle");
-		addItemField = find("#addItemField");
-		addItemButton = find("#addItemButton");
-		itemsList = find("#itemsList");
-//		addImageButton = find("#addImageButton");
-		// controller= find("#items");
-//		itemsInDiagram = find("#itemsInDiagram");
 	}
 
 	// clearing events
@@ -193,7 +87,7 @@ public class ControllerTest extends ApplicationTest {
 		for (int i = 0; i < 9; i += 3) {
 			drag("Item " + (i + 1)).moveTo("#circleLeft").dropBy(-100, (Math.random() * 200) - 100);
 			WaitForAsyncUtils.waitForFxEvents();
-			drag("Item " + (i + 2)).moveTo("#circleLeft").dropBy(circleLeft.getBoundsInParent().getWidth() / 2 - 110, (Math.random() * 150) - 75);
+			drag("Item " + (i + 2)).moveTo("#circleLeft").dropBy(((Circle)(find("#circleLeft"))).getBoundsInParent().getWidth() / 2 - 110, (Math.random() * 150) - 75);
 			WaitForAsyncUtils.waitForFxEvents();
 			drag("Item " + (i + 3)).moveTo("#circleRight").dropBy(-40, (Math.random() * 200) - 100);
 			WaitForAsyncUtils.waitForFxEvents();
@@ -281,7 +175,7 @@ public class ControllerTest extends ApplicationTest {
 			WaitForAsyncUtils.waitForFxEvents();
 		}
 		
-		drag("Item 1").moveTo("#circleLeft").dropBy(circleLeft.getBoundsInParent().getWidth() / 2 - 110, 0);
+		drag("Item 1").moveTo("#circleLeft").dropBy(((Circle)(find("#circleLeft"))).getBoundsInParent().getWidth() / 2 - 110, 0);
 		drag("Item 2").moveTo("#circleLeft").dropBy(-100, 0);
 		drag("Item 3").moveTo("#circleRight").dropBy(-40, 0);
 		WaitForAsyncUtils.waitForFxEvents();
@@ -308,19 +202,20 @@ public class ControllerTest extends ApplicationTest {
 		WaitForAsyncUtils.waitForFxEvents();
 
 		drag("Test").dropTo("#frameRect");
-		clickOn("#exportButton").clickOn("Image");
-
+		clickOn("#exportButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("Image");
 		WaitForAsyncUtils.waitForFxEvents();
 
 		try {
 		press(KeyCode.ENTER);
-		Thread.sleep(750);
+		Thread.sleep(500);
 		release(KeyCode.ENTER);
-		Thread.sleep(750);
+		Thread.sleep(500);
 		press(KeyCode.ENTER);
-		Thread.sleep(750);
+		Thread.sleep(500);
 		release(KeyCode.ENTER);
-		Thread.sleep(750);
+		Thread.sleep(500);
 		} catch (Exception e) {}
 		
 		assertEquals(mainTitle, ((TextField)(find("#title"))).getText());

@@ -1537,7 +1537,7 @@ public class Controller {
 		itemImages.clear();
 		
 		openFile = null;
-		// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
+		// XXX: Crashes the JUnit tests because they don't have a title bar on the window to change
 		Main.primaryStage.setTitle("Venn");
 		changesMade = false;
 //		redoStack.clear();

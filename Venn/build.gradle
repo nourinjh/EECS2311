@@ -9,10 +9,10 @@
 plugins {
     // Apply the java-library plugin to add support for Java Library
     id 'java-library'
-	  id 'application'
-	  id 'eclipse'
-	  id 'org.openjfx.javafxplugin' version '0.0.8'
-	  id 'org.beryx.jlink' version '2.12.0'
+	id 'application'
+	id 'eclipse'
+	id 'org.beryx.jlink' version '2.12.0'
+	// id 'org.openjfx.javafxplugin' version '0.0.8'
 }
 
 repositories {
@@ -31,12 +31,12 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
     
-    // TestFX
+    // TestFX testing framework
     testCompile "org.testfx:testfx-core:4.0.+"
 	testCompile "org.testfx:testfx-junit:4.0.+"
 }
 
-javafx {
-    version = "13"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
-}
+// javafx {
+//     version = "13"
+//     modules = [ 'javafx.controls', 'javafx.fxml' ]
+// }
