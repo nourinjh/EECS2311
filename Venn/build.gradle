@@ -11,30 +11,14 @@ plugins {
     id 'java-library'
 	id 'application'
 	id 'eclipse'
-    id 'org.openjfx.javafxplugin' version '0.0.8'
 	id 'org.beryx.jlink' version '2.12.0'
+	// id 'org.openjfx.javafxplugin' version '0.0.8'
 }
-
-// org.gradle.java.home=/Library/Java/JavaVirtualMachines/jdk-11.0.6.jdk
 
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
-    mavenCentral()
-}
-
-javafx {
-    version = "11.0.2"
-    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.base', 'javafx.graphics', 'javafx.media', 'javafx.swing', 'javafx.web']
-}
-
-mainClassName="Venn/application.Main"
-
-jar {
-	manifest {
-		attributes 'Main-Class': 'application.Main'
-	}
 }
 
 dependencies {
@@ -52,20 +36,7 @@ dependencies {
 	testCompile "org.testfx:testfx-junit:4.0.+"
 }
 
-eclipse {
-	classpath {
-		file {
-			whenMerged {
-				entries.findAll { it.properties.kind.equals('lib') }.each {
-					it.entryAttributes['module'] = 'true'
-				}
-			}
-		}
-	}
-}
-
-jlink {
-	launcher {
-		name = 'Venn'
-	}
-}
+// javafx {
+//     version = "13"
+//     modules = [ 'javafx.controls', 'javafx.fxml' ]
+// }

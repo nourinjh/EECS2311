@@ -23,7 +23,7 @@ public class Main extends Application {
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("images/icon.png")));
 		primaryStage.show();
 	}
-// ok
+
 	public static void main(String[] args) {
 		launch(args);
 	}
