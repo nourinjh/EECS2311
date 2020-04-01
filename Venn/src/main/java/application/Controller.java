@@ -36,12 +36,12 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-//import javax.imageio.ImageIO;
+import javax.imageio.ImageIO;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-//import javafx.embed.swing.SwingFXUtils;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -1057,7 +1057,7 @@ public class Controller {
 		    fc.setTitle("Save");
 		    fc.setInitialFileName(name);
 		    File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
-//			ImageIO.write(SwingFXUtils.fromFXImage(capture, null), "png", selectedFile);
+			ImageIO.write(SwingFXUtils.fromFXImage(capture, null), "png", selectedFile);
 		} catch (IllegalArgumentException e) {
 			// If the user cancels the save dialogue, then selectedFile will be null, which will
 			// throw an IllegalArgumentException from ImageIO.write(...). Don't react, because they
