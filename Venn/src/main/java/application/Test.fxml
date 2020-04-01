@@ -30,7 +30,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onDragDropped="#dropItem" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #1d1d1d;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
 
 	<children>
       <VBox fx:id="floatingMenu" layoutX="92.0" layoutY="162.0" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="240.0" style="-fx-background-color: black; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 20, 0, 0, 0);" AnchorPane.bottomAnchor="109.0" AnchorPane.leftAnchor="92.0" AnchorPane.topAnchor="162.0">
@@ -158,18 +158,18 @@
           </Menu>
         </menus>
       </MenuBar>
-      <ScrollPane fx:id="scrollPane" layoutX="407.0" layoutY="67.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="407.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
+      <ScrollPane fx:id="scrollPane" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
          <content>
-            <AnchorPane>
+            <AnchorPane prefHeight="730.0" prefWidth="888.0">
                <children>
-                  <Pane fx:id="frameRect" layoutY="34.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" onMouseDragReleased="#dropItem" prefHeight="649.0" prefWidth="806.0">
+                  <Pane fx:id="frameRect" layoutX="24.0" layoutY="34.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="18.0">
                      <children>
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
                   
-                                                                        <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                                                    <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
-                                                                           <font>
+                                                                                       <font>
                               <Font name="Arial" size="32.0" />
                            </font>
                            <cursor>
@@ -197,7 +197,7 @@
       </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
         <items>
-          <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save" prefHeight="30.0">
+          <Button fx:id="saveButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#save" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -212,7 +212,7 @@
                   <Tooltip text="Save" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="30.0">
+            <Button fx:id="openButton" focusTraversable="false" layoutX="10.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#loadFromFile" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -224,7 +224,7 @@
                   <Tooltip text="Open" />
                </tooltip>
             </Button>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="importButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -241,7 +241,7 @@
                   <Tooltip text="Import" />
                </tooltip>
             </MenuButton>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="exportButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -304,7 +304,7 @@
                   <Tooltip text="Delete Selected Items" />
                </tooltip>
             </Button>
-            <Button focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
+            <Button fx:id="clearButton" focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -321,7 +321,7 @@
                   <Insets left="3.0" />
                </padding>
             </Separator>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
+            <MenuButton fx:id="settingsButton" focusTraversable="false" mnemonicParsing="false" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -387,7 +387,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" maxWidth="1.7976931348623157E308" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" prefWidth="175.0" snapToTicks="true" value="100.0" HBox.hgrow="ALWAYS">
+                              <Slider fx:id="leftSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" maxWidth="1.7976931348623157E308" min="75.0" minorTickCount="1" onMouseDragged="#changeSizeLeft" prefWidth="175.0" snapToTicks="true" value="100.0" HBox.hgrow="ALWAYS">
                                  <padding>
                                     <Insets left="10.0" right="10.0" />
                                  </padding>
@@ -455,7 +455,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" maxWidth="1.7976931348623157E308" min="50.0" minorTickCount="1" onMouseDragged="#changeSizeRight" prefWidth="175.0" snapToTicks="true" value="100.0" HBox.hgrow="ALWAYS">
+                              <Slider fx:id="rightSizeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="120.0" maxWidth="1.7976931348623157E308" min="75.0" minorTickCount="1" onMouseDragged="#changeSizeRight" prefWidth="175.0" snapToTicks="true" value="100.0" HBox.hgrow="ALWAYS">
                                  <padding>
                                     <Insets left="10.0" right="10.0" />
                                  </padding>
@@ -523,8 +523,8 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorIntersection" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateIntersection" prefWidth="125.0" promptText="Background Colour" />
-                           </children>
+<!--                               <ColorPicker fx:id="colorIntersection" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateIntersection" prefWidth="125.0" promptText="Background Colour" />
+ -->                           </children>
                         </HBox>
                      </content>
                   </CustomMenuItem>
