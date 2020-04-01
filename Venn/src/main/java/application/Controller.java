@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -124,6 +125,7 @@ public class Controller {
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	@FXML
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
+	private ObservableList<String> imagesInDiagram = FXCollections.observableArrayList();
 	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList();
 	private List<File> itemImages = new ArrayList<File>();
 
@@ -354,8 +356,10 @@ public class Controller {
 						}
 					});
 					save.setOnAction(e -> {
+						imagesInDiagram.remove(this.getText());
 						this.text.setText(textField.getText());
 						setDescription(textArea.getText());
+						imagesInDiagram.add(this.getText());
 						e.consume();
 						a.close();
 						event.consume();
@@ -763,6 +767,7 @@ public class Controller {
 								d.getScene().setCursor(Cursor.DEFAULT);
 								frameRect.getChildren().remove(d);
 								itemsInDiagram.remove(d);
+								imagesInDiagram.remove(d.getText());
 								itemsList.getItems().add(d.getText());
 							});
 							d.setBackground(
@@ -783,6 +788,7 @@ public class Controller {
 						this.getScene().setCursor(Cursor.DEFAULT);
 						frameRect.getChildren().remove(this);
 						itemsInDiagram.remove(this);
+						imagesInDiagram.remove(this.getText());
 						itemsList.getItems().add(this.getText());
 					});
 
@@ -919,7 +925,7 @@ public class Controller {
 		ClipboardContent content = new ClipboardContent();
 		content.putString(itemsList.getSelectionModel().getSelectedItem());
 		dragBoard.setContent(content);
-		if (new File(tempPath + "imgs/" + dragBoard.getString()).exists()) {
+		if (new File(tempPath + "imgs/" + dragBoard.getString()).exists() && !imagesInDiagram.contains(dragBoard.getString())) {
 			try {
 				ImageView image = new ImageView(new Image(new File(tempPath + "imgs/" + dragBoard.getString()).toURI().toURL().toExternalForm()));
 				pane.getChildren().add(image);
@@ -963,10 +969,11 @@ public class Controller {
 			for (DraggableItem d : selectedItems) {
 				if (d instanceof DraggableImage) {
 					((DraggableImage) d).deleteImage();
+					imagesInDiagram.remove(d.getText());
 				}
 				frameRect.getChildren().remove(d);
+				itemsInDiagram.remove(d);
 			}
-			itemsInDiagram.removeAll(selectedItems);
 			selectedItems.clear();
 		}
 		changesMade();
@@ -985,22 +992,6 @@ public class Controller {
 	@FXML
 	private void dragOntoItemsList(DragEvent event) {
 		itemsList.setBlendMode(BlendMode.DIFFERENCE);
-		try {
-			@SuppressWarnings("unchecked")
-			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
-			for (File file : dragged) {
-				System.out.println(file.getName().substring(file.getName().length() - 4));
-				if (file.getName().endsWith(".csv")) {
-					try {
-						doTheCSV(file);
-						System.out.println("Imported");
-					} catch (Exception e) {
-						System.out.println("Drag import failed");
-					}
-				}
-			}
-		} catch (Exception e) {
-		}
 	}
 
 	@FXML
@@ -1015,9 +1006,43 @@ public class Controller {
 
 	@FXML
 	private void dragDroppedOnItemsList(DragEvent event) {
+		try {
+			@SuppressWarnings("unchecked")
+			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
+			for (File file : dragged) {
+				if (file.getName().endsWith(".csv")) {
+					itemsList.getItems().addAll(doTheCSV(file));
+				} else if (file.getName().endsWith(".venn")) {
+					if (changesMade) {
+						Alert a = new Alert(AlertType.CONFIRMATION);
+						a.setHeaderText("Are you sure you want to open another file?");
+						a.setContentText("You will lose any unsaved changes");
+						a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+						Optional<ButtonType> result = a.showAndWait();
+						if (result.get() == ButtonType.OK) {
+							doTheLoad(file);
+						}
+					} else {
+						doTheLoad(file);
+					}
+				} else if (file.getName().endsWith(".vansr")) {
+					doTheAnswerImport(file);
+				} else if (file.getName().endsWith(".png")) {
+					doTheImageImport(file);
+				}
+			}
+		} catch (ClassCastException e) {
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("Drag import failed");
+			Alert a = new Alert(AlertType.ERROR);
+			a.setHeaderText("File could not be imported");
+			a.setContentText("");
+			a.setTitle("Error");
+			a.show();
+		}
 		event.setDropCompleted(true);
 		event.consume();
-		changesMade();
 	}
 
 	@FXML
@@ -1082,10 +1107,13 @@ public class Controller {
 	@FXML
 	private void clearDiagram() {
 		for (DraggableItem d : itemsInDiagram) {
-			itemsList.getItems().add(d.getText());
-			frameRect.getChildren().remove(d);
+			if (d != null) {
+				itemsList.getItems().add(d.getText());
+				frameRect.getChildren().remove(d); 
+			}
 		}
 		itemsInDiagram.clear();
+		imagesInDiagram.clear();
 		changesMade();
 	}
 
@@ -1106,21 +1134,6 @@ public class Controller {
 		// ..... Image file names separated by new lines
 		// ... imgs: (Directory)
 		// ..... Image files
-
-		// Encryption?
-		//		String test = "abcdefg";
-		//		StringBuilder sb = new StringBuilder(test);
-		//		for (int i = 0; i < test.length(); i++) {
-		//			sb.setCharAt(i, (char) ((((sb.charAt(i) + 7) * 12) - 6) * 21));
-		//		}
-		//		test = sb.toString();
-		//		System.out.println(test);
-		//		sb = new StringBuilder(test);
-		//		for (int i = 0; i < test.length(); i++) {
-		//			sb.setCharAt(i, (char) ((((sb.charAt(i) / 21) + 6) / 12) - 7));
-		//		}
-		//		test = sb.toString();
-		//		System.out.println(test);
 
 		try {
 			FileOutputStream fos = new FileOutputStream(selectedFile);
@@ -1303,14 +1316,23 @@ public class Controller {
 			if (line.contains(",")) {
 				line = line.substring(1, line.length() - 1);
 			}
+//			line = incrementImageNameIfExists(line);
 			list.add(line);
 		}
 		br.close();
 		changesMade();
 		return list;
 	}
+	
+	private void open() {
+		File file = null;
+		FileChooser fc = new FileChooser();
+		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
+		file = fc.showOpenDialog(pane.getScene().getWindow());
+		doTheLoad(file);
+	}
 
-	private void doTheLoad() {
+	private void doTheLoad(File file) {
 		
 		// Hierarchy of a .venn file:
 		// . Diagram.venn:
@@ -1328,12 +1350,7 @@ public class Controller {
 		// ... imgs: (Directory)
 		// ..... Image files
 
-		File file = null;
 		try {
-			FileChooser fc = new FileChooser();
-			
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
-			file = fc.showOpenDialog(pane.getScene().getWindow());
 			String line, title, leftTitle, rightTitle, elements[];
 			Color bgColor, leftColor, rightColor, intersectionColor, titleColor, leftTextColor, rightTextColor,
 					intersectionTextColor;
@@ -1360,25 +1377,6 @@ public class Controller {
 				newImage.deleteOnExit();
 			}
 			br.close();
-//			File dir = new File("openFile/imgs");
-//			dir.mkdirs();
-//			dir.getParentFile().deleteOnExit();
-//			ZipInputStream zis = new ZipInputStream(new FileInputStream(file.getAbsolutePath()));
-//			byte[] buffer = new byte[1024];
-//          int len;
-//			while ((ze = zis.getNextEntry()) != null) {
-//				System.out.println(ze.getName());
-//				File newFile = new File("openFile/" + ze.getName());
-//				newFile.deleteOnExit();
-//                FileOutputStream fos = new FileOutputStream(newFile);
-//                while ((len = zis.read(buffer)) > 0) {
-//                	fos.write(buffer, 0, len);
-//                }
-//                fos.close();
-//                images.add(newFile);
-//				zis.closeEntry();
-//			}
-//			zis.close();
 
 			// Config
 			ze = vennFile.getEntry("Config.vlist");
@@ -1474,6 +1472,8 @@ public class Controller {
 			this.frameRect.getChildren().addAll(inDiagram);
 			this.itemsInDiagram.clear();
 			this.itemsInDiagram.addAll(inDiagram);
+			this.imagesInDiagram.clear();
+			this.imagesInDiagram.addAll(imgStrings);
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
 			this.colorIntersectionItems.setValue(intersectionTextColor);
@@ -1506,10 +1506,10 @@ public class Controller {
 			a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 			Optional<ButtonType> result = a.showAndWait();
 			if (result.get() == ButtonType.OK) {
-				doTheLoad();
+				open();
 			}
 		} else {
-			doTheLoad();
+			open();
 		}
 	}
 
@@ -1568,6 +1568,7 @@ public class Controller {
 
 		frameRect.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
+		imagesInDiagram.clear();
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
@@ -1772,90 +1773,105 @@ public class Controller {
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
-				String imgName = "imgs/" + file.getName();
-				imgName.lastIndexOf('.');
-				if (new File(imgName).exists()) {
-					int i = 2;
-					imgName = imgName.substring(0, imgName.lastIndexOf('.')) + " " + i + imgName.substring(imgName.lastIndexOf('.'));
-					while (new File(imgName).exists()) {
-						i++;
-						imgName = imgName.substring(0, imgName.lastIndexOf('.') - 1) + i + imgName.substring(imgName.lastIndexOf('.'));
-					}
-				}
-				addImageToDiagram(frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50, imgName.substring(5), file);
+				doTheImageImport(file);
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
-				List<String> left = new ArrayList<String>();
-				List<String> right = new ArrayList<String>();
-				List<String> intersection = new ArrayList<String>();
-				List<String> unassigned = new ArrayList<String>();
-				ZipFile answerFile = new ZipFile(file);
-				ZipEntry ze;
-				BufferedReader br;
-				String line;
-				
-				ze = answerFile.getEntry("leftAnswers.csv");
-				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					if (line.contains(",")) {
-						line = line.substring(1, line.length() - 1);
-					}
-					left.add(line);
-
-				}
-				br.close();
-				
-				ze = answerFile.getEntry("rightAnswers.csv");
-				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					if (line.contains(",")) {
-						line = line.substring(1, line.length() - 1);
-					}
-					right.add(line);
-
-				}
-				br.close();
-				
-				ze = answerFile.getEntry("intersectionAnswers.csv");
-				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					if (line.contains(",")) {
-						line = line.substring(1, line.length() - 1);
-					}
-					intersection.add(line);
-
-				}
-				br.close();
-				
-				ze = answerFile.getEntry("unassignedAnswers.csv");
-				br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
-				while ((line = br.readLine()) != null) {
-					if (line.contains(",")) {
-						line = line.substring(1, line.length() - 1);
-					}
-					unassigned.add(line);
-				}
-				br.close();
-				answerFile.close();
-				
-				leftItemsAnswers = left;
-				rightItemsAnswers = right;
-				intersectionItemsAnswers = intersection;
-				unassignedItemsAnswers = unassigned;
-				hideAnswersButton.setDisable(false);
-				answerKeyWasImported = true;
-				checkAnswers();
+				doTheAnswerImport(file);
 			}
+			changesMade();
 		} catch (NullPointerException e) {
 		} catch (Exception e) {
 			Alert a = new Alert(AlertType.ERROR);
-			a.setHeaderText("File could not be opened");
+			a.setHeaderText("File could not be imported");
 			a.setContentText("");
 			a.setTitle("Error");
 			a.show();
 		}
-		changesMade();
+	}
+
+	private void doTheImageImport(File file, double x, double y) {
+		String imgName = tempPath + "imgs/" + incrementImageNameIfExists(file.getName());
+		addImageToDiagram(x, y, imgName.substring(tempPath.length() + 5), file);
+	}
+	
+	private void doTheImageImport(File file) {
+		doTheImageImport(file, frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50);
+	}
+	
+	private String incrementImageNameIfExists(String imgName) {
+		if (new File(tempPath + "imgs/" + imgName).exists()) {
+			int i = 2;
+			imgName = imgName.substring(0, imgName.lastIndexOf('.')) + " " + i + imgName.substring(imgName.lastIndexOf('.'));
+			while (new File(tempPath + "imgs/" + imgName).exists()) {
+				i++;
+				imgName = imgName.substring(0, imgName.lastIndexOf('.') - 1) + i + imgName.substring(imgName.lastIndexOf('.'));
+			}
+		}
+		return imgName;
+	}
+
+	private void doTheAnswerImport(File file) throws ZipException, IOException {
+		List<String> left = new ArrayList<String>();
+		List<String> right = new ArrayList<String>();
+		List<String> intersection = new ArrayList<String>();
+		List<String> unassigned = new ArrayList<String>();
+		ZipFile answerFile = new ZipFile(file);
+		ZipEntry ze;
+		BufferedReader br;
+		String line;
+		
+		ze = answerFile.getEntry("leftAnswers.csv");
+		br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+		while ((line = br.readLine()) != null) {
+			if (line.contains(",")) {
+				line = line.substring(1, line.length() - 1);
+			}
+			left.add(line);
+
+		}
+		br.close();
+		
+		ze = answerFile.getEntry("rightAnswers.csv");
+		br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+		while ((line = br.readLine()) != null) {
+			if (line.contains(",")) {
+				line = line.substring(1, line.length() - 1);
+			}
+			right.add(line);
+
+		}
+		br.close();
+		
+		ze = answerFile.getEntry("intersectionAnswers.csv");
+		br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+		while ((line = br.readLine()) != null) {
+			if (line.contains(",")) {
+				line = line.substring(1, line.length() - 1);
+			}
+			intersection.add(line);
+
+		}
+		br.close();
+		
+		ze = answerFile.getEntry("unassignedAnswers.csv");
+		br = new BufferedReader(new InputStreamReader(answerFile.getInputStream(ze)));
+		while ((line = br.readLine()) != null) {
+			if (line.contains(",")) {
+				line = line.substring(1, line.length() - 1);
+			}
+			unassigned.add(line);
+		}
+		br.close();
+		answerFile.close();
+		
+		leftItemsAnswers = left;
+		rightItemsAnswers = right;
+		intersectionItemsAnswers = intersection;
+		unassignedItemsAnswers = unassigned;
+		hideAnswersButton.setDisable(false);
+		answerKeyWasImported = true;
+		checkAnswers();
 	}
 		
 	@FXML
@@ -2147,17 +2163,54 @@ public class Controller {
 	@FXML
 	private void dropItem(DragEvent event) {
 		String item = event.getDragboard().getString();
-		if (addItemToDiagram(event.getX(), event.getY(), item)) {
-			itemsList.getItems().remove(item);
+		if (itemsList.getItems().contains(item)) {
+			if (addItemToDiagram(event.getX(), event.getY(), item)) {
+				itemsList.getItems().remove(item);
+			}
+		} else {
+			try {
+				@SuppressWarnings("unchecked")
+				List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
+				for (File file : dragged) {
+					if (file.getName().endsWith(".csv")) {
+						itemsList.getItems().addAll(doTheCSV(file));
+					} else if (file.getName().endsWith(".venn")) {
+						if (changesMade) {
+							Alert a = new Alert(AlertType.CONFIRMATION);
+							a.setHeaderText("Are you sure you want to open another file?");
+							a.setContentText("You will lose any unsaved changes");
+							a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+							Optional<ButtonType> result = a.showAndWait();
+							if (result.get() == ButtonType.OK) {
+								doTheLoad(file);
+							}
+						} else {
+							doTheLoad(file);
+						}
+					} else if (file.getName().endsWith(".vansr")) {
+						doTheAnswerImport(file);
+					} else if (file.getName().endsWith(".png")) {
+						doTheImageImport(file, event.getX(), event.getY());
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.err.println("Drag import failed");
+				Alert a = new Alert(AlertType.ERROR);
+				a.setHeaderText("File could not be imported");
+				a.setContentText("");
+				a.setTitle("Error");
+				a.show();
+			}
+			event.setDropCompleted(true);
+			event.consume();
+			changesMade();
 		}
-		event.setDropCompleted(true);
-		event.consume();
-		changesMade();
 	}
 
 	boolean addItemToDiagram(double x, double y, String text) {
 		DraggableItem a = null;
-		if (new File(tempPath + "imgs/" + text).exists()) {
+		if (new File(tempPath + "imgs/" + text).exists() && !imagesInDiagram.contains(text)) {
 			return addImageToDiagram(x, y, text, new File(tempPath + "imgs/" + text));
 		} else {
 			a = new DraggableItem(x, y, text);
@@ -2178,6 +2231,7 @@ public class Controller {
 		if (a.checkBounds()) {
 			frameRect.getChildren().add(a);
 			itemsInDiagram.add(a);
+			imagesInDiagram.add(title);
 			a.toFront();
 			changesMade();
 			return true;
