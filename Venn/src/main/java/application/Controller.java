@@ -103,6 +103,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class Controller {
 
+	private final String VERSION = "1.3";
 	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
 	private final String DEFAULT_TITLE_COLOR = "0xffffff";
 	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
@@ -335,7 +336,7 @@ public class Controller {
 					Button save = (Button) a.getDialogPane().lookupButton(saveButton);
 					Button cancel = (Button) a.getDialogPane().lookupButton(ButtonType.CANCEL);
 					textField.textProperty().addListener(listener -> {
-						if (textField.textProperty().getValue().equals("")) {
+						if (textField.textProperty().getValue().contentEquals("")) {
 							save.setDisable(true);
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
@@ -543,9 +544,9 @@ public class Controller {
 				Image image;
 				image = new Image(imageFile.toURI().toURL().toExternalForm());
 				
-				this.imageFile = new File(tempPath + "imgs/" + title);
+				this.imageFile = new File(tempPath + "imgs" + File.separatorChar + title);
 				if (!imageFile.equals(this.imageFile))
-					Files.copy(new FileInputStream(imageFile), Paths.get(tempPath + "imgs/" + title));
+					Files.copy(new FileInputStream(imageFile), Paths.get(tempPath + "imgs" + File.separatorChar + title));
 //					Files.copy(imageFile, this.imageFile);
 				this.imageFile.deleteOnExit();
 				itemImages.add(this.imageFile);
@@ -567,7 +568,6 @@ public class Controller {
 				if (event.getClickCount() == 2) {
 					Alert a = new Alert(AlertType.INFORMATION);
 
-					// Create expandable Exception.
 					TextField textField = new TextField(this.getText());
 					textField.setPromptText("Enter a title for this item");
 
@@ -588,11 +588,13 @@ public class Controller {
 
 					a.getDialogPane().setContent(content);
 					try {
-						image = new ImageView(new Image(this.imageFile.toURI().toURL().toExternalForm()));
+						ImageView image = new ImageView(new Image(this.imageFile.toURI().toURL().toExternalForm()));
 						image.setPreserveRatio(true);
 						image.setFitWidth(MAX_WIDTH);
 						a.setGraphic(image);
-					} catch (Exception e) {}
+					} catch (Exception e) {
+						// Image couldn't be loaded, which should be impossible, since this is an image item
+					}
 					
 					a.setTitle("Item details");
 					String t = this.getText().length() > 40 ? this.getText().substring(0, 40) + "..." : this.getText();
@@ -603,12 +605,12 @@ public class Controller {
 					Button save = (Button) a.getDialogPane().lookupButton(saveButton);
 					Button cancel = (Button) a.getDialogPane().lookupButton(ButtonType.CANCEL);
 					textField.textProperty().addListener(listener -> {
-						if (textField.textProperty().getValue().equals("")) {
+						if (textField.textProperty().getValue().contentEquals("")) {
 							save.setDisable(true);
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
 							String name = textField.getText().endsWith(".png") ? textField.getText() : textField.getText() + ".png";
-							if (!name.equals(this.getText()) && new File(tempPath + "imgs/" + name).exists()) {
+							if (!name.contentEquals(this.getText()) && new File(tempPath + "imgs" + File.separatorChar + name).exists()) {
 								save.setDisable(true);
 								a.headerTextProperty().setValue("An image called \"" + textField.getText() + "\" already exists");
 							} else {
@@ -619,13 +621,13 @@ public class Controller {
 						}
 					});
 					save.setOnAction(e -> {
-						if (!textField.getText().equals(this.getText())) {
+						if (!textField.getText().contentEquals(this.getText())) {
 							if (!textField.getText().endsWith(".png")) {
 								textField.setText(textField.getText() + ".png");
 							}
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
-							File newImageFile = new File(tempPath + "imgs/" + textField.getText());
+							File newImageFile = new File(tempPath + "imgs" + File.separatorChar + textField.getText());
 							this.imageFile.renameTo(newImageFile);
 							this.imageFile = newImageFile;
 							this.imageFile.deleteOnExit();
@@ -757,8 +759,8 @@ public class Controller {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {});
-				pane.setOnMouseClicked(mouseEvent2 -> {});
+				frameRect.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
+				pane.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
 			});
 			setOnMouseExited(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown())
@@ -779,7 +781,7 @@ public class Controller {
 	
 	private void changesMade() {
 		if (!changesMade && openFile != null)
-//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
 			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
 		changesMade = true;
 //		redoStack.clear();
@@ -789,7 +791,7 @@ public class Controller {
 	private void undo() {
 		System.out.println("Undo");
 		if (!changesMade && openFile != null)
-//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
 			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
 		changesMade = true;
 	}
@@ -798,7 +800,7 @@ public class Controller {
 	private void redo() {
 		System.out.println("Redo");
 		if (!changesMade && openFile != null)
-//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
 			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
 		changesMade = true;
 	}
@@ -858,7 +860,7 @@ public class Controller {
 	@FXML
 	private void addItemToList() {
 		String newItem = addItemField.getText();
-		if (!(newItem.equals("") || new File(tempPath + "imgs/" + newItem).exists())) {
+		if (!(newItem.contentEquals("") || new File(tempPath + "imgs" + File.separatorChar + newItem).exists())) {
 			itemsList.getItems().add(newItem);
 		}
 		addItemField.setText("");
@@ -879,9 +881,12 @@ public class Controller {
 		ClipboardContent content = new ClipboardContent();
 		content.putString(itemsList.getSelectionModel().getSelectedItem());
 		dragBoard.setContent(content);
-		if (new File(tempPath + "imgs/" + dragBoard.getString()).exists() && !imagesInDiagram.contains(dragBoard.getString())) {
+		// Create the drag image
+		// If it's an image, then use that image as the drag image
+		// Otherwise, create a temporary label, take a snapshot of it, and use that
+		if (new File(tempPath + "imgs" + File.separatorChar + dragBoard.getString()).exists() && !imagesInDiagram.contains(dragBoard.getString())) {
 			try {
-				ImageView image = new ImageView(new Image(new File(tempPath + "imgs/" + dragBoard.getString()).toURI().toURL().toExternalForm()));
+				ImageView image = new ImageView(new Image(new File(tempPath + "imgs" + File.separatorChar + dragBoard.getString()).toURI().toURL().toExternalForm()));
 				pane.getChildren().add(image);
 				image.setPreserveRatio(true);
 				image.setFitWidth(100);
@@ -961,6 +966,7 @@ public class Controller {
 
 	@FXML
 	private void dragDroppedOnItemsList(DragEvent event) {
+		// Drag a file onto the items list to import it
 		try {
 			@SuppressWarnings("unchecked")
 			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
@@ -987,6 +993,8 @@ public class Controller {
 				}
 			}
 		} catch (ClassCastException e) {
+			// You're dropping files, so dragged can't not be a list of files unless it's a text
+			// item, but those are handled elsewhere so they should be ignored here.
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Drag import failed");
@@ -1002,46 +1010,57 @@ public class Controller {
 
 	@FXML
 	private void takeScreenshot() {
+		// Taking a screenshot isn't making a change, but some operations within it do make changes.
+		// Since we'll undo all the changes we've made, we'll save the change state and restore it after.
+		// So if there were unsaved changes, there will still be unsaved changes, and if there weren't,
+		// then this won't create any.
 		boolean hadChanges = changesMade;
 		removeFocus();
-		String mainTitle = title.getText() + "";
-		String leftTitle = circleLeftTitle.getText() + "";
-		String rightTitle = circleRightTitle.getText() + "";
+		String mainTitle = title.getText();
+		String leftTitle = circleLeftTitle.getText();
+		String rightTitle = circleRightTitle.getText();
 		double scale = frameRect.getScaleX();
-		double menuX = floatingMenu.getLayoutX();
-		toolBar.setVisible(false);
 		try {
+			// Set scale to 1 temporarily so screenshot is right resolution
 			frameRect.setScaleX(1);
 			frameRect.setScaleY(1);
+			// If the diagram has a title, make that the default title of the image
 			String name = title.getText();
-			if (name.equals("")) {
-				if (!(leftTitle.equals("") && rightTitle.equals(""))) {
+			if (name.contentEquals("")) {
+				// If not, then if the two circles have titles, make "[LEFT] vs [RIGHT]" the default title of the image
+				if (!(leftTitle.contentEquals("") && rightTitle.contentEquals(""))) {
 					name = leftTitle + " vs " + rightTitle;
 				} else {
+					// If all else fails, set the default title to "Venn Diagram"
 					name = "Venn Diagram";
 				}
+				// If the title is blank, add a space so the prompt text doesn't show in the image
 				title.setText(" ");
 			}
+			// If the circle titles are blank, add a space so the prompt text doesn't show in the image
 			if (circleLeftTitle.getText().contentEquals(""))
 				circleLeftTitle.setText(" ");
 			if (circleRightTitle.getText().contentEquals(""))
 				circleRightTitle.setText(" ");
 			name += ".png";
-			FileChooser fc = new FileChooser();
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files (*.png)", "*.png"));
-			fc.setTitle("Save");
-			fc.setInitialFileName(name);
-			File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
-			floatingMenu.setLayoutX(pane.getScene().getWindow().getX() - floatingMenu.getWidth() - 10);
-			
+			// Do the snapshot
 			double pixelScale = 2.0;
 		    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*frameRect.getWidth()), (int)Math.rint(pixelScale*frameRect.getHeight()));
 		    SnapshotParameters spa = new SnapshotParameters();
 		    spa.setFill(colorBackground.getValue());
 		    spa.setTransform(Transform.scale(pixelScale, pixelScale));
-		    WritableImage capture = frameRect.snapshot(spa, writableImage);     
+		    WritableImage capture = frameRect.snapshot(spa, writableImage); 
+		    // Select the file location, and save the file
+		    FileChooser fc = new FileChooser();
+		    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files (*.png)", "*.png"));
+		    fc.setTitle("Save");
+		    fc.setInitialFileName(name);
+		    File selectedFile = fc.showSaveDialog(pane.getScene().getWindow());
 			ImageIO.write(SwingFXUtils.fromFXImage(capture, null), "png", selectedFile);
 		} catch (IllegalArgumentException e) {
+			// If the user cancels the save dialogue, then selectedFile will be null, which will
+			// throw an IllegalArgumentException from ImageIO.write(...). Don't react, because they
+			// just cancelled the save dialogue.
 		} catch (Exception e) {
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
@@ -1049,14 +1068,13 @@ public class Controller {
 			a.setTitle("Error");
 			a.show();
 		}
+		// Put scale, titles, and change state back to the way they were before taking the screenshot
 		frameRect.setScaleX(scale);
 		frameRect.setScaleY(scale);
-		floatingMenu.setLayoutX(menuX);
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
 		changesMade = hadChanges;
-		toolBar.setVisible(true);
 	}
 
 	@FXML
@@ -1080,7 +1098,7 @@ public class Controller {
 		// ..... (0) Title, (1) Titles color, (2) Background color
 		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item text color
 		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item text color
-		// ..... (0) Intersection color, (1) Intersection item text color
+		// ..... (0) [Intersection color](TEMPORARILY DISABLED), (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist:
@@ -1166,28 +1184,14 @@ public class Controller {
 					fis.close();
 				}
 			}
-			
-//			for (File f : itemImages) {
-//				if (!f.isDirectory()) {
-//					ZipEntry entry = new ZipEntry(f.getName());
-//					FileInputStream fis = new FileInputStream(f);
-//					zos.putNextEntry(entry);
-//					int read = 0;
-//					while ((read = fis.read(buffer)) != -1) {
-//						zos.write(buffer, 0, read);
-//					}
-//					zos.closeEntry();
-//					fis.close();
-//				}
-//			}
-			
+						
 			File imgsDir = new File(tempPath + "imgs");
-			zos.putNextEntry(new ZipEntry(imgsDir.getName() + "/"));
+			zos.putNextEntry(new ZipEntry(imgsDir.getName() + File.separatorChar));
 			zos.closeEntry();
 			File[] imgs = imgsDir.listFiles();
 			for (File f : imgs) {
 				if (!f.isHidden()) {
-					ZipEntry entry = new ZipEntry(imgsDir.getName() + "/" + f.getName());
+					ZipEntry entry = new ZipEntry(imgsDir.getName() + File.separatorChar + f.getName());
 					FileInputStream fis = new FileInputStream(f);
 					zos.putNextEntry(entry);
 					int read = 0;
@@ -1207,7 +1211,7 @@ public class Controller {
 			}
 
 			openFile = selectedFile;
-//			FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
 			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
 		} catch (Exception e) {
@@ -1235,7 +1239,7 @@ public class Controller {
 			String name;
 			if (openFile != null) {
 				name = openFile.getName();
-			} else if (!title.getText().equals("")) {
+			} else if (!title.getText().contentEquals("")) {
 				name = title.getText() + ".venn";
 			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
 				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".venn";
@@ -1271,7 +1275,6 @@ public class Controller {
 			if (line.contains(",")) {
 				line = line.substring(1, line.length() - 1);
 			}
-//			line = incrementImageNameIfExists(line);
 			list.add(line);
 		}
 		br.close();
@@ -1295,7 +1298,7 @@ public class Controller {
 		// ..... (0) Title, (1) Titles color, (2) Background color
 		// ..... (0) Left circle title, (1) Left circle color, (2) Left circle scale, (3) Item color
 		// ..... (0) Right circle title, (1) Right circle color, (2) Right circle scale, (3) Item color
-		// ..... (0) Intersection color, (1) Intersection item text color
+		// ..... (0) [Intersection color](TEMPORARILY DISABLED), (1) Intersection item text color
 		// ... Unassigned.csv:
 		// ..... Unassigned items separated by new lines
 		// ... InDiagram.vlist:
@@ -1322,7 +1325,7 @@ public class Controller {
 			ze = vennFile.getEntry("Images.csv");
 			br = new BufferedReader(new InputStreamReader(vennFile.getInputStream(ze)));
 			while ((line = br.readLine()) != null) {
-				String fileName = "imgs/" + line.substring(1, line.length() - 1);
+				String fileName = "imgs" + File.separatorChar + line.substring(1, line.length() - 1);
 				ze = vennFile.getEntry(fileName);
 				File newImage = new File(tempPath + fileName);
 				if (!newImage.exists())
@@ -1385,11 +1388,11 @@ public class Controller {
                 }
 			}
 			String[] items = sb.toString().split("𔓱𔓱𔓱");
-			if (items.length > 0 && !items[0].equals("")) {
+			if (items.length > 0 && !items[0].contentEquals("")) {
 				for (String s : items) {
 					elements = s.split("𔓱");
 					DraggableItem a = null;
-					File f = new File(tempPath + "imgs/" + elements[0]);
+					File f = new File(tempPath + "imgs" + File.separatorChar + elements[0]);
 					if (f.exists()) {
 						a = new DraggableImage(Double.parseDouble(elements[1]) + 5, Double.parseDouble(elements[2]) + 5, elements[0], f);
 					}
@@ -1487,9 +1490,9 @@ public class Controller {
 	
 	private void clearAnswerKey() {
 		hideAnswersButton.setDisable(true);
-		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/hide.png").toExternalForm()));
+		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "hide.png").toExternalForm()));
 		hideAnswersButton.setOnMouseClicked(event -> {
-			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/show.png").toExternalForm()));
+			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "show.png").toExternalForm()));
 			hideAnswersButton.setTooltip(new Tooltip("Show Answers"));
 			answersAreShowing = false;
 			hideAnswers();
@@ -1513,22 +1516,21 @@ public class Controller {
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 		colorLeft.setValue(Color.web(DEFAULT_LEFT_COLOR));
 		colorRight.setValue(Color.web(DEFAULT_RIGHT_COLOR));
-//		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
 		colorTitles.setValue(Color.web(DEFAULT_TITLE_COLOR));
 		colorBackground.setValue(Color.web(DEFAULT_BACKGROUND_COLOR));
-		changeColorBackground();
-		leftSizeSlider.setValue(100);
-		changeSizeLeft();
-		rightSizeSlider.setValue(100);
-		changeSizeRight();
-
-		frameRect.getChildren().removeAll(itemsInDiagram);
-		itemsInDiagram.clear();
-		imagesInDiagram.clear();
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
+//		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
+		rightSizeSlider.setValue(100);
+		leftSizeSlider.setValue(100);
 		changeColorItems();
+		changeColorBackground();
+		changeSizeLeft();
+		changeSizeRight();
+		frameRect.getChildren().removeAll(itemsInDiagram);
+		itemsInDiagram.clear();
+		imagesInDiagram.clear();
 		for (File f : itemImages) {
 			f.delete();
 		}
@@ -1547,7 +1549,11 @@ public class Controller {
 			// TODO: Change link to online manual in future release
 			java.awt.Desktop.getDesktop().browse(new URI("https://github.com/nourinjh/EECS2311/"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			Alert a = new Alert(AlertType.ERROR);
+			a.setHeaderText("Manual could not be opened");
+			a.setContentText("");
+			a.setTitle("Error");
+			a.show();
 		}
 	}
 
@@ -1602,26 +1608,26 @@ public class Controller {
 		changeColorItems();
 		changesMade();
 	}
-
-//	@FXML
-//	private void updateIntersection() {
-//		frameRect.getChildren().remove(circleIntersection);
-//		circleIntersection = Shape.intersect(circleLeft, circleRight);
-//		circleIntersection.setFill(colorIntersection.getValue());
-//		circleIntersection.setOnDragDropped(event -> {
-//			dropItem(event);
-//		});
-//		circleIntersection.mouseTransparentProperty().set(true);
-//		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
-//		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
-//		circleIntersection.setOpacity(0.8);
-//		frameRect.getChildren().add(circleIntersection);
-//		for (DraggableItem d : itemsInDiagram) {
-//			d.toFront();
-//		}
-//		changeColorItems();
-//		changesMade();
-//	}
+		
+/*
+	private void updateIntersection() {
+		frameRect.getChildren().remove(circleIntersection);
+		circleIntersection = Shape.intersect(circleLeft, circleRight);
+		circleIntersection.setFill(colorIntersection.getValue());
+		circleIntersection.setOnDragDropped(event -> {
+			dropItem(event);
+		});
+		circleIntersection.mouseTransparentProperty().set(true);
+		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
+		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
+		circleIntersection.setOpacity(0.8);
+		frameRect.getChildren().add(circleIntersection);
+		for (DraggableItem d : itemsInDiagram) {
+			d.toFront();
+		}
+		changeColorItems();
+		changesMade();
+	}*/
 
 	@FXML
 	private void changeSizeLeftField(KeyEvent event) {
@@ -1715,11 +1721,11 @@ public class Controller {
 			fc.getExtensionFilters().add(imgFilter);
 			fc.getExtensionFilters().add(ansFilter);
 
-			if (type.equals("csv")) {
+			if (type.contentEquals("csv")) {
 				fc.setSelectedExtensionFilter(csvFilter);
-			} else if (type.equals("img")) {
+			} else if (type.contentEquals("img")) {
 				fc.setSelectedExtensionFilter(imgFilter);
-			} else /* if (type.equals("ans")) */ {
+			} else /* if (type.contentEquals("ans")) */ {
 				fc.setSelectedExtensionFilter(ansFilter);
 			}
 
@@ -1738,6 +1744,9 @@ public class Controller {
 			}
 			changesMade();
 		} catch (NullPointerException e) {
+			// If the user cancels the save dialogue, then file will be null, which will throw
+			// a NullPointerException from all the doThe*(...) methods. Don't react, because
+			// they just cancelled the save dialogue. 
 		} catch (Exception e) {
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be imported");
@@ -1748,7 +1757,7 @@ public class Controller {
 	}
 
 	private void doTheImageImport(File file, double x, double y) {
-		String imgName = tempPath + "imgs/" + incrementImageNameIfExists(file.getName());
+		String imgName = tempPath + "imgs" + File.separatorChar + incrementImageNameIfExists(file.getName());
 		addImageToDiagram(x, y, imgName.substring(tempPath.length() + 5), file);
 	}
 	
@@ -1757,10 +1766,10 @@ public class Controller {
 	}
 	
 	private String incrementImageNameIfExists(String imgName) {
-		if (new File(tempPath + "imgs/" + imgName).exists()) {
+		if (new File(tempPath + "imgs" + File.separatorChar + imgName).exists()) {
 			int i = 2;
 			imgName = imgName.substring(0, imgName.lastIndexOf('.')) + " " + i + imgName.substring(imgName.lastIndexOf('.'));
-			while (new File(tempPath + "imgs/" + imgName).exists()) {
+			while (new File(tempPath + "imgs" + File.separatorChar + imgName).exists()) {
 				i++;
 				imgName = imgName.substring(0, imgName.lastIndexOf('.') - 1) + i + imgName.substring(imgName.lastIndexOf('.'));
 			}
@@ -1837,7 +1846,7 @@ public class Controller {
 			String name;
 			if (openFile != null) {
 				name = openFile.getName().substring(0, openFile.getName().length() - 5) + ".csv";
-			} else if (!title.getText().equals("")) {
+			} else if (!title.getText().contentEquals("")) {
 				name = title.getText() + ".csv";
 			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
 				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".csv";
@@ -1889,7 +1898,7 @@ public class Controller {
 			String name;
 			if (openFile != null) {
 				name = openFile.getName().substring(0, openFile.getName().length()-5);
-			} else if (!title.getText().equals("")) {
+			} else if (!title.getText().contentEquals("")) {
 				name = title.getText() + ".vansr";
 			} else if (!circleLeftTitle.getText().contentEquals("") && !circleRightTitle.getText().contentEquals("")) {
 				name = circleLeftTitle.getText() + " vs " + circleRightTitle.getText() + ".vansr";
@@ -2014,6 +2023,9 @@ public class Controller {
 				}
 			}
 		} catch (NullPointerException e) {
+			// If the user cancels the save dialogue, then selectedFile will be null, which will
+			// throw a NullPointerException from all the methods that use it. Don't react, because
+			// they just cancelled the save dialogue. 
 		} catch (Exception e) {
 			Alert a = new Alert(AlertType.ERROR);
 			a.setHeaderText("File could not be saved");
@@ -2040,7 +2052,7 @@ public class Controller {
 			} else if (d.getCircle() == 'i') {
 				intersectionItems.add(d);
 			} else {
-				d.setAnswerImage("images/incorrect.png");
+				d.setAnswerImage("images" + File.separatorChar + "incorrect.png");
 			}
 		}
 		
@@ -2051,23 +2063,23 @@ public class Controller {
 		
 		for (DraggableItem d : leftItems) {
 			if (leftItemsAnswers.remove(d.getText())) {
-				d.setAnswerImage("images/correct.png");
+				d.setAnswerImage("images" + File.separatorChar + "correct.png");
 			} else {
-				d.setAnswerImage("images/incorrect.png");
+				d.setAnswerImage("images" + File.separatorChar + "incorrect.png");
 			}
 		}
 		for (DraggableItem d : rightItems) {
 			if (rightItemsAnswers.remove(d.getText())) {
-				d.setAnswerImage("images/correct.png");
+				d.setAnswerImage("images" + File.separatorChar + "correct.png");
 			} else {
-				d.setAnswerImage("images/incorrect.png");
+				d.setAnswerImage("images" + File.separatorChar + "incorrect.png");
 			}
 		}
 		for (DraggableItem d : intersectionItems) {
 			if (intersectionItemsAnswers.remove(d.getText())) {
-				d.setAnswerImage("images/correct.png");
+				d.setAnswerImage("images" + File.separatorChar + "correct.png");
 			} else {
-				d.setAnswerImage("images/incorrect.png");
+				d.setAnswerImage("images" + File.separatorChar + "incorrect.png");
 			}
 		}
 		for (String d : items) {
@@ -2075,11 +2087,11 @@ public class Controller {
 				itemsList.getSelectionModel().select(d);
 			}
 		}
-		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/hide.png").toExternalForm()));
+		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "hide.png").toExternalForm()));
 		hideAnswersButton.setTooltip(new Tooltip("Hide Answers"));
 		answersAreShowing = true;
 		hideAnswersButton.setOnMouseClicked(event -> {
-			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/show.png").toExternalForm()));
+			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "show.png").toExternalForm()));
 			hideAnswersButton.setTooltip(new Tooltip("Show Answers"));
 			answersAreShowing = false;
 			hideAnswers();
@@ -2092,11 +2104,11 @@ public class Controller {
 			d.clearAnswerImage();
 		}
 		itemsList.getSelectionModel().clearSelection();
-		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/show.png").toExternalForm()));
+		hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "show.png").toExternalForm()));
 		hideAnswersButton.setTooltip(new Tooltip("Show Answers"));
 		answersAreShowing = false;
 		hideAnswersButton.setOnMouseClicked(event -> {
-			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images/hide.png").toExternalForm()));
+			hideAnswersButtonImage.setImage(new Image(getClass().getResource("images" + File.separatorChar + "hide.png").toExternalForm()));
 			hideAnswersButton.setTooltip(new Tooltip("Hide Answers"));
 			answersAreShowing = true;
 			checkAnswers();
@@ -2119,12 +2131,14 @@ public class Controller {
 
 	@FXML
 	private void dropItem(DragEvent event) {
+		// Drag an item from the item list into the diagram
 		String item = event.getDragboard().getString();
 		if (itemsList.getItems().contains(item)) {
 			if (addItemToDiagram(event.getX(), event.getY(), item)) {
 				itemsList.getItems().remove(item);
 			}
 		} else {
+			// Drag a file onto the diagram to import it
 			try {
 				@SuppressWarnings("unchecked")
 				List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
@@ -2166,10 +2180,13 @@ public class Controller {
 	}
 
 	boolean addItemToDiagram(double x, double y, String text) {
+		// Returns true if item was added, false otherwise
 		DraggableItem a = null;
-		if (new File(tempPath + "imgs/" + text).exists() && !imagesInDiagram.contains(text)) {
-			return addImageToDiagram(x, y, text, new File(tempPath + "imgs/" + text));
+		// If an image by this name exists and is not already in the diagram, add the image to the diagram instead of the text
+		if (new File(tempPath + "imgs" + File.separatorChar + text).exists() && !imagesInDiagram.contains(text)) {
+			return addImageToDiagram(x, y, text, new File(tempPath + "imgs" + File.separatorChar + text));
 		} else {
+			// Otherwise just add the text to the diagram
 			a = new DraggableItem(x, y, text);
 			if (a.checkBounds()) {
 				frameRect.getChildren().add(a);
@@ -2184,6 +2201,7 @@ public class Controller {
 	}
 	
 	boolean addImageToDiagram(double x, double y, String title, File imageFile) {
+		// Returns true if item was added, false otherwise
 		DraggableImage a = new DraggableImage(x, y, title, imageFile);
 		if (a.checkBounds()) {
 			frameRect.getChildren().add(a);
@@ -2199,6 +2217,7 @@ public class Controller {
 
 	@FXML
 	private void selectAll() {
+		// FIXME
 		for (DraggableItem d : itemsInDiagram) {
 			System.out.println(d.getText());
 			multiSelect = true;
@@ -2212,7 +2231,7 @@ public class Controller {
 	private void showAboutWindow() {
 		Alert a = new Alert(AlertType.NONE);
 		a.setTitle("About Venn");
-		a.setHeaderText("Venn 3.0");
+		a.setHeaderText("Venn " + VERSION);
 		Label credits = new Label("Credits");
 		credits.setStyle("-fx-underline: true;");
 		credits.setScaleX(1.2);
@@ -2231,6 +2250,11 @@ public class Controller {
 		Label imgs = new Label("Toolbar icon images:");
 		Hyperlink thoseicons = new Hyperlink("ThoseIcons on FlatIcon.com");
 		
+		// For the record, I put this in here over two weeks before handing in this project.
+		// If either Nabi or Anika looked at any of the changes made, they would have seen this.
+		// Is this petty? Absolutely. Did they do anything to help with this project?
+		// Absolutely not. So do I feel guilty? Absolutely not. They earned their F's.
+		// So now they're getting credit where credit is due.
 		GridPane pettiness = new GridPane();
 		Label petty1 = new Label(" Corrected Documentation:");
 		Label petty2 = new Label("\t\tNourin Abd El Hadi and Andrew Hocking");
@@ -2242,34 +2266,26 @@ public class Controller {
 
 		GridPane content = new GridPane();
 		content.add(credits, 0, 0);
-		content.add(leadDev, 0, 1);
-		content.add(me1, 1, 1);
-		content.add(assistDev, 0, 2);
-		content.add(nourin, 1, 2);
-		content.add(docs, 0, 3);
-		content.add(others, 1, 3);
-		content.add(unitTesting, 0, 4);
-		content.add(me2, 1, 4);
-		content.add(icon, 0, 5);
-		content.add(me3, 1, 5);
-		content.add(imgs, 0, 6);
-		content.add(thoseicons, 1, 6);
+		content.add(leadDev, 0, 1);		content.add(me1, 1, 1);
+		content.add(assistDev, 0, 2);	content.add(nourin, 1, 2);
+		content.add(docs, 0, 3);		content.add(others, 1, 3);
+		content.add(unitTesting, 0, 4);	content.add(me2, 1, 4);
+		content.add(icon, 0, 5);		content.add(me3, 1, 5);
+		content.add(imgs, 0, 6);		content.add(thoseicons, 1, 6);
 		for (Node n : content.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
 		
 		a.getDialogPane().setContent(content);
-		pettiness.add(petty1, 0, 0);
-		pettiness.add(petty2, 1, 0);
-		pettiness.add(petty3, 0, 1);
-		pettiness.add(petty4, 1, 1);
+		pettiness.add(petty1, 0, 0);	pettiness.add(petty2, 1, 0);
+		pettiness.add(petty3, 0, 1);	pettiness.add(petty4, 1, 1);
 		a.getDialogPane().setExpandableContent(pettiness);
 		a.getDialogPane().setExpanded(false);
 		
 		ButtonType githubButton = new ButtonType("View Source Code");
 		a.getButtonTypes().add(ButtonType.CLOSE);
 		a.getButtonTypes().add(githubButton);
-		ImageView iconView = new ImageView(new Image(getClass().getResource("images/icon.png").toExternalForm()));
+		ImageView iconView = new ImageView(new Image(getClass().getResource("images" + File.separatorChar + "icon.png").toExternalForm()));
 		iconView.setPreserveRatio(true);
 		iconView.setFitWidth(100);
 		a.setGraphic(iconView);
@@ -2280,6 +2296,12 @@ public class Controller {
 			try {
 				java.awt.Desktop.getDesktop().browse(new URI("https://www.flaticon.com/authors/those-icons"));
 			} catch (Exception e) {
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setHeaderText("Link could not be opened");
+				alert.setContentText("");
+				alert.setTitle("Error");
+				alert.show();
+				a.close();
 			}
 			event.consume();
 		});
@@ -2287,6 +2309,11 @@ public class Controller {
 			try {
 				java.awt.Desktop.getDesktop().browse(new URI("https://github.com/nourinjh/EECS2311/"));
 			} catch (Exception e) {
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setHeaderText("Link could not be opened");
+				alert.setContentText("");
+				alert.setTitle("Error");
+				alert.show();
 				a.close();
 			}
 			event.consume();
@@ -2310,12 +2337,6 @@ public class Controller {
 			@Override
 			public void run() {
 				pane.requestFocus();
-//				// FIXME: Keyboard shortcuts run twice when this is used...? Also toolbar sits too low
-//				String os = System.getProperty("os.name");
-//				if (os != null && os.startsWith("Mac")) {
-//					menuBar.useSystemMenuBarProperty().set(true);
-//					toolBar.setLayoutY(0);
-//				}
 				toolBar.toFront();
 				menuBar.toFront();
 				doTheNew();
@@ -2326,7 +2347,7 @@ public class Controller {
 					mouseEvent.consume();
 				});
 				
-//				FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//				XXX: Crashes JUnit test because there's no real "window" with TestFX
 				pane.getScene().getWindow().setOnCloseRequest(event -> {
 					if (changesMade) {
 						Alert a = new Alert(AlertType.CONFIRMATION);
@@ -2345,15 +2366,9 @@ public class Controller {
 							event.consume();
 							Main.primaryStage.close();
 						} else if (result.get().equals(saveButton)) {
-							try {
-								save();
-								if (openFile == null)
-									throw new Exception();
-								event.consume();
-								Main.primaryStage.close();
-							} catch (Exception e) {
-								event.consume();
-							}
+							save();
+							event.consume();
+							Main.primaryStage.close();
 						} else {
 							event.consume();
 						}
@@ -2364,50 +2379,51 @@ public class Controller {
 					}
 				});
 				
-//				Main.primaryStage.widthProperty().addListener(listener -> {
-//					double width = Main.primaryStage.getWidth();
-//					double height = Main.primaryStage.getHeight();
-//					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-//							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-//						zoomOut();
-////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-//						// updateIntersection();
-//					}
-//					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-//							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-//						zoomIn();
-////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-//						// updateIntersection();
-//					}
-//				});
-//				Main.primaryStage.heightProperty().addListener(listener -> {
-//					double width = Main.primaryStage.getWidth();
-//					double height = Main.primaryStage.getHeight();
-//					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-//							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-//						zoomOut();
-////						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
-////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-//						// updateIntersection();
-//					}
-//					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-//							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-//						zoomIn();
-////						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-////						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-//						// updateIntersection();
-//					}
-//				});
+				/*
+				Main.primaryStage.widthProperty().addListener(listener -> {
+					double width = Main.primaryStage.getWidth();
+					double height = Main.primaryStage.getHeight();
+					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+						zoomOut();
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
+						// updateIntersection();
+					}
+					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+						zoomIn();
+//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
+						// updateIntersection();
+					}
+				});
+				Main.primaryStage.heightProperty().addListener(listener -> {
+					double width = Main.primaryStage.getWidth();
+					double height = Main.primaryStage.getHeight();
+					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+						zoomOut();
+//						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
+						// updateIntersection();
+					}
+					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
+							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
+						zoomIn();
+//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
+//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
+						// updateIntersection();
+					}
+				}); */
 				
-//				FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//				XXX: Crashes JUnit test because there's no real "window" with TestFX
 				Main.primaryStage.getScene().getWindow().centerOnScreen();
 				
 				try {
 					File temp = File.createTempFile("venn", null);
-					tempPath = temp.getParent() + "/";
+					tempPath = temp.getParent() + File.separatorChar;
 					temp.delete();
-					File f = new File(tempPath + "imgs/");
+					File f = new File(tempPath + "imgs" + File.separatorChar);
 					f.mkdir();
 					f.deleteOnExit();
 				} catch (IOException e) {
@@ -2440,7 +2456,7 @@ public class Controller {
 			n.setFocusTraversable(false);
 		}
 		
-//		FIXME: Crashes JUnit test because there's no real "window" with TestFX
+//		XXX: Crashes JUnit test because there's no real "window" with TestFX
 		Main.primaryStage.setMinWidth(800);
 		Main.primaryStage.setMinHeight(400);
 		
