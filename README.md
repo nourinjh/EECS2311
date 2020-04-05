@@ -16,13 +16,20 @@ The purpose of this project is to create a program that will allow users to crea
 
 The program allows the user to: 
 * Add a title to the diagram
-*	Add a title to each circle in the diagram
-*	Add text and upload images
-*	Drag and drop text and images into the circles
-*	Change the colours of the circles and the background
-*	Clear the Venn diagram to start over
-*	Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
-*	Save Venn diagram as an image
+* Add a title to each circle in the diagram
+* Add text and images
+* Drag and drop text and images into the circles
+* Change the colours of the circles, text and the background
+* Add descriptions to images and text
+* Clear the Venn diagram to start over
+* Delete selected text or image
+* Export Venn diagram as an answer key (.vansr)
+* Import an answer key 
+* Check if Venn diagram is correct by clicking the "Check Answer" button
+* Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
+* Save Venn diagram as an image
+* Import Venn diagram as a CSV file
+* Export Venn diagram as a CSV file
 
 ## Demo
 ![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo1.gif)
