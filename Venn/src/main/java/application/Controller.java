@@ -690,12 +690,7 @@ public class Controller {
 			}
 			return result;
 		}
-		
-		public void scaleImage(double value) {
-			this.image.setFitWidth(this.image.getImage().getWidth() * value);
-			this.image.autosize();
-		}
-		
+				
 		@Override
 		protected void enableDrag() {
 			Delta dragDelta = new Delta();
