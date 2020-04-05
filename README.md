@@ -25,12 +25,12 @@ The program allows the user to:
 *	Save Venn diagram as an image
 
 ## Demo
-![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo1.gif)
-![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo2.gif)
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo1.gif)
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo2.gif)
 
 **_Legend_**
 
-![venn](https://github.com/nourinjh/EECS2311/blob/master/Resources/venn.png)
+![venn](https://github.com/nourinjh/EECS2311/blob/master/Assets/venn.png)
 
 A: File menu
 * New - Opens a new, blank Venn diagram
