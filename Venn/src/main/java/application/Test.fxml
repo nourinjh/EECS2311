@@ -98,11 +98,11 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#undo" text="Undo">
+                  <MenuItem fx:id="undoMenu" mnemonicParsing="false" onAction="#undo" text="Undo">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo">
+                  <MenuItem fx:id="redoMenu" mnemonicParsing="false" onAction="#redo" text="Redo">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Y" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator></MenuItem>
@@ -364,7 +364,7 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorTitles" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorTitles" prefWidth="125.0" promptText="Title Text Colour" />
+                              <ColorPicker fx:id="colorTitles" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateTitleColors" prefWidth="125.0" promptText="Title Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -433,7 +433,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorLeftItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Colour" />
+                              <ColorPicker fx:id="colorLeftItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -501,7 +501,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorRightItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Item Text Colour" />
+                              <ColorPicker fx:id="colorRightItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Item Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -540,7 +540,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorIntersectionItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Item Text Colour" />
+                              <ColorPicker fx:id="colorIntersectionItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Item Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -550,6 +550,41 @@
                   <Tooltip text="Settings" />
                </tooltip>
             </MenuButton>
+            <Separator orientation="VERTICAL" prefHeight="30.0">
+               <padding>
+                  <Insets left="3.0" />
+               </padding>
+            </Separator>
+            <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#undo" prefHeight="30.0" text="Undo">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/save.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Save" />
+               </tooltip>
+            </Button>
+            <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0" text="Redo">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/save.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Save" />
+               </tooltip>
+            </Button>
         </items>
          <opaqueInsets>
             <Insets />
