@@ -985,7 +985,6 @@ public class Controller {
 				itemsList.getItems().addAll(list);
 			}
 			action.invert();
-			System.out.println(action);
 			pushStack.push(action);
 			pushMenu.setDisable(false);
 			pushButton.setDisable(false);
@@ -2381,7 +2380,6 @@ public class Controller {
 		for (String s : addedItems) {
 			Action a = new AddItemToListAction(s, itemsList, null);
 			actionList.add(a);
-			System.out.println(a + " ~ " + s);
 		}
 		changesMade(new ActionGroup(actionList, "Import CSV File"));
 	}
@@ -2689,9 +2687,14 @@ public class Controller {
 		title.setOnKeyReleased(event -> {
 			if (!title.textProperty().getValueSafe().contentEquals(titleText)) {
 				String newText = title.textProperty().getValueSafe();
-				System.out.println(newText);
-				changesMade(new ChangedTitleAction(title, titleText, newText));
-				titleText = newText;
+				if (newText.length() <= 30) {
+					changesMade(new ChangedTitleAction(title, titleText, newText));
+					titleText = newText;
+				} else {
+					int pos = title.getCaretPosition();
+					title.setText(titleText);
+					title.positionCaret(pos - 1);
+				}
 			}
 		});
 		
@@ -2704,9 +2707,14 @@ public class Controller {
 		circleLeftTitle.setOnKeyReleased(event -> {
 			if (!circleLeftTitle.textProperty().getValueSafe().contentEquals(leftText)) {
 				String newText = circleLeftTitle.textProperty().getValueSafe();
-				System.out.println(newText);
-				changesMade(new ChangedTitleAction(circleLeftTitle, leftText, newText));
-				leftText = newText;
+				if (newText.length() <= 26) {
+					changesMade(new ChangedTitleAction(circleLeftTitle, leftText, newText));
+					leftText = newText;
+				} else {
+					int pos = circleLeftTitle.getCaretPosition();
+					circleLeftTitle.setText(leftText);
+					circleLeftTitle.positionCaret(pos - 1);
+				}
 			}
 		});
 		
@@ -2719,9 +2727,14 @@ public class Controller {
 		circleRightTitle.setOnKeyReleased(event -> {
 			if (!circleRightTitle.textProperty().getValueSafe().contentEquals(rightText)) {
 				String newText = circleRightTitle.textProperty().getValueSafe();
-				System.out.println(newText);
-				changesMade(new ChangedTitleAction(circleRightTitle, rightText, newText));
-				rightText = newText;
+				if (newText.length() <= 26) {
+					changesMade(new ChangedTitleAction(circleRightTitle, rightText, newText));
+					rightText = newText;
+				} else {
+					int pos = circleRightTitle.getCaretPosition();
+					circleRightTitle.setText(rightText);
+					circleRightTitle.positionCaret(pos - 1);
+				}
 			}
 		});
 		
@@ -2736,7 +2749,6 @@ public class Controller {
 		addItemField.setOnKeyReleased(event -> {
 			if (!addItemField.textProperty().getValueSafe().contentEquals(addFieldText)) {
 				String newText = addItemField.textProperty().getValueSafe();
-				System.out.println(newText);
 				changesMade(new ChangedTitleAction(addItemField, addFieldText, newText));
 				addFieldText = newText;
 			}
