@@ -117,7 +117,7 @@ public class Controller {
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
-	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
+	private final double DEFAULT_CIRCLE_OPACTIY = 0.75;
 	
 	private double leftScale = 1;
 	private double rightScale = 1;
@@ -332,127 +332,70 @@ public class Controller {
 				if (keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
 					removeFocus();
 				}
-				/* Move items with arrow keys
 				if (keyEvent.getCode() == KeyCode.UP) {
 					this.actionList.clear();
 					for (DraggableItem d : selectedItems) {
-						Point2D centreLeft = new Point2D(
-								(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D centreRight = new Point2D(
-								(circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D itemLocation = new Point2D(
-								(d.getBoundsInParent().getMinX() + d.getBoundsInParent().getMaxX()) / 2,
-								(d.getBoundsInParent().getMinY() + d.getBoundsInParent().getMaxY()) / 2);
-						double distanceToLeft = itemLocation.distance(centreLeft);
-						double distanceToRight = itemLocation.distance(centreRight);
-
-						if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() + 10
-								|| distanceToRight <= circleRight.getRadius() * circleRight.getScaleX() + 10) {
+						d.setLayoutY(d.getLayoutY() - 10);
+						if (!d.checkBounds()) {
+							d.setLayoutY(d.getLayoutY() + 10);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
 							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX(),
 									d.getLayoutY() - 10));
-							d.setLayoutY(d.getLayoutY() - 10);
-							d.checkBounds();
 						}
-						String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-						changesMade(new ActionGroup(actionList, message));
 					}
+					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+					changesMade(new ActionGroup(actionList, message));
 				}
 				if (keyEvent.getCode() == KeyCode.DOWN) {
 					this.actionList.clear();
 					for (DraggableItem d : selectedItems) {
-						Point2D centreLeft = new Point2D(
-								(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D centreRight = new Point2D(
-								(circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D itemLocation = new Point2D(
-								(d.getBoundsInParent().getMinX() + d.getBoundsInParent().getMaxX()) / 2,
-								(d.getBoundsInParent().getMinY() + d.getBoundsInParent().getMaxY()) / 2);
-						double distanceToLeft = itemLocation.distance(centreLeft);
-						double distanceToRight = itemLocation.distance(centreRight);
-
-						if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() + 10
-								|| distanceToRight <= circleRight.getRadius() * circleRight.getScaleX() + 10) {
+						d.setLayoutY(d.getLayoutY() + 10);
+						if (!d.checkBounds()) {
+							d.setLayoutY(d.getLayoutY() - 10);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
 							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX(),
 									d.getLayoutY() + 10));
-							d.setLayoutY(d.getLayoutY() + 10);
-							d.checkBounds();
 						}
-						String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-						changesMade(new ActionGroup(actionList, message));
 					}
+					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+					changesMade(new ActionGroup(actionList, message));
 				}
 				if (keyEvent.getCode() == KeyCode.LEFT) {
 					this.actionList.clear();
 					for (DraggableItem d : selectedItems) {
-						Point2D centreLeft = new Point2D(
-								(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D centreRight = new Point2D(
-								(circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D itemLocation = new Point2D(
-								(d.getBoundsInParent().getMinX() + d.getBoundsInParent().getMaxX()) / 2,
-								(d.getBoundsInParent().getMinY() + d.getBoundsInParent().getMaxY()) / 2);
-						double distanceToLeft = itemLocation.distance(centreLeft);
-						double distanceToRight = itemLocation.distance(centreRight);
-
-						if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() + 10
-								|| distanceToRight <= circleRight.getRadius() * circleRight.getScaleX() + 10) {
+						d.setLayoutX(d.getLayoutX() - 10);
+						if (!d.checkBounds()) {
+							d.setLayoutX(d.getLayoutX() + 10);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
 							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX() - 10,
 									d.getLayoutY()));
-							d.setLayoutX(d.getLayoutX() - 10);
-							d.checkBounds();
 						}
-						String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-						changesMade(new ActionGroup(actionList, message));
 					}
+					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+					changesMade(new ActionGroup(actionList, message));
 				}
 				if (keyEvent.getCode() == KeyCode.RIGHT) {
 					this.actionList.clear();
 					for (DraggableItem d : selectedItems) {
-						Point2D centreLeft = new Point2D(
-								(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D centreRight = new Point2D(
-								(circleRight.getBoundsInParent().getMinX() + circleRight.getBoundsInParent().getMaxX())
-										/ 2,
-								(circleRight.getBoundsInParent().getMinY() + circleRight.getBoundsInParent().getMaxY())
-										/ 2);
-						Point2D itemLocation = new Point2D(
-								(d.getBoundsInParent().getMinX() + d.getBoundsInParent().getMaxX()) / 2,
-								(d.getBoundsInParent().getMinY() + d.getBoundsInParent().getMaxY()) / 2);
-						double distanceToLeft = itemLocation.distance(centreLeft);
-						double distanceToRight = itemLocation.distance(centreRight);
-
-						if (distanceToLeft <= circleLeft.getRadius() * circleLeft.getScaleX() + 10
-								|| distanceToRight <= circleRight.getRadius() * circleRight.getScaleX() + 10) {
-							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX() - 10,
-									d.getLayoutY()));
-							d.setLayoutX(d.getLayoutX() + 10);
+						d.setLayoutX(d.getLayoutX() + 10);
+						if (!d.checkBounds()) {
+							d.setLayoutX(d.getLayoutX() - 10);
 							d.checkBounds();
+							d.setBackground(null);
+						} else {
+							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX() + 10,
+									d.getLayoutY()));
 						}
-						String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-						changesMade(new ActionGroup(actionList, message));
 					}
-				}*/
+					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+					changesMade(new ActionGroup(actionList, message));
+				}
 				keyEvent.consume();
 			});
 
@@ -593,6 +536,8 @@ public class Controller {
 			});
 			setOnMouseDragged(mouseEvent -> {
 				List<Action> actionList = new ArrayList<Action>();
+				removeFocus();
+				this.requestFocus();
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
 						hideAnswers();
@@ -2408,7 +2353,11 @@ public class Controller {
 	private void removeFocus() {
 		pane.requestFocus();
 		itemsList.getSelectionModel().clearSelection();
-		selectedItems.clear();
+		for (int i = selectedItems.size() - 1; i >= 0; i--) {
+			selectedItems.get(i).setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+					new CornerRadii(1), new BorderWidths(5), new Insets(0))));
+			selectedItems.remove(i);
+		}
 	}
 	
 	private void doTheCSVImport(File file) throws Exception {
