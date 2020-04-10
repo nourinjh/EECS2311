@@ -26,6 +26,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
@@ -38,7 +39,7 @@
          <children>
             <HBox prefHeight="27.0" prefWidth="240.0">
                <children>
-                  <TextField fx:id="addItemField" maxHeight="30.0" maxWidth="200.0" minHeight="25.0" minWidth="150.0" onKeyPressed="#addItemWithEnter" prefHeight="27.0" prefWidth="190.0" promptText="Add an item..." style="-fx-background-radius: 0;" />
+                  <TextField fx:id="addItemField" maxHeight="30.0" maxWidth="200.0" minHeight="25.0" minWidth="150.0" prefHeight="27.0" prefWidth="190.0" promptText="Add an item..." style="-fx-background-radius: 0;" />
                   <Button fx:id="addItemButton" blendMode="SCREEN" maxHeight="30.0" maxWidth="50.0" minHeight="25.0" minWidth="50.0" mnemonicParsing="false" onMouseClicked="#addItemToList" prefHeight="27.0" prefWidth="50.0" style="-fx-text-fill: black; -fx-background-radius: 0;" stylesheets="@application.css" text="Add">
                      <cursor>
                         <Cursor fx:constant="HAND" />
@@ -161,28 +162,28 @@
       </MenuBar>
       <ScrollPane fx:id="scrollPane" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
          <content>
-            <AnchorPane prefHeight="730.0" prefWidth="888.0">
+            <StackPane fx:id="scrollContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="730.0" prefWidth="870.0">
                <children>
-                  <Pane fx:id="frameRect" layoutX="24.0" layoutY="34.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="18.0">
+                  <Pane fx:id="frameRect" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
                      <children>
-                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
-                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="293.0" layoutY="436.0" radius="229.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="592.0" layoutY="435.0" radius="230.0" strokeType="INSIDE" />
                   
-                                                                                    <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                                                          <TextField fx:id="title" alignment="CENTER" layoutX="41.0" layoutY="31.0" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
-                                                                                       <font>
+                                                                                             <font>
                               <Font name="Arial" size="32.0" />
                            </font>
                            <cursor>
                               <Cursor fx:constant="TEXT" />
                            </cursor>
                         </TextField>
-                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="113.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="153.0" layoutY="99.0" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
                         </TextField>
-                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="412.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="452.0" layoutY="99.0" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
@@ -193,7 +194,7 @@
                      </opaqueInsets>
                   </Pane>
                </children>
-            </AnchorPane>
+            </StackPane>
          </content>
       </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
@@ -264,28 +265,34 @@
                   <Insets left="3.0" />
                </padding>
             </Separator>
-            <Button fx:id="checkAnswersButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#importAnswer" prefHeight="30.0">
+            <Button fx:id="undoButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#undo" prefHeight="30.0">
                <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@images/correct.png" />
+                        <Image url="@images/undo.png" />
                      </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
                   </ImageView>
                </graphic>
                <tooltip>
-                  <Tooltip text="Check Answers" />
+                  <Tooltip text="Undo" />
                </tooltip>
             </Button>
-            <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers" prefHeight="30.0">
+            <Button fx:id="redoButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0">
                <graphic>
-                  <ImageView fx:id="hideAnswersButtonImage" fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@images/hide.png" />
+                        <Image url="@images/redo.png" />
                      </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
                   </ImageView>
                </graphic>
                <tooltip>
-                  <Tooltip text="Hide Answers" />
+                  <Tooltip text="Redo" />
                </tooltip>
             </Button>
             <Separator orientation="VERTICAL" prefHeight="30.0">
@@ -315,6 +322,18 @@
                </graphic>
                <tooltip>
                   <Tooltip text="Clear Diagram" />
+               </tooltip>
+            </Button>
+            <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers" prefHeight="30.0">
+               <graphic>
+                  <ImageView fx:id="hideAnswersButtonImage" fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/hide.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Hide Answers" />
                </tooltip>
             </Button>
             <Separator orientation="VERTICAL" prefHeight="30.0">
@@ -348,7 +367,7 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorBackground" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorBackground" prefWidth="125.0" promptText="Background Colour" />
+                              <ColorPicker fx:id="colorBackground" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateBackgroundColor" prefWidth="125.0" promptText="Background Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -551,41 +570,6 @@
                   <Tooltip text="Settings" />
                </tooltip>
             </MenuButton>
-            <Separator orientation="VERTICAL" prefHeight="30.0">
-               <padding>
-                  <Insets left="3.0" />
-               </padding>
-            </Separator>
-            <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#undo" prefHeight="30.0" text="Undo">
-               <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@images/save.png" />
-                     </image>
-                     <viewport>
-                        <Rectangle2D />
-                     </viewport>
-                  </ImageView>
-               </graphic>
-               <tooltip>
-                  <Tooltip text="Save" />
-               </tooltip>
-            </Button>
-            <Button focusTraversable="false" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0" text="Redo">
-               <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@images/save.png" />
-                     </image>
-                     <viewport>
-                        <Rectangle2D />
-                     </viewport>
-                  </ImageView>
-               </graphic>
-               <tooltip>
-                  <Tooltip text="Save" />
-               </tooltip>
-            </Button>
         </items>
          <opaqueInsets>
             <Insets />

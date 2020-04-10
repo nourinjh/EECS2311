@@ -14,6 +14,7 @@
 
 package application;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,10 +41,13 @@ import java.util.zip.ZipOutputStream;
 import javax.imageio.ImageIO;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -96,7 +100,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 //import javafx.scene.shape.Shape;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Transform;
@@ -114,16 +117,18 @@ public class Controller {
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
-	private String tempPath;
 	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
 	
-	private long timeOfLastChange;
+	private String tempPath;
+	private String titleText = "";
+	private String leftText = "";
+	private String rightText = "";
+	private String addFieldText = "";
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
 	private boolean answerKeyWasImported = false;
 	private boolean answersAreShowing = false;
-	private boolean saveActionsToFileSystem = false;
 
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	@FXML
@@ -137,17 +142,12 @@ public class Controller {
 	private List<String> intersectionItemsAnswers = new ArrayList<String>();
 	private List<String> unassignedItemsAnswers = new ArrayList<String>();
 	
-//	private Stack<DoableAction> undoStack = new Stack<DoableAction>();
-//	private Stack<DoableAction> redoStack = new Stack<DoableAction>();
-	private Stack<File> undoStack = new Stack<File>();
-	private Stack<File> redoStack = new Stack<File>();
+	private Stack<Action> undoStack = new Stack<Action>();
+	private Stack<Action> redoStack = new Stack<Action>();
 	
 	private Color leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
 	private Color rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
 	private Color intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
-	
-	@FXML
-	private Rectangle redrawRectangle;
 
 	@FXML
 	private Circle circleLeft;
@@ -159,6 +159,8 @@ public class Controller {
 	private AnchorPane pane;
 	@FXML
 	private ScrollPane scrollPane;
+	@FXML
+	private StackPane scrollContent;
 
 	@FXML
 	private VBox floatingMenu;
@@ -206,6 +208,10 @@ public class Controller {
 	private MenuItem undoMenu;
 	@FXML
 	private MenuItem redoMenu;
+	@FXML
+	private Button undoButton;
+	@FXML
+	private Button redoButton;
 	
 	@FXML
 	private Button clearButton;
@@ -231,8 +237,6 @@ public class Controller {
 	private Button hideAnswersButton;
 	@FXML
 	private ImageView hideAnswersButtonImage;
-	@FXML
-	private Button checkAnswersButton;
 
 	@FXML
 	private TextField addItemField;
@@ -257,7 +261,7 @@ public class Controller {
 		private final int MAX_WIDTH = 120;
 		protected char circle;
 		public double oldX, oldY;
-		protected List<DoableAction> actionList = new ArrayList<DoableAction>();
+		protected List<Action> actionList = new ArrayList<Action>();
 
 
 		public DraggableItem(double x, double y) {
@@ -315,14 +319,14 @@ public class Controller {
 				if (keyEvent.getCode() == KeyCode.ESCAPE) {
 					pane.requestFocus();
 				}
-				if (keyEvent.getCode() == KeyCode.SHIFT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
 					multiSelect = true;
 				}
 				keyEvent.consume();
 			});
 
 			this.setOnKeyReleased(keyEvent -> {
-				if (keyEvent.getCode() == KeyCode.SHIFT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
 					multiSelect = false;
 				}
 				keyEvent.consume();
@@ -374,12 +378,12 @@ public class Controller {
 						}
 					});
 					save.setOnAction(e -> {
-						changesMade(); //new ChangeItemDetailsAction(this, oldText, oldDesc, this.getText(), this.getDescription()));
 						this.text.setText(textField.getText());
 						setDescription(textArea.getText());
 						e.consume();
 						a.close();
 						event.consume();
+						changesMade(new ChangeItemDetailsAction(this, oldText, oldDesc, this.getText(), this.getDescription()));
 					});
 					cancel.setOnAction(e -> {
 						a.close();
@@ -455,7 +459,7 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
-				List<DoableAction> actionList = new ArrayList<DoableAction>();
+				List<Action> actionList = new ArrayList<Action>();
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
 						hideAnswers();
@@ -467,20 +471,20 @@ public class Controller {
 						d.setLayoutY(newY);
 						if (d.checkBounds()) {
 							setOnMouseReleased(mouseEvent2 -> {
-								changesMade(); //new ActionGroup(actionList));
 								actionList.add(new MoveItemAction(d, d.oldX, d.oldY, newX, newY));
 								d.getScene().setCursor(Cursor.HAND);
 								d.checkBounds();
 								mouseEvent.consume();
 								mouseEvent2.consume();
+								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+								changesMade(new ActionGroup(actionList, message));
 							});
 							d.setBackground(null);
 							d.getLabel().setTextFill(d.getColor());
 							d.getScene().setCursor(Cursor.CLOSED_HAND);
 						} else {
 							setOnMouseReleased(mouseEvent2 -> {
-								changesMade(); //new ActionGroup(actionList));
-								actionList.add(new RemoveItemAction(d, itemsInDiagram, itemsList));
+								actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 								d.getScene().setCursor(Cursor.DEFAULT);
 								selectedItems.forEach(each -> {
 									frameRect.getChildren().remove(this);
@@ -490,6 +494,8 @@ public class Controller {
 								selectedItems.clear();
 								mouseEvent.consume();
 								mouseEvent2.consume();
+								String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+								changesMade(new ActionGroup(actionList, message));
 							});
 							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 							d.getLabel().setTextFill(Color.WHITE);
@@ -654,11 +660,11 @@ public class Controller {
 						}
 					});
 					save.setOnAction(e -> {
-						changesMade(); //new ChangeItemDetailsAction(this, this.getText(), this.getDescription(), textField.getText(), textArea.getText(), imagesInDiagram, itemImages, tempPath));
 						if (!textField.getText().contentEquals(this.getText())) {
 							if (!textField.getText().endsWith(".png")) {
 								textField.setText(textField.getText() + ".png");
 							}
+							changesMade(new ChangeItemDetailsAction(this, this.getText(), this.getDescription(), textField.getText(), textArea.getText(), imagesInDiagram, itemImages, tempPath));
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
 							File newImageFile = new File(tempPath + "imgs" + File.separatorChar + textField.getText());
@@ -755,21 +761,21 @@ public class Controller {
 					d.setLayoutY(newY);
 					if (d.checkBounds()) {
 						setOnMouseReleased(mouseEvent2 -> {
-							changesMade(); //new ActionGroup(actionList));
 							actionList.add(new MoveItemAction(d, d.oldX, d.oldY, newX, newY));
 							d.getScene().setCursor(Cursor.HAND);
 							d.checkBounds();
 							this.setBackground(null);
 							mouseEvent.consume();
 							mouseEvent2.consume();
+							String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+							changesMade(new ActionGroup(actionList, message));
 						});
 						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
 						setOnMouseReleased(mouseEvent2 -> {
-							changesMade(); //new ActionGroup(actionList));
-							actionList.add(new RemoveItemAction(d, itemsInDiagram, itemsList));
+							actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 							d.getScene().setCursor(Cursor.DEFAULT);
 							selectedItems.forEach(each -> {
 								frameRect.getChildren().remove(each);
@@ -779,6 +785,8 @@ public class Controller {
 							selectedItems.clear();
 							mouseEvent.consume();
 							mouseEvent2.consume();
+							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+							changesMade(new ActionGroup(actionList, message));
 						});
 						d.setBackground(
 								new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
@@ -822,80 +830,70 @@ public class Controller {
 
 	}
 	
-	private void changesMade() { //DoableAction action) {
-		if (saveActionsToFileSystem) {
-//			for (int i = 0; i < 2; i++) {
-				File currentFile = openFile;
-				for (File f : redoStack) {
-					f.delete();
-				}
-				redoStack.clear();
-				File action = new File(tempPath + "vennActionStack" + File.separatorChar + "item" + undoStack.size() + ".venn");
-				action.deleteOnExit();
-				doTheSave(action);
-				undoStack.add(action);
-				System.out.println("Change made: " + action.getName());
-				undoMenu.setDisable(false);
-				if (!changesMade && currentFile != null)
-		//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-					Main.primaryStage.setTitle(currentFile.getName() + " (Edited) - Venn");
-				changesMade = true;
-				openFile = currentFile;
-//			}
+	private void changesMade(Action action) {
+		redoStack.clear();
+		undoStack.add(action);
+		undoMenu.setDisable(false);
+		undoButton.setDisable(false);
+		undoMenu.setText("Undo " + action.toString());
+		if (!changesMade && openFile != null)
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+		changesMade = true;
+	}
+	
+	private void moveActionStacks(Stack<Action> popStack, MenuItem popMenu, Button popButton, String popString, Stack<Action> pushStack, MenuItem pushMenu, Button pushButton, String pushString) {
+		if (!popStack.isEmpty()) {
+			Action action = popStack.pop();
+			action.invert();
+			System.out.println(action);
+			pushStack.push(action);
+			pushMenu.setDisable(false);
+			pushButton.setDisable(false);
+			pushMenu.setText(pushString + " " + action.toString());
+			if (!changesMade && openFile != null)
+	//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+				Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+			changesMade = true;
+			if (popStack.isEmpty()) {
+				popMenu.setDisable(true);
+				popButton.setDisable(true);
+				popMenu.setText(popString);
+			} else {
+				popMenu.setDisable(false);
+				popButton.setDisable(false);
+				popMenu.setText(popString + " " + popStack.peek().toString());
+			}
 		}
 	}
 
-	private synchronized void moveActionStack(Stack<File> actionStack1, Stack<File> actionStack2, MenuItem menuItem1, MenuItem menuItem2) {
-		if (!actionStack1.isEmpty()) {
-//			redrawRectangle.setVisible(true);
-			Thread move = new Thread(() -> {
-				File currentFile = openFile;
-				File action = actionStack1.pop();
-				doTheLoad(action);
-				System.out.println(menuItem1.getText() + ": " + action.getName());
-				actionStack2.push(action);
-				menuItem2.setDisable(false);
-				if (!changesMade && currentFile != null)
-		//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-					Main.primaryStage.setTitle(currentFile.getName() + " (Edited) - Venn");
-				changesMade = true;
-				if (actionStack1.isEmpty()) {
-					menuItem1.setDisable(true);
-				} else {
-					menuItem1.setDisable(false);
-				}
-				openFile = currentFile;
-				redrawRectangle.toFront();
-			});
-			Platform.runLater(move);
-			addItemField.setText(addItemField.getText());
-//			pane.relocate(pane.getLayoutX(), pane.getLayoutY());
-//			try {
-//				Thread.sleep(1000);
-//			} catch (Exception e) {}
-//			redrawRectangle.setVisible(false);
-//			redrawRectangle.toBack();
-		}
-	}
-	
 	@FXML
 	private void undo() {
-		moveActionStack(undoStack, redoStack, undoMenu, redoMenu);
+		moveActionStacks(undoStack, undoMenu, undoButton, "Undo", redoStack, redoMenu, redoButton, "Redo");
 	}
 
 	@FXML
 	private void redo() {
-		moveActionStack(redoStack, undoStack, redoMenu, undoMenu);
+		moveActionStacks(redoStack, redoMenu, redoButton, "Redo", undoStack, undoMenu, undoButton, "Undo");
 	}
 
 	@FXML
 	private void zoomIn() {
-		if (frameRect.getScaleX() < 2) {
+		if (frameRect.getScaleX() < 1) {
 			frameRect.setScaleX(frameRect.getScaleX() + 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
-			scrollPane.setVvalue(scrollPane.getVmax()/2.0 + 0.05);
-			scrollPane.setHvalue(scrollPane.getHmax()/2.0);
-			// updateIntersection();
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					frameRect.setLayoutX(frameRect.getLayoutX() + frameRect.getScaleX() * 100);
+					frameRect.setLayoutY(frameRect.getLayoutY() + frameRect.getScaleY() * 100);
+					scrollContent.setPrefSize(
+							Math.max(scrollContent.getBoundsInParent().getMaxX(),
+									scrollPane.getViewportBounds().getWidth()),
+							Math.max(scrollContent.getBoundsInParent().getMaxY(),
+									scrollPane.getViewportBounds().getHeight()));
+				}
+			});
 		}
 	}
 
@@ -904,57 +902,41 @@ public class Controller {
 		if (frameRect.getScaleX() > 0.5) {
 			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
 			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
-			// updateIntersection();
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					scrollContent.setPrefSize(
+							Math.max(scrollContent.getBoundsInParent().getMaxX(),
+									scrollPane.getViewportBounds().getWidth()),
+							Math.max(scrollContent.getBoundsInParent().getMaxY(),
+									scrollPane.getViewportBounds().getHeight()));
+				}
+			});
 		}
 	}
-	
-	private boolean rectTooBig() {
-		double width = pane.getScene().getWindow().getWidth();
-		double height = pane.getScene().getWindow().getHeight();
-		return (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-				|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50);
-	}
-	
-	private boolean rectTooSmall() {
-		double width = pane.getScene().getWindow().getWidth();
-		double height = pane.getScene().getWindow().getHeight();
-		return (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-				|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50);
-	}
-	
+		
 	@FXML
 	private void zoomActualSize() {
 		frameRect.setScaleX(1);
 		frameRect.setScaleY(1);
-		if (rectTooBig()) {
-			while (rectTooBig()) {
-				zoomOut();
-				frameRect.setLayoutX(frameRect.getLayoutX() + 200);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				scrollContent.setPrefSize(
+						scrollPane.getViewportBounds().getWidth(),
+						scrollPane.getViewportBounds().getHeight());
 			}
-		}
-		else if (rectTooSmall()) {
-			while (rectTooSmall()) {
-				zoomIn();
-				frameRect.setLayoutX(frameRect.getLayoutX() - 200);
-			}
-		}
+		});
 	}
 
 	@FXML
 	private void addItemToList() {
-		changesMade(); //new AddItemToListAction(newItem, itemsList, addItemField));
 		String newItem = addItemField.getText();
 		if (!(newItem.contentEquals("") || new File(tempPath + "imgs" + File.separatorChar + newItem).exists())) {
 			itemsList.getItems().add(newItem);
 		}
 		addItemField.setText("");
-	}
-
-	@FXML
-	private void addItemWithEnter(KeyEvent event) {
-		if (event.getCode() == KeyCode.ENTER) {
-			addItemToList();
-		}
+		changesMade(new AddItemToListAction(newItem, itemsList, addItemField));
 	}
 
 	@FXML
@@ -1001,16 +983,15 @@ public class Controller {
 	@FXML
 	private void deleteItem() {
 		if (itemsList.isFocused()) {
-			changesMade(); //new DeleteFromListAction(itemsList, (List<String>)(itemsList.getSelectionModel().getSelectedItems())));
+			changesMade(new DeleteFromListAction(itemsList, (List<String>)(itemsList.getSelectionModel().getSelectedItems())));
 			itemsList.getItems().removeAll(itemsList.getSelectionModel().getSelectedItems());
 			if (itemsList.getItems().isEmpty()) {
 				addItemField.requestFocus();
 			}
 		} else {
-			changesMade(); //new ActionGroup(actionList));
-			List<DoableAction> actionList= new ArrayList<DoableAction>();
+			List<Action> actionList= new ArrayList<Action>();
 			for (DraggableItem d : selectedItems) {
-				actionList.add(new DeleteItemAction(d, itemsInDiagram, imagesInDiagram));
+				actionList.add(new DeleteItemAction(d, d.oldX, d.oldY, itemsInDiagram, imagesInDiagram));
 				if (d instanceof DraggableImage) {
 					((DraggableImage) d).deleteImage();
 					imagesInDiagram.remove(d.getText());
@@ -1018,6 +999,8 @@ public class Controller {
 				frameRect.getChildren().remove(d);
 				itemsInDiagram.remove(d);
 			}
+			String message = selectedItems.size() == 1 ? "Delete Item" : "Delete Items";
+			changesMade(new ActionGroup(actionList, message));
 			selectedItems.clear();
 		}
 		removeFocus();
@@ -1056,13 +1039,7 @@ public class Controller {
 			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
 			for (File file : dragged) {
 				if (file.getName().endsWith(".csv")) {
-					changesMade(); //new ActionGroup(actionList));
-					List<String> addedItems = doTheCSV(file);
-					itemsList.getItems().addAll(addedItems);
-					List<DoableAction> actionList= new ArrayList<DoableAction>();
-					for (String s : addedItems) {
-						actionList.add(new AddItemToListAction(s, itemsList, null));
-					}
+					doTheCSVImport(file);
 				} else if (file.getName().endsWith(".venn")) {
 					if (changesMade) {
 						Alert a = new Alert(AlertType.CONFIRMATION);
@@ -1071,10 +1048,10 @@ public class Controller {
 						a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 						Optional<ButtonType> result = a.showAndWait();
 						if (result.get() == ButtonType.OK) {
-							loadAndClearActionStack(file);
+							doTheLoad(file);
 						}
 					} else {
-						loadAndClearActionStack(file);
+						doTheLoad(file);
 					}
 				} else if (file.getName().endsWith(".vansr")) {
 					doTheAnswerImport(file);
@@ -1169,10 +1146,9 @@ public class Controller {
 
 	@FXML
 	private void clearDiagram() {
-		changesMade(); //new ActionGroup(actionList));
-		List<DoableAction> actionList= new ArrayList<DoableAction>();
+		List<Action> actionList= new ArrayList<Action>();
 		for (DraggableItem d : itemsInDiagram) {
-			actionList.add(new RemoveItemAction(d, itemsInDiagram, itemsList));
+			actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 			if (d != null) {
 				itemsList.getItems().add(d.getText());
 				frameRect.getChildren().remove(d); 
@@ -1180,6 +1156,7 @@ public class Controller {
 		}
 		itemsInDiagram.clear();
 		imagesInDiagram.clear();
+		changesMade(new ActionGroup(actionList, "Clear Diagram"));
 	}
 	
 	private void removeOrphanedImages() {
@@ -1312,6 +1289,8 @@ public class Controller {
 			}
 
 			openFile = selectedFile;
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1330,9 +1309,6 @@ public class Controller {
 		} else {
 			saveAs();
 		}
-		if (openFile != null)
-	//		XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 	}
 
 	@FXML
@@ -1388,7 +1364,7 @@ public class Controller {
 		FileChooser fc = new FileChooser();
 		fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Venn files (*.venn)", "*.venn"));
 		file = fc.showOpenDialog(pane.getScene().getWindow());
-		loadAndClearActionStack(file);
+		doTheLoad(file);
 	}
 
 	private void doTheLoad(File file) {
@@ -1409,7 +1385,6 @@ public class Controller {
 		// ... imgs: (Directory)
 		// ..... Image files
 
-		saveActionsToFileSystem = false;
 		try {
 			String line, title, leftTitle, rightTitle, elements[];
 			Color bgColor, leftColor, rightColor, /*intersectionColor,*/ titleColor, leftTextColor, rightTextColor,
@@ -1513,42 +1488,48 @@ public class Controller {
 			this.circleLeftTitle.setText(leftTitle);
 			this.circleRightTitle.setText(rightTitle);
 			this.colorBackground.setValue(bgColor);
+			this.updateBackgroundColor();
 			this.colorLeft.setValue(leftColor);
+			this.changeColorLeft();
 			this.colorRight.setValue(rightColor);
+			this.changeColorRight();
+//			this.colorIntersection.setValue(intersectionColor);
+//			this.updateIntersection();
+			this.colorTitles.setValue(titleColor);
+			this.updateTitleColors();
+			this.leftSizeSlider.setValue(leftScale * 100);
+			this.changeSizeLeft();
+			this.rightSizeSlider.setValue(rightScale * 100);
+			this.changeSizeRight();
+			this.itemsList.getItems().clear();
+			this.itemsList.getItems().addAll(unassignedItems);
+			this.frameRect.getChildren().removeAll(this.itemsInDiagram);
+			this.frameRect.getChildren().addAll(inDiagram);
+			this.itemsInDiagram.clear();
+			this.itemsInDiagram.addAll(inDiagram);
+			this.imagesInDiagram.clear();
+			this.imagesInDiagram.addAll(imgStrings);
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
 			this.colorIntersectionItems.setValue(intersectionTextColor);
-			this.colorTitles.setValue(titleColor);
-			this.leftSizeSlider.setValue(leftScale * 100);
-			this.rightSizeSlider.setValue(rightScale * 100);
-			this.itemsList.getItems().clear();
-			this.frameRect.getChildren().removeAll(this.itemsInDiagram);
-			this.itemsInDiagram.clear();
-			this.imagesInDiagram.clear();
 			this.leftItemColor = leftTextColor;
 			this.rightItemColor = rightTextColor;
 			this.intersectionItemColor = intersectionTextColor;
 			this.itemImages = images;
-//			this.colorIntersection.setValue(intersectionColor);
-//			this.updateIntersection();
-			this.changeColorBackground();
-			this.changeColorLeft();
-			this.changeColorRight();
-			this.updateTitleColors();
-			this.changeSizeLeft();
-			this.changeSizeRight();
-			this.itemsList.getItems().addAll(unassignedItems);
-			this.frameRect.getChildren().addAll(inDiagram);
-			this.itemsInDiagram.addAll(inDiagram);
-			this.imagesInDiagram.addAll(imgStrings);
+			this.undoStack.clear();
+			this.redoStack.clear();
+			this.undoMenu.setDisable(true);
+			this.undoButton.setDisable(true);
+			this.redoMenu.setDisable(true);
+			this.redoButton.setDisable(true);
 
 			openFile = file;
 			changesMade = false;
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
 			multiSelect = false;
-			
-			System.out.println("LOADED");
 		} catch (Exception e) {
 			if (file != null) {
 				e.printStackTrace();
@@ -1559,7 +1540,6 @@ public class Controller {
 				a.show();
 			}
 		}
-		saveActionsToFileSystem = true;
 	}
 
 	@FXML
@@ -1611,7 +1591,6 @@ public class Controller {
 
 	@FXML
 	private void doTheNew() {
-		saveActionsToFileSystem = false;
 		clearAnswerKey();
 		title.setText("");
 		circleLeftTitle.setText("");
@@ -1635,7 +1614,7 @@ public class Controller {
 		rightSizeSlider.setValue(100);
 		leftSizeSlider.setValue(100);
 		updateItemColors();
-		changeColorBackground();
+		updateBackgroundColor();
 		changeSizeLeft();
 		changeSizeRight();
 		frameRect.getChildren().removeAll(itemsInDiagram);
@@ -1647,20 +1626,17 @@ public class Controller {
 		itemImages.clear();
 		
 		openFile = null;
-		// XXX: Crashes the JUnit tests because they don't have a title bar on the window to change
+//		XXX: Crashes JUnit test because there's no real "window" with TestFX
 		Main.primaryStage.setTitle("Venn");
 		changesMade = false;
-		for (File f : undoStack) {
-			f.delete();
-		}
-		for (File f : redoStack) {
-			f.delete();
-		}
 		undoStack.clear();
 		redoStack.clear();
 		undoMenu.setDisable(true);
+		undoButton.setDisable(true);
+		undoMenu.setText("Undo");
 		redoMenu.setDisable(true);
-		saveActionsToFileSystem = true;
+		redoButton.setDisable(true);
+		redoMenu.setText("Redo");
 	}
 
 	@FXML
@@ -1679,21 +1655,21 @@ public class Controller {
 
 	@FXML
 	private void changeColorLeft() {
-		changesMade(); //new ChangeCircleColorAction(circleLeft, colorLeft.getValue()));
+		changesMade(new ChangeCircleColorAction(circleLeft, colorLeft.getValue()));
 		circleLeft.setFill(colorLeft.getValue());
 		circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 	}
 
 	@FXML
 	private void updateItemColors() {
-		changesMade(); //new ActionGroup(actionList));
-		List<DoableAction> actionList = new ArrayList<DoableAction>();
+		List<Action> actionList = new ArrayList<Action>();
 		actionList.add(new ChangeItemColorAction(leftItemColor, colorLeftItems, itemsInDiagram));
 		actionList.add(new ChangeItemColorAction(rightItemColor, colorRightItems, itemsInDiagram));
 		actionList.add(new ChangeItemColorAction(intersectionItemColor, colorIntersectionItems, itemsInDiagram));
 		leftItemColor = colorLeftItems.getValue();
 		rightItemColor = colorRightItems.getValue();
 		intersectionItemColor = colorIntersectionItems.getValue();
+		changesMade(new ActionGroup(actionList, "Change Text Colour"));
 		for (DraggableItem d : itemsInDiagram) {
 			d.checkBounds();
 		}
@@ -1701,33 +1677,33 @@ public class Controller {
 
 	@FXML
 	private void changeColorRight() {
-		changesMade(); //new ChangeCircleColorAction(circleRight, colorRight.getValue()));
+		changesMade(new ChangeCircleColorAction(circleRight, colorRight.getValue()));
 		circleRight.setFill(colorRight.getValue());
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
 	}
 
 	@FXML
-	private void changeColorBackground() {
-		changesMade(); //new SetStyleAction(pane, newStyle));
+	private void updateBackgroundColor() {
 		String newStyle = "-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
 				+ ";";
+		changesMade(new SetStyleAction(pane, newStyle));
 		pane.setStyle(newStyle);
 	}
 
 	@FXML
 	private void updateTitleColors() {
-		changesMade(); //new ActionGroup(actionList));
 		String titleStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
 		String leftStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
 		String rightStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
 				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
-		List<DoableAction> actionList = new ArrayList<DoableAction>();
+		List<Action> actionList = new ArrayList<Action>();
 		actionList.add(new SetStyleAction(title, titleStyle));
 		actionList.add(new SetStyleAction(circleLeftTitle, leftStyle));
 		actionList.add(new SetStyleAction(circleRightTitle, rightStyle));
+		changesMade(new ActionGroup(actionList, "Change Text Colour"));
 
 		title.setStyle(titleStyle);
 		circleLeftTitle.setStyle(leftStyle);
@@ -1736,12 +1712,7 @@ public class Controller {
 
 	@FXML
 	private void changeSizeLeft() {
-		changesMade(); //new ChangeCircleSizeAction(circleLeft, leftSizeSlider.getValue() / 100.0));
-		circleLeft.setScaleX(leftSizeSlider.getValue() / 100.0);
-		circleLeft.setScaleY(leftSizeSlider.getValue() / 100.0);
-		leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
-		// updateIntersection();
-		updateItemColors();
+		changeSizeSlider(leftSizeSlider, leftSizeField, circleLeft);
 	}
 		
 /*
@@ -1761,41 +1732,49 @@ public class Controller {
 			d.toFront();
 		}
 		changeColorItems();
-		changesMade(); //);
+		changesMade();
 	}*/
 
 	@FXML
 	private void changeSizeLeftField(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			double size;
-			try {
-				changesMade(); //new ChangeCircleSizeAction(circleLeft, size / 100.0));
-				size = Double.parseDouble(leftSizeField.getText());
-				if (size < 50) {
-					size = 50;
-					leftSizeField.setText("50");
-				}
-				if (size > 120) {
-					size = 120;
-					leftSizeField.setText("120");
-				}
-				circleLeft.setScaleX(size / 100.0);
-				circleLeft.setScaleY(size / 100.0);
-				leftSizeSlider.setValue(size);
-			} catch (Exception e) {
-				leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
-			}
-			// updateIntersection();
-			updateItemColors();
+			changeSizeField(leftSizeField, leftSizeSlider, circleLeft);
 		}
 	}
 
 	@FXML
 	private void changeSizeRight() {
-		changesMade(); //new ChangeCircleSizeAction(circleRight, rightSizeSlider.getValue() / 100.0));
-		circleRight.setScaleX(rightSizeSlider.getValue() / 100.0);
-		circleRight.setScaleY(rightSizeSlider.getValue() / 100.0);
-		rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
+		changeSizeSlider(rightSizeSlider, rightSizeField, circleRight);
+	}
+	
+	private void changeSizeSlider(Slider slider, TextField field, Circle circle) {
+		changesMade(new ChangeCircleSizeAction(circle, slider.getValue() / 100.0));
+		circle.setScaleX(slider.getValue() / 100.0);
+		circle.setScaleY(slider.getValue() / 100.0);
+		field.setText(String.format("%.0f", slider.getValue()));
+		// updateIntersection();
+		updateItemColors();
+	}
+	
+	private void changeSizeField(TextField field, Slider slider, Circle circle) {
+		double size;
+		try {
+			size = Double.parseDouble(field.getText());
+			changesMade(new ChangeCircleSizeAction(circle, size / 100.0));
+			if (size < 50) {
+				size = 50;
+				field.setText("50");
+			}
+			if (size > 120) {
+				size = 120;
+				field.setText("120");
+			}
+			circle.setScaleX(size / 100.0);
+			circle.setScaleY(size / 100.0);
+			slider.setValue(size);
+		} catch (Exception e) {
+			field.setText(String.format("%.0f", slider.getValue()));
+		}
 		// updateIntersection();
 		updateItemColors();
 	}
@@ -1803,26 +1782,7 @@ public class Controller {
 	@FXML
 	private void changeSizeRightField(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			double size;
-			try {
-				changesMade(); //new ChangeCircleSizeAction(circleRight, size / 100.0));
-				size = Double.parseDouble(rightSizeField.getText());
-				if (size < 50) {
-					size = 50;
-					rightSizeField.setText("50");
-				}
-				if (size > 120) {
-					size = 120;
-					rightSizeField.setText("120");
-				}
-				circleRight.setScaleX(size / 100.0);
-				circleRight.setScaleY(size / 100.0);
-				rightSizeSlider.setValue(size);
-			} catch (Exception e) {
-				rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
-			}
-			// updateIntersection();
-			updateItemColors();
+			changeSizeField(rightSizeField, rightSizeSlider, circleRight);
 		}
 	}
 
@@ -1867,13 +1827,7 @@ public class Controller {
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
 			
 			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
-				changesMade(); //new ActionGroup(actionList));
-				List<String> addedItems = doTheCSV(file);
-				itemsList.getItems().addAll(addedItems);
-				List<DoableAction> actionList= new ArrayList<DoableAction>();
-				for (String s : addedItems) {
-					actionList.add(new AddItemToListAction(s, itemsList, null));
-				}
+				doTheCSVImport(file);
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
@@ -2256,17 +2210,20 @@ public class Controller {
 	}
 
 	@FXML
-	private void removeFocusEnter(KeyEvent event) {
-		if (event.getCode() == KeyCode.ENTER) {
-			removeFocus();
-		}
-	}
-
-	@FXML
 	private void removeFocus() {
 		pane.requestFocus();
 		itemsList.getSelectionModel().clearSelection();
 		selectedItems.clear();
+	}
+	
+	private void doTheCSVImport(File file) throws Exception {
+		List<String> addedItems = doTheCSV(file);
+		itemsList.getItems().addAll(addedItems);
+		List<Action> actionList= new ArrayList<Action>();
+		for (String s : addedItems) {
+			actionList.add(new AddItemToListAction(s, itemsList, null));
+		}
+		changesMade(new ActionGroup(actionList, "Import CSV File"));
 	}
 
 	@FXML
@@ -2284,13 +2241,7 @@ public class Controller {
 				List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
 				for (File file : dragged) {
 					if (file.getName().endsWith(".csv")) {
-						changesMade(); //new ActionGroup(actionList));
-						List<String> addedItems = doTheCSV(file);
-						itemsList.getItems().addAll(addedItems);
-						List<DoableAction> actionList= new ArrayList<DoableAction>();
-						for (String s : addedItems) {
-							actionList.add(new AddItemToListAction(s, itemsList, null));
-						}
+						doTheCSVImport(file);
 					} else if (file.getName().endsWith(".venn")) {
 						if (changesMade) {
 							Alert a = new Alert(AlertType.CONFIRMATION);
@@ -2299,10 +2250,10 @@ public class Controller {
 							a.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
 							Optional<ButtonType> result = a.showAndWait();
 							if (result.get() == ButtonType.OK) {
-								loadAndClearActionStack(file);
+								doTheLoad(file);
 							}
 						} else {
-							loadAndClearActionStack(file);
+							doTheLoad(file);
 						}
 					} else if (file.getName().endsWith(".vansr")) {
 						doTheAnswerImport(file);
@@ -2323,22 +2274,6 @@ public class Controller {
 			event.consume();
 		}
 	}
-	
-	private void loadAndClearActionStack(File file) {
-		doTheLoad(file);
-		for (File f : undoStack) {
-			f.delete();
-		}
-		for (File f : redoStack) {
-			f.delete();
-		}
-		this.undoStack.clear();
-		this.redoStack.clear();
-		this.undoMenu.setDisable(true);
-		this.redoMenu.setDisable(true);
-//		XXX: Crashes JUnit test because there's no real "window" with TestFX
-		Main.primaryStage.setTitle(file.getName() + " - Venn");
-	}
 
 	boolean addItemToDiagram(double x, double y, String text) {
 		// Returns true if item was added, false otherwise
@@ -2350,10 +2285,10 @@ public class Controller {
 			// Otherwise just add the text to the diagram
 			a = new DraggableItem(x, y, text);
 			if (a.checkBounds()) {
-				changesMade(); //new AddItemToDiagramAction(a, itemsInDiagram, itemsList));
 				frameRect.getChildren().add(a);
 				itemsInDiagram.add(a);
 				a.toFront();
+				changesMade(new AddItemToDiagramAction(a, itemsInDiagram, itemsList));
 				return true;
 			} else {
 				return false;
@@ -2365,11 +2300,11 @@ public class Controller {
 		// Returns true if item was added, false otherwise
 		DraggableImage a = new DraggableImage(x, y, title, imageFile);
 		if (a.checkBounds()) {
-			changesMade(); //new AddItemToDiagramAction(a, itemsInDiagram, itemsList, imagesInDiagram));
 			frameRect.getChildren().add(a);
 			itemsInDiagram.add(a);
 			imagesInDiagram.add(title);
 			a.toFront();
+			changesMade(new AddItemToDiagramAction(a, itemsInDiagram, itemsList, imagesInDiagram));
 			return true;
 		} else {
 			return false;
@@ -2398,17 +2333,6 @@ public class Controller {
 		credits.setScaleX(1.2);
 		credits.setScaleY(1.2);
 		credits.setPadding(new Insets(0, 0, 7, 4));
-		Label leadDev = new Label("Lead Developer:");
-		Label me1 = new Label("  Andrew Hocking");
-		Label assistDev = new Label("Assistant Developer:");
-		Label nourin = new Label("  Nourin Abd El Hadi");
-		Label docs = new Label("Documentation:");
-		Label others = new Label("  Nabi Khalid and Anika Prova");
-		Label unitTesting = new Label("Unit testing:");
-		Label me2 = new Label("  Andrew Hocking");
-		Label icon = new Label("App icon:");
-		Label me3 = new Label("  Andrew Hocking");
-		Label imgs = new Label("Toolbar icon images:");
 		Hyperlink thoseicons = new Hyperlink("ThoseIcons on FlatIcon.com");
 		
 		// For the record, I put this in here over two weeks before handing in this project.
@@ -2417,29 +2341,29 @@ public class Controller {
 		// Absolutely not. So do I feel guilty? Absolutely not. They earned their F's.
 		// So now they're getting credit where credit is due.
 		GridPane pettiness = new GridPane();
-		Label petty1 = new Label(" Corrected Documentation:");
-		Label petty2 = new Label("\t\tNourin Abd El Hadi and Andrew Hocking");
-		Label petty3 = new Label(" Zero Usable Code:");
-		Label petty4 = new Label("\t\tNabi Khalid and Anika Prova");
 		for (Node n : pettiness.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
 
 		GridPane content = new GridPane();
 		content.add(credits, 0, 0);
-		content.add(leadDev, 0, 1);		content.add(me1, 1, 1);
-		content.add(assistDev, 0, 2);	content.add(nourin, 1, 2);
-		content.add(docs, 0, 3);		content.add(others, 1, 3);
-		content.add(unitTesting, 0, 4);	content.add(me2, 1, 4);
-		content.add(icon, 0, 5);		content.add(me3, 1, 5);
-		content.add(imgs, 0, 6);		content.add(thoseicons, 1, 6);
+		content.add(new Label("Lead Developer:"), 0, 1);		content.add(new Label("  Andrew Hocking"), 1, 1);
+		content.add(new Label("Assistant Developer:"), 0, 2);	content.add(new Label("  Nourin Abd El Hadi"), 1, 2);
+		content.add(new Label("Documentation:"), 0, 3);			content.add(new Label("  Nabi Khalid"), 1, 3);
+																content.add(new Label("  Anika Prova"), 1, 4);
+		content.add(new Label("Unit testing:"), 0, 5);			content.add(new Label("  Andrew Hocking"), 1, 5);
+		content.add(new Label("App icon:"), 0, 6);				content.add(new Label("  Andrew Hocking"), 1, 6);
+		content.add(new Label("Toolbar icon images:"), 0, 7);	content.add(thoseicons, 1, 7);
+																content.add(new Label("  Andrew Hocking"), 1, 8);
 		for (Node n : content.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
 		
 		a.getDialogPane().setContent(content);
-		pettiness.add(petty1, 0, 0);	pettiness.add(petty2, 1, 0);
-		pettiness.add(petty3, 0, 1);	pettiness.add(petty4, 1, 1);
+		pettiness.add(new Label(" Corrected Documentation:"), 0, 0);	pettiness.add(new Label("\t\tNourin Abd El Hadi"), 1, 0);
+																		pettiness.add(new Label("\t\tAndrew Hocking"), 1, 1);
+		pettiness.add(new Label(" Zero Usable Code:"), 0, 2);			pettiness.add(new Label("\t\tNabi Khalid"), 1, 2);
+																		pettiness.add(new Label("\t\tAnika Prova"), 1, 3);
 		a.getDialogPane().setExpandableContent(pettiness);
 		a.getDialogPane().setExpanded(false);
 		
@@ -2497,7 +2421,6 @@ public class Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				timeOfLastChange = System.currentTimeMillis();
 				try {
 					File temp = File.createTempFile("venn", null);
 					tempPath = temp.getParent() + File.separatorChar;
@@ -2505,9 +2428,6 @@ public class Controller {
 					File f = new File(tempPath + "imgs" + File.separatorChar);
 					f.mkdir();
 					f.deleteOnExit();
-					File g = new File(tempPath + "vennActionStack" + File.separatorChar);
-					g.mkdir();
-					g.deleteOnExit();
 				} catch (IOException e) {
 					System.err.println("Temp directory could not be created. Using current directory instead.");
 					tempPath = "";
@@ -2555,88 +2475,72 @@ public class Controller {
 						Main.primaryStage.close();
 					}
 				});
-				
-				/*
-				Main.primaryStage.widthProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						// updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						// updateIntersection();
-					}
-				});
-				Main.primaryStage.heightProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						// updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						// updateIntersection();
-					}
-				}); */
-				
+								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
+				double width = Math.min(Toolkit.getDefaultToolkit().getScreenSize().width - 100, Main.primaryStage.getMaxWidth());
+				double height = Math.min(Toolkit.getDefaultToolkit().getScreenSize().height - 100, Main.primaryStage.getMaxHeight());
+				Main.primaryStage.setWidth(width);
+				Main.primaryStage.setHeight(height);
 				Main.primaryStage.getScene().getWindow().centerOnScreen();
+
 			}
 		});
+		
 		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 			if (!hasFocus.booleanValue()) {
 				changeSizeLeftField(new KeyEvent(null, null, null, KeyCode.ENTER, true, true, true, true));
 			}
 		});
 		
-		title.textProperty().addListener(changed -> {
-			boolean state = saveActionsToFileSystem;
-			if (System.currentTimeMillis() - timeOfLastChange > 500) {
-				saveActionsToFileSystem = true;
-				timeOfLastChange = System.currentTimeMillis();
-			} else {
-				saveActionsToFileSystem = false;
+		rightSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
+			if (!hasFocus.booleanValue()) {
+				changeSizeRightField(new KeyEvent(null, null, null, KeyCode.ENTER, true, true, true, true));
 			}
-			changesMade(); //new ChangedTitleAction(title));
-			saveActionsToFileSystem = state;
 		});
-		circleLeftTitle.textProperty().addListener(changed -> {
-			boolean state = saveActionsToFileSystem;
-			if (System.currentTimeMillis() - timeOfLastChange > 500) {
-				saveActionsToFileSystem = true;
-				timeOfLastChange = System.currentTimeMillis();
-			} else {
-				saveActionsToFileSystem = false;
+				
+		title.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			} else if (!title.textProperty().getValueSafe().contentEquals(titleText)) {
+				changesMade(new ChangedTitleAction(title, titleText, title.textProperty().getValueSafe()));
+				titleText = title.textProperty().getValueSafe();
 			}
-			changesMade(); //new ChangedTitleAction(title));
-			saveActionsToFileSystem = state;
 		});
-		circleRightTitle.textProperty().addListener(changed -> {
-			boolean state = saveActionsToFileSystem;
-			if (System.currentTimeMillis() - timeOfLastChange > 500) {
-				saveActionsToFileSystem = true;
-				timeOfLastChange = System.currentTimeMillis();
-			} else {
-				saveActionsToFileSystem = false;
+		circleLeftTitle.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			} else if (!circleLeftTitle.textProperty().getValueSafe().contentEquals(leftText)) {
+				changesMade(new ChangedTitleAction(circleLeftTitle, leftText, circleLeftTitle.textProperty().getValueSafe()));
+				leftText = circleLeftTitle.textProperty().getValueSafe();
 			}
-			changesMade(); //new ChangedTitleAction(title));
-			saveActionsToFileSystem = state;
+		});
+		circleRightTitle.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			} else if (!circleRightTitle.textProperty().getValueSafe().contentEquals(rightText)) {
+				changesMade(new ChangedTitleAction(circleRightTitle, rightText, circleRightTitle.textProperty().getValueSafe()));
+				rightText = circleRightTitle.textProperty().getValueSafe();
+			}
+		});
+		addItemField.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			} else if (event.getCode() == KeyCode.ENTER) {
+				addItemToList();
+			} else if (!addItemField.textProperty().getValueSafe().contentEquals(addFieldText)) {
+				changesMade(new ChangedTitleAction(addItemField, addFieldText, addItemField.textProperty().getValueSafe()));
+				addFieldText = addItemField.textProperty().getValueSafe();
+			}
 		});
 
+		scrollPane.viewportBoundsProperty().addListener(new ChangeListener<Bounds>() {
+			@Override
+			public void changed(ObservableValue<? extends Bounds> observableValue, Bounds oldBounds, Bounds newBounds) {
+				scrollContent.setPrefSize(Math.max(frameRect.getBoundsInParent().getMaxX(), newBounds.getWidth()),
+						Math.max(frameRect.getBoundsInParent().getMaxY(), newBounds.getHeight()));
+			}
+		});
+		
 		for (Node n : pane.getChildren()) {
 			n.setFocusTraversable(false);
 		}
@@ -2647,6 +2551,8 @@ public class Controller {
 //		XXX: Crashes JUnit test because there's no real "window" with TestFX
 		Main.primaryStage.setMinWidth(800);
 		Main.primaryStage.setMinHeight(400);
+		Main.primaryStage.setMaxWidth(1280);
+		Main.primaryStage.setMaxHeight(822);
 		
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);

@@ -16,34 +16,40 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public interface DoableAction {
+public interface Action {
 	
 	public boolean invert();
-	
 	public String toString();
 	
 }
 
-class ActionGroup implements DoableAction {
+class ActionGroup implements Action {
 
-	List<DoableAction> actionList;
+	protected List<Action> actionList;
+	protected String message;
 	
-	public ActionGroup(List<DoableAction> actionList) {
+	public ActionGroup(List<Action> actionList, String message) {
 		this.actionList = actionList;
+		this.message = message;
 	}
 
 	@Override
 	public boolean invert() {
 		boolean success = true;
-		for (DoableAction action : actionList) {
+		for (Action action : actionList) {
 			success = success && action.invert();
 		}
 		return success;
 	}
 	
+	@Override
 	public String toString() {
+		return message;
+	}
+	
+	public String expandedToString() {
 		StringBuilder sb = new StringBuilder("Action Group:\n");
-		for(DoableAction a : actionList) {
+		for(Action a : actionList) {
 			sb.append("   ");
 			sb.append(a.toString());
 			sb.append("\n");
@@ -52,7 +58,7 @@ class ActionGroup implements DoableAction {
 	}
 }
 
-class AddItemToDiagramAction extends RemoveItemAction implements DoableAction {
+class AddItemToDiagramAction extends RemoveItemAction implements Action {
 
 	public AddItemToDiagramAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList) {
@@ -61,16 +67,17 @@ class AddItemToDiagramAction extends RemoveItemAction implements DoableAction {
 	
 	public AddItemToDiagramAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList, ObservableList<String> imagesInDiagram) {
-		super(item, itemsInDiagram, itemsList, imagesInDiagram);
+		super(item, 0, 0, itemsInDiagram, itemsList, imagesInDiagram);
 		inDiagram = true;
 	}
 	
+	@Override
 	public String toString() {
 		return "Add Item to Diagram";
 	}
 }
 
-class AddItemToListAction implements DoableAction {
+class AddItemToListAction implements Action {
 	
 	private String item;
 	private ListView<String> itemsList;
@@ -100,12 +107,13 @@ class AddItemToListAction implements DoableAction {
 		return false;
 	}
 	
+	@Override
 	public String toString() {
 		return "Add Item to List";
 	}
 }
 
-class ChangeCircleColorAction implements DoableAction {
+class ChangeCircleColorAction implements Action {
 	
 	private Circle circle;
 	private Color color1;
@@ -113,8 +121,8 @@ class ChangeCircleColorAction implements DoableAction {
 
 	public ChangeCircleColorAction(Circle circle, Color newColor) {
 		this.circle = circle;
-		this.color1 = (Color)(circle.getFill());
-		this.color2 = newColor;
+		this.color1 = newColor;
+		this.color2 = (Color)(circle.getFill());
 	}
 
 	@Override
@@ -125,13 +133,13 @@ class ChangeCircleColorAction implements DoableAction {
 		
 		circle.setFill(color1);
 		return circle.getFill().equals(color1);
-	}
+	}@Override
 	public String toString() {
 		return "Change Circle Color";
 	}
 }
 
-class ChangeCircleSizeAction implements DoableAction {
+class ChangeCircleSizeAction implements Action {
 	
 	private Circle circle;
 	private double scale1;
@@ -139,8 +147,8 @@ class ChangeCircleSizeAction implements DoableAction {
 
 	public ChangeCircleSizeAction(Circle circle, double size) {
 		this.circle = circle;
-		this.scale1 = circle.getScaleX();
-		this.scale2 = size;
+		this.scale1 = size;
+		this.scale2 = circle.getScaleX();
 	}
 
 	@Override
@@ -155,38 +163,40 @@ class ChangeCircleSizeAction implements DoableAction {
 		return circle.getScaleX() == scale1 && circle.getScaleY() == scale1;
 	}
 	
+	@Override
 	public String toString() {
 		return "Change Circle Size";
 	}
 }
 
-class ChangedTitleAction implements DoableAction {
+class ChangedTitleAction implements Action {
 
 	private TextField title;
-	private boolean wasUndone;
+	private String text1, text2;
 	
-	public ChangedTitleAction(TextField title) {
+	public ChangedTitleAction(TextField title, String oldText, String newText) {
 		this.title = title;
-		this.wasUndone = false;
+		this.text1 = newText;
+		this.text2 = oldText;
 	}
 
 	@Override
 	public boolean invert() {
 		String text = title.getText();
-		if (wasUndone) {
-			title.redo();
-		} else {
-			title.undo();
-		}
+		String temp = text1;
+		text1 = text2;
+		text2 = temp;
+		title.setText(text1);
 		return !text.contentEquals(title.getText());
 	}
 	
+	@Override
 	public String toString() {
 		return "Change Title";
 	}
 }
 
-class ChangeItemColorAction implements DoableAction {
+class ChangeItemColorAction implements Action {
 	
 	private Color color1;
 	private Color color2;
@@ -195,8 +205,8 @@ class ChangeItemColorAction implements DoableAction {
 	
 	
 	public ChangeItemColorAction(Color oldColor, ColorPicker colorPicker, List<DraggableItem> items) {
-		this.color1 = oldColor;
-		this.color2 = colorPicker.getValue();
+		this.color1 = colorPicker.getValue();
+		this.color2 = oldColor;
 		this.colorPicker = colorPicker;
 		this.items = items;
 	}
@@ -215,12 +225,13 @@ class ChangeItemColorAction implements DoableAction {
 		return success;
 	}
 	
+	@Override
 	public String toString() {
 		return "Change Colour";
 	}
 }
 
-class ChangeItemDetailsAction implements DoableAction {
+class ChangeItemDetailsAction implements Action {
 	
 	private DraggableItem item;
 	private String text1;
@@ -236,10 +247,10 @@ class ChangeItemDetailsAction implements DoableAction {
 	public ChangeItemDetailsAction(DraggableItem item, String oldText, String oldDesc, String newText,
 			String newDesc, ObservableList<String> imagesInDiagram, List<File> itemImages, String tempPath) {
 		this.item= item ;
-		this.text1 = oldText;
-		this.desc1 = oldDesc;
-		this.text2 = newText;
-		this.desc2 = newDesc;
+		this.text1 = newText;
+		this.desc1 = newDesc;
+		this.text2 = oldText;
+		this.desc2 = oldDesc;
 		this.imagesInDiagram = imagesInDiagram;
 		this.itemImages = itemImages;
 		this.tempPath = tempPath;
@@ -249,10 +260,10 @@ class ChangeItemDetailsAction implements DoableAction {
 	// Text
 	public ChangeItemDetailsAction(DraggableItem item, String oldText, String oldDesc, String newText, String newDesc) {
 		this.item= item ;
-		this.text1 = oldText;
-		this.desc1 = oldDesc;
-		this.text2 = newText;
-		this.desc2 = newDesc;
+		this.text1 = newText;
+		this.desc1 = newDesc;
+		this.text2 = oldText;
+		this.desc2 = oldDesc;
 		this.isImage = false;
 	}
 
@@ -284,13 +295,13 @@ class ChangeItemDetailsAction implements DoableAction {
 		return item.getText().contentEquals(text1) && item.getDescription().contentEquals(desc1);
 	}
 
-	
+	@Override
 	public String toString() {
 		return "Change Item Details";
 	}
 }
 
-class DeleteFromListAction implements DoableAction {
+class DeleteFromListAction implements Action {
 
 	private ListView<String> itemsList;
 	private List<String> items;
@@ -316,12 +327,13 @@ class DeleteFromListAction implements DoableAction {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return "Delete Item";
 	}
 }
 
-class DeleteItemAction implements DoableAction {
+class DeleteItemAction implements Action {
 	protected double x, y;
 	protected boolean inDiagram;
 	protected DraggableItem item;
@@ -329,10 +341,10 @@ class DeleteItemAction implements DoableAction {
 	protected ObservableList<DraggableItem> itemsInDiagram;
 	protected ObservableList<String> imagesInDiagram;
 	
-	public DeleteItemAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram, ObservableList<String> imagesInDiagram) {
+	public DeleteItemAction(DraggableItem item, double oldX, double oldY, ObservableList<DraggableItem> itemsInDiagram, ObservableList<String> imagesInDiagram) {
 		this.item = item;
-		this.x = item.getLayoutX();
-		this.y = item.getLayoutY();
+		this.x = oldX;
+		this.y = oldY;
 		this.parent = (Pane) (item.getParent());
 		this.itemsInDiagram = itemsInDiagram;
 		this.imagesInDiagram = imagesInDiagram;
@@ -356,48 +368,42 @@ class DeleteItemAction implements DoableAction {
 			if (imagesInDiagram != null)
 				imagesInDiagram.add(item.getText());
 			inDiagram = true;
+			item.checkBounds();
+			item.setBorder(null);
 			return item.getLayoutX() == x && item.getLayoutY() == y;
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return "Delete Item";
 	}
 }
 
-class MoveItemAction implements DoableAction {
+class MoveItemAction implements Action {
 	double x1, x2, y1, y2;
 	DraggableItem item;
 
 	public MoveItemAction (DraggableItem item, double oldX, double oldY, double newX, double newY) {
 		this.item = item;
-		this.x1 = oldX;
-		this.y1 = oldY;
-		this.x2 = newX;
-		this.y2 = newY;
+		this.x1 = newX;
+		this.y1 = newY;
+		this.x2 = oldX;
+		this.y2 = oldY;
 	}
 	
 	Thread inversion = new Thread() {
 		public void run() {
-			double temp = x1;
-			x1 = x2;
-			x2 = temp;
-			temp = y1;
-			y1 = y2;
-			y2 = temp;
+			double temp = x2;
+			x2 = x1;
+			x1 = temp;
+			temp = y2;
+			y2 = y1;
+			y1 = temp;
 
-			try {
-				Thread.sleep(500);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			Platform.runLater(() -> {
-				System.out.println(item.getLayoutX() + "," + item.getLayoutY());
-				item.setVisible(false);
-				item.setLayoutX(x1);
-				item.setLayoutY(y1);
-				item.setVisible(true);
-				System.out.println(item.getLayoutX() + "," + item.getLayoutY());
+				item.relocate(x1, y1);
+				item.checkBounds();
 			});
 		}
 	};
@@ -416,21 +422,22 @@ class MoveItemAction implements DoableAction {
 		return item.getLayoutX() == x1 && item.getLayoutY() == y1;
 	}
 	
+	@Override
 	public String toString() {
 		return "Move Item from (" + x1 + "," + y1 + ") to (" + x2 + "," + y2 + ")";
 	}
 }
 
-class RemoveItemAction extends DeleteItemAction implements DoableAction {
+class RemoveItemAction extends DeleteItemAction implements Action {
 	protected ListView<String> itemsList;
 	
-	public RemoveItemAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram, ListView<String> itemsList, ObservableList<String> imagesInDiagram) {
-		super(item, itemsInDiagram, imagesInDiagram);
+	public RemoveItemAction(DraggableItem item, double oldX, double oldY, ObservableList<DraggableItem> itemsInDiagram, ListView<String> itemsList, ObservableList<String> imagesInDiagram) {
+		super(item, oldX, oldY, itemsInDiagram, imagesInDiagram);
 		this.itemsList = itemsList;
 	}
 	
-	public RemoveItemAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram, ListView<String> itemsList) {
-		this(item, itemsInDiagram, itemsList, null);
+	public RemoveItemAction(DraggableItem item, double oldX, double oldY, ObservableList<DraggableItem> itemsInDiagram, ListView<String> itemsList) {
+		this(item, oldX, oldY, itemsInDiagram, itemsList, null);
 	}
 
 	@Override
@@ -445,21 +452,24 @@ class RemoveItemAction extends DeleteItemAction implements DoableAction {
 		return super.invert();
 	}
 	
+	@Override
 	public String toString() {
 		return "Remove Item from Diagram";
 	}
 }
 
-class SetStyleAction implements DoableAction {
+class SetStyleAction implements Action {
 	
 	private Node node;
 	private String style1;
 	private String style2;
+	private ColorPicker colorPicker;
 
 	public SetStyleAction(Node pane, String newStyle) {
 		this.node = pane;
-		this.style1 = pane.getStyle();
-		this.style2 = newStyle;
+		this.style1 = newStyle;
+		this.style2 = pane.getStyle();
+		this.colorPicker = colorPicker;
 	}
 
 	@Override
@@ -472,6 +482,7 @@ class SetStyleAction implements DoableAction {
 		return node.getStyle().contentEquals(style1);
 	}
 	
+	@Override
 	public String toString() {
 		return "Change Colour";
 	}
