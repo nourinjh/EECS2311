@@ -383,6 +383,7 @@ class DeleteItemAction implements Action {
 			inDiagram = true;
 			item.checkBounds();
 			item.setBorder(null);
+			item.setBackground(null);
 			return item.getLayoutX() == x && item.getLayoutY() == y;
 		}
 	}

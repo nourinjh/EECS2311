@@ -287,8 +287,7 @@ public class Controller {
 
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				try {
-					if (!hasFocus.booleanValue()
-							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
+					if (!hasFocus.booleanValue() &&  !multiSelect) {
 						for (DraggableItem d : selectedItems) {
 							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 									new CornerRadii(1), new BorderWidths(5), new Insets(0))));
@@ -325,10 +324,13 @@ public class Controller {
 					deleteItem();
 				}
 				if (keyEvent.getCode() == KeyCode.ESCAPE) {
-					pane.requestFocus();
+					removeFocus();
 				}
-				if (keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = true;
+				}
+				if (keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
+					removeFocus();
 				}
 				/* Move items with arrow keys
 				if (keyEvent.getCode() == KeyCode.UP) {
@@ -2471,9 +2473,7 @@ public class Controller {
 
 	@FXML
 	private void selectAll() {
-		// FIXME
 		for (DraggableItem d : itemsInDiagram) {
-			System.out.println(d.getText());
 			multiSelect = true;
 			d.requestFocus();
 			selectedItems.add(d);
