@@ -8,11 +8,17 @@ import application.Controller.DraggableImage;
 import application.Controller.DraggableItem;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -382,7 +388,8 @@ class DeleteItemAction implements Action {
 				imagesInDiagram.add(item.getText());
 			inDiagram = true;
 			item.checkBounds();
-			item.setBorder(null);
+			item.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE, new CornerRadii(1),
+					new BorderWidths(5), new Insets(0))));
 			item.setBackground(null);
 			return item.getLayoutX() == x && item.getLayoutY() == y;
 		}

@@ -579,8 +579,10 @@ public class Controller {
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
 				requestFocus();
-				oldX = this.getLayoutX();
-				oldY = this.getLayoutY();
+				for (DraggableItem d : selectedItems) {
+					d.oldX = d.getLayoutX();
+					d.oldY = d.getLayoutY();
+				}
 				mouseEvent.consume();
 				this.actionList.clear();
 			});
@@ -600,36 +602,50 @@ public class Controller {
 					d.setLayoutX(newX);
 					d.setLayoutY(newY);
 					if (d.checkBounds()) {
-						setOnMouseReleased(mouseEvent2 -> {
-							actionList.add(new MoveItemAction(d, d.oldX, d.oldY, newX, newY));
-							d.getScene().setCursor(Cursor.HAND);
-							d.checkBounds();
-							mouseEvent.consume();
-							mouseEvent2.consume();
-							String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-							changesMade(new ActionGroup(actionList, message));
-						});
 						d.setBackground(null);
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
-					} else {
 						setOnMouseReleased(mouseEvent2 -> {
-							actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
-							d.getScene().setCursor(Cursor.DEFAULT);
-							selectedItems.forEach(each -> {
-								frameRect.getChildren().remove(this);
-								itemsInDiagram.remove(this);
-								itemsList.getItems().add(this.getText());
-							});
-							selectedItems.clear();
+							for (DraggableItem i : selectedItems) {
+								actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+								i.getScene().setCursor(Cursor.HAND);
+								i.checkBounds();
+								mouseEvent.consume();
+								mouseEvent2.consume();
+								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+								changesMade(new ActionGroup(actionList, message));
+							}
 							mouseEvent.consume();
 							mouseEvent2.consume();
-							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
-							changesMade(new ActionGroup(actionList, message));
 						});
+					} else {
 						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
 						d.getLabel().setTextFill(Color.WHITE);
 						d.getScene().setCursor(Cursor.DISAPPEAR);
+						setOnMouseReleased(mouseEvent2 -> {
+							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+							List<String> removed = new ArrayList<String>();
+							for (int i = selectedItems.size() - 1; i >= 0; i--) {
+								if (!removed.contains(selectedItems.get(i).getText())) {
+									removed.add(selectedItems.get(i).getText());
+									System.out.println("Remove \"" + selectedItems.get(i).getText() + "\"");
+									if (selectedItems.get(i) instanceof DraggableImage) {
+										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+										imagesInDiagram.remove(selectedItems.get(i).getText());
+									} else {
+										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+									}
+									frameRect.getChildren().remove(selectedItems.get(i));
+									itemsInDiagram.remove(selectedItems.get(i));
+									itemsList.getItems().add(selectedItems.get(i).getText());
+								}
+								selectedItems.remove(i);
+							}
+							pane.getScene().setCursor(Cursor.DEFAULT);
+							changesMade(new ActionGroup(actionList, message));
+							mouseEvent.consume();
+							mouseEvent2.consume();
+						});
 					}
 				}
 				mouseEvent.consume();
@@ -869,8 +885,10 @@ public class Controller {
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
 				requestFocus();
-				this.oldX = this.getLayoutX();
-				this.oldY = this.getLayoutY();
+				for (DraggableItem d : selectedItems) {
+					d.oldX = d.getLayoutX();
+					d.oldY = d.getLayoutY();
+				}
 				mouseEvent.consume();
 			});
 			
@@ -892,38 +910,55 @@ public class Controller {
 					d.setLayoutY(newY);
 					if (d.checkBounds()) {
 						setOnMouseReleased(mouseEvent2 -> {
-							actionList.add(new MoveItemAction(d, d.oldX, d.oldY, newX, newY));
-							d.getScene().setCursor(Cursor.HAND);
-							d.checkBounds();
-							this.setBackground(null);
+							for (DraggableItem i : selectedItems) {
+								actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+								i.getScene().setCursor(Cursor.HAND);
+								i.checkBounds();
+								i.setBackground(null);
+								mouseEvent.consume();
+								mouseEvent2.consume();
+								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+								changesMade(new ActionGroup(actionList, message));
+							}
 							mouseEvent.consume();
 							mouseEvent2.consume();
-							String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-							changesMade(new ActionGroup(actionList, message));
 						});
 						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
 						d.getLabel().setTextFill(d.getColor());
 						d.getScene().setCursor(Cursor.CLOSED_HAND);
 					} else {
-						setOnMouseReleased(mouseEvent2 -> {
-							actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
-							d.getScene().setCursor(Cursor.DEFAULT);
-							selectedItems.forEach(each -> {
-								frameRect.getChildren().remove(each);
-								itemsInDiagram.remove(each);
-								itemsList.getItems().add(each.getText());
-								imagesInDiagram.remove(each.getText());
-							});
-							selectedItems.clear();
-							mouseEvent.consume();
-							mouseEvent2.consume();
-							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
-							changesMade(new ActionGroup(actionList, message));
-						});
-						d.setBackground(
-								new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
+						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
 						d.getLabel().setTextFill(Color.WHITE);
 						d.getScene().setCursor(Cursor.DISAPPEAR);
+						setOnMouseReleased(mouseEvent2 -> {
+							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+							List<String> removed = new ArrayList<String>();
+							for (int i = selectedItems.size() - 1; i >= 0; i--) {
+								if (!removed.contains(selectedItems.get(i).getText())) {
+									removed.add(selectedItems.get(i).getText());
+									System.out.println("Remove \"" + selectedItems.get(i).getText() + "\"");
+									if (selectedItems.get(i) instanceof DraggableImage) {
+										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+										System.out.print("Before:\n(");
+										imagesInDiagram.forEach(each -> System.out.print(each + ","));
+										System.out.print(")\n\nAfter:\n(");
+										imagesInDiagram.remove(selectedItems.get(i).getText());
+										imagesInDiagram.forEach(each -> System.out.print(each + ","));
+										System.out.println(")");
+									} else {
+										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+									}
+									frameRect.getChildren().remove(selectedItems.get(i));
+									itemsInDiagram.remove(selectedItems.get(i));
+									itemsList.getItems().add(selectedItems.get(i).getText());
+								}
+								selectedItems.remove(i);
+							}
+							pane.getScene().setCursor(Cursor.DEFAULT);
+							changesMade(new ActionGroup(actionList, message));
+							mouseEvent.consume();
+							mouseEvent2.consume();
+						});
 					}
 				}
 				mouseEvent.consume();
@@ -1301,7 +1336,7 @@ public class Controller {
 	
 	private void removeOrphanedImages() {
 		for (File f : itemImages) {
-			if (!imagesInDiagram.contains(f.getName())) {
+			if (!(imagesInDiagram.contains(f.getName()) || itemsList.getItems().contains(f.getName()))) {
 				f.delete();
 			}
 		}
@@ -1363,11 +1398,11 @@ public class Controller {
 			File imagesList = new File(tempPath + "Images.csv");
 			sb = new StringBuilder();
 			bw = new BufferedWriter(new FileWriter(imagesList));
-			if (!itemImages.isEmpty()) {
-				bw.write("\"" + itemImages.get(0).getName() + "\"");
-				if (itemImages.size() > 1) {
-					for (int i = 1; i < itemImages.size(); i++) {
-						bw.append("\n\"" + itemImages.get(i).getName() + "\"");
+			if (!imagesInDiagram.isEmpty()) {
+				bw.write("\"" + imagesInDiagram.get(0) + "\"");
+				if (imagesInDiagram.size() > 1) {
+					for (int i = 1; i < imagesInDiagram.size(); i++) {
+						bw.append("\n\"" + imagesInDiagram.get(i) + "\"");
 					}
 				}
 			}
@@ -1671,6 +1706,7 @@ public class Controller {
 			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
+			removeOrphanedImages();
 			multiSelect = false;
 		} catch (Exception e) {
 			if (file != null) {
