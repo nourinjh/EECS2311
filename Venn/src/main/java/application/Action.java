@@ -94,18 +94,19 @@ class AddItemToListAction implements Action {
 
 	@Override
 	public boolean invert() {
-		if (added) {
+		if (this.added) {
 			itemsList.getItems().remove(item);
 			if (addItemField != null)
 				addItemField.setText(item);
-			added = false;
+			this.added = false;
+			return !this.itemsList.getItems().contains(item);
 		} else {
 			itemsList.getItems().add(item);
 			if (addItemField != null)
 				addItemField.setText("");
-			added = true;
+			this.added = true;
+			return this.itemsList.getItems().contains(item);
 		}
-		return false;
 	}
 	
 	@Override

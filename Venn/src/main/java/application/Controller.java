@@ -2377,10 +2377,11 @@ public class Controller {
 	private void doTheCSVImport(File file) throws Exception {
 		List<String> addedItems = doTheCSV(file);
 		itemsList.getItems().addAll(addedItems);
-		List<Action> actionList= new ArrayList<Action>();
+		List<Action> actionList = new ArrayList<Action>();
 		for (String s : addedItems) {
-			actionList.add(new AddItemToListAction(s, itemsList, null));
-			System.out.println(s);
+			Action a = new AddItemToListAction(s, itemsList, null);
+			actionList.add(a);
+			System.out.println(a + " ~ " + s);
 		}
 		changesMade(new ActionGroup(actionList, "Import CSV File"));
 	}
