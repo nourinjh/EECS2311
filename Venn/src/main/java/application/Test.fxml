@@ -81,6 +81,13 @@
                         <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
                     </items>
                   </Menu>
+                  <Menu mnemonicParsing="false" text="Export...">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Image" />
+                        <MenuItem mnemonicParsing="false" onAction="#exportCSV" text="CSV File" />
+                        <MenuItem mnemonicParsing="false" onAction="#exportAnswer" text="Answer Key" />
+                    </items>
+                  </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#save" text="Save">
                      <accelerator>
@@ -92,8 +99,6 @@
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Export Venn Diagram as Image..." />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
