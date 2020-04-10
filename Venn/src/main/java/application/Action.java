@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -60,14 +61,14 @@ class ActionGroup implements Action {
 
 class AddItemToDiagramAction extends RemoveItemAction implements Action {
 
-	public AddItemToDiagramAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram,
+	public AddItemToDiagramAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList) {
-		this(item, itemsInDiagram, itemsList, null);
+		this(item, x, y, itemsInDiagram, itemsList, null);
 	}
 	
-	public AddItemToDiagramAction(DraggableItem item, ObservableList<DraggableItem> itemsInDiagram,
+	public AddItemToDiagramAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList, ObservableList<String> imagesInDiagram) {
-		super(item, 0, 0, itemsInDiagram, itemsList, imagesInDiagram);
+		super(item, x, y, itemsInDiagram, itemsList, imagesInDiagram);
 		inDiagram = true;
 	}
 	
@@ -118,11 +119,13 @@ class ChangeCircleColorAction implements Action {
 	private Circle circle;
 	private Color color1;
 	private Color color2;
+	private ColorPicker colorPicker;
 
-	public ChangeCircleColorAction(Circle circle, Color newColor) {
+	public ChangeCircleColorAction(Circle circle, ColorPicker colorPicker) {
 		this.circle = circle;
-		this.color1 = newColor;
+		this.color1 = colorPicker.getValue();
 		this.color2 = (Color)(circle.getFill());
+		this.colorPicker = colorPicker;
 	}
 
 	@Override
@@ -132,6 +135,7 @@ class ChangeCircleColorAction implements Action {
 		color2 = temp;
 		
 		circle.setFill(color1);
+		colorPicker.setValue(color1);
 		return circle.getFill().equals(color1);
 	}@Override
 	public String toString() {
@@ -144,21 +148,29 @@ class ChangeCircleSizeAction implements Action {
 	private Circle circle;
 	private double scale1;
 	private double scale2;
+	private Slider slider;
+	private TextField field;
 
-	public ChangeCircleSizeAction(Circle circle, double size) {
+	public ChangeCircleSizeAction(Circle circle, double oldScale, Slider slider, TextField field) {
 		this.circle = circle;
-		this.scale1 = size;
-		this.scale2 = circle.getScaleX();
+		this.scale1 = slider.getValue() / 100;
+		this.scale2 = oldScale;
+		this.slider = slider;
+		this.field = field;
 	}
 
 	@Override
 	public boolean invert() {
+		Controller.trackChanges = false;
 		double temp = scale1;
 		scale1 = scale2;
 		scale2 = temp;
 		
 		circle.setScaleX(scale1);
 		circle.setScaleY(scale1);
+		slider.setValue(scale1 * 100);
+		field.setText(String.format("%.0f", scale1 * 100));
+
 		
 		return circle.getScaleX() == scale1 && circle.getScaleY() == scale1;
 	}
@@ -380,6 +392,11 @@ class DeleteItemAction implements Action {
 	}
 }
 
+class ImportImageAction implements Action {
+	public boolean invert() { return true; }
+	public String toString() { return "Import Image"; }
+}
+
 class MoveItemAction implements Action {
 	double x1, x2, y1, y2;
 	DraggableItem item;
@@ -458,28 +475,61 @@ class RemoveItemAction extends DeleteItemAction implements Action {
 	}
 }
 
-class SetStyleAction implements Action {
-	
+class ChangeBackgroundColorAction implements Action {
 	private Node node;
-	private String style1;
-	private String style2;
+	private Color color1;
+	private Color color2;
 	private ColorPicker colorPicker;
 
-	public SetStyleAction(Node pane, String newStyle) {
-		this.node = pane;
-		this.style1 = newStyle;
-		this.style2 = pane.getStyle();
+	public ChangeBackgroundColorAction(Node node, Color oldColor, ColorPicker colorPicker) {
+		this.node = node;
+		this.color1 = colorPicker.getValue();
+		this.color2 = oldColor;
 		this.colorPicker = colorPicker;
 	}
 
 	@Override
 	public boolean invert() {
-		String temp = style1;
-		style1 = style2;
-		style2 = temp;
+		Color temp = color1;
+		color1 = color2;
+		color2 = temp;
 		
-		node.setStyle(style1);
-		return node.getStyle().contentEquals(style1);
+		colorPicker.setValue(color1);
+		node.setStyle("-fx-background-color: #"
+				+ color1.toString().substring(2, color1.toString().length() - 2)
+				+ ";");
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "Change Colour";
+	}
+}
+
+class ChangeTitleColorAction implements Action {
+	private TextField node;
+	private Color color1;
+	private Color color2;
+	private ColorPicker colorPicker;
+
+	public ChangeTitleColorAction(TextField node, Color oldColor, ColorPicker colorPicker) {
+		this.node = node;
+		this.color1 = colorPicker.getValue();
+		this.color2 = oldColor;
+		this.colorPicker = colorPicker;
+	}
+
+	@Override
+	public boolean invert() {
+		Color temp = color1;
+		color1 = color2;
+		color2 = temp;
+		
+		colorPicker.setValue(color1);
+		node.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
+				+ color1.toString().substring(2, color1.toString().length() - 2) + ";");
+		return true;
 	}
 	
 	@Override
