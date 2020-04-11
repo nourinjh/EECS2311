@@ -121,6 +121,38 @@ class AddItemToListAction implements Action {
 	}
 }
 
+class ChangeBackgroundColorAction implements Action {
+	private Node node;
+	private Color color1;
+	private Color color2;
+	private ColorPicker colorPicker;
+
+	public ChangeBackgroundColorAction(Node node, Color oldColor, ColorPicker colorPicker) {
+		this.node = node;
+		this.color1 = colorPicker.getValue();
+		this.color2 = oldColor;
+		this.colorPicker = colorPicker;
+	}
+
+	@Override
+	public boolean invert() {
+		Color temp = color1;
+		color1 = color2;
+		color2 = temp;
+		
+		colorPicker.setValue(color1);
+		node.setStyle("-fx-background-color: #"
+				+ color1.toString().substring(2, color1.toString().length() - 2)
+				+ ";");
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "Change Colour";
+	}
+}
+
 class ChangeCircleColorAction implements Action {
 	
 	private Circle circle;
@@ -185,33 +217,6 @@ class ChangeCircleSizeAction implements Action {
 	@Override
 	public String toString() {
 		return "Change Circle Size";
-	}
-}
-
-class ChangedTitleAction implements Action {
-
-	private TextField title;
-	private String text1, text2;
-	
-	public ChangedTitleAction(TextField title, String oldText, String newText) {
-		this.title = title;
-		this.text1 = newText;
-		this.text2 = oldText;
-	}
-
-	@Override
-	public boolean invert() {
-		String text = title.getText();
-		String temp = text1;
-		text1 = text2;
-		text2 = temp;
-		title.setText(text1);
-		return !text.contentEquals(title.getText());
-	}
-	
-	@Override
-	public String toString() {
-		return "Change Title";
 	}
 }
 
@@ -317,6 +322,37 @@ class ChangeItemDetailsAction implements Action {
 	@Override
 	public String toString() {
 		return "Change Item Details";
+	}
+}
+
+class ChangeTitleColorAction implements Action {
+	private TextField node;
+	private Color color1;
+	private Color color2;
+	private ColorPicker colorPicker;
+
+	public ChangeTitleColorAction(TextField node, Color oldColor, ColorPicker colorPicker) {
+		this.node = node;
+		this.color1 = colorPicker.getValue();
+		this.color2 = oldColor;
+		this.colorPicker = colorPicker;
+	}
+
+	@Override
+	public boolean invert() {
+		Color temp = color1;
+		color1 = color2;
+		color2 = temp;
+		
+		colorPicker.setValue(color1);
+		node.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
+				+ color1.toString().substring(2, color1.toString().length() - 2) + ";");
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "Change Colour";
 	}
 }
 
@@ -484,65 +520,40 @@ class RemoveItemAction extends DeleteItemAction implements Action {
 	}
 }
 
-class ChangeBackgroundColorAction implements Action {
-	private Node node;
-	private Color color1;
-	private Color color2;
-	private ColorPicker colorPicker;
+class TypeInFieldAction implements Action {
 
-	public ChangeBackgroundColorAction(Node node, Color oldColor, ColorPicker colorPicker) {
-		this.node = node;
-		this.color1 = colorPicker.getValue();
-		this.color2 = oldColor;
-		this.colorPicker = colorPicker;
+	private TextField title;
+	private String text1, text2;
+	private int position;
+	
+	public TypeInFieldAction(TextField title, String oldText, String newText) {
+		this.title = title;
+		this.text1 = newText;
+		this.text2 = oldText;
+		this.position = title.getCaretPosition();
 	}
 
 	@Override
 	public boolean invert() {
-		Color temp = color1;
-		color1 = color2;
-		color2 = temp;
-		
-		colorPicker.setValue(color1);
-		node.setStyle("-fx-background-color: #"
-				+ color1.toString().substring(2, color1.toString().length() - 2)
-				+ ";");
-		return true;
+		String text = title.getText();
+		String temp = text1;
+		text1 = text2;
+		text2 = temp;
+		title.setText(text1);
+		int newPosition = position - (text2.length() - text1.length());
+		if (text1.length() > text2.length())
+			newPosition -= 1;
+		if (newPosition > text1.length()) {
+			title.positionCaret(text1.length());
+		} else {
+			title.positionCaret(newPosition);
+		}
+
+		return !text.contentEquals(title.getText());
 	}
 	
 	@Override
 	public String toString() {
-		return "Change Colour";
-	}
-}
-
-class ChangeTitleColorAction implements Action {
-	private TextField node;
-	private Color color1;
-	private Color color2;
-	private ColorPicker colorPicker;
-
-	public ChangeTitleColorAction(TextField node, Color oldColor, ColorPicker colorPicker) {
-		this.node = node;
-		this.color1 = colorPicker.getValue();
-		this.color2 = oldColor;
-		this.colorPicker = colorPicker;
-	}
-
-	@Override
-	public boolean invert() {
-		Color temp = color1;
-		color1 = color2;
-		color2 = temp;
-		
-		colorPicker.setValue(color1);
-		node.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ color1.toString().substring(2, color1.toString().length() - 2) + ";");
-		return true;
-	}
-	
-	@Override
-	public String toString() {
-		return "Change Colour";
+		return "Change Title";
 	}
 }

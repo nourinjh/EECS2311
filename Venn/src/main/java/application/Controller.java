@@ -44,6 +44,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -61,9 +62,11 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.SelectionMode;
@@ -208,7 +211,7 @@ public class Controller {
 	private ColorPicker colorTitles;
 
 	@FXML
-	private MenuItem deleteItemMenu;
+	private MenuItem deleteMenu;
 	@FXML
 	private Button deleteButton;
 	
@@ -222,7 +225,9 @@ public class Controller {
 	private Button redoButton;
 	
 	@FXML
-	private Button clearButton;
+	private MenuItem removeMenu;
+	@FXML
+	private Button removeButton;
 	@FXML
 	private Button saveButton;
 	@FXML
@@ -307,17 +312,24 @@ public class Controller {
 						this.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
 								new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
-					if (selectedItems.size() != 1) {
-						deleteItemMenu.setText("Delete Selected Items");
-						deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
-					} else {
-						deleteItemMenu.setText("Delete Selected Item");
-						deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
-					}
 				} catch (Exception e) {
 					removeFocus();
 				}
 			});
+			
+//			ContextMenu contextMenu = new ContextMenu();
+//			MenuItem delete = new MenuItem();
+//			delete.setOnAction(event -> deleteMenu.fire());
+//			MenuItem remove = new MenuItem();
+//			remove.setOnAction(event -> removeMenu.fire());
+//			contextMenu.getItems().add(delete);
+//			contextMenu.getItems().add(remove);
+//			
+//			this.setOnContextMenuRequested(event -> {
+//				delete.setText(deleteMenu.getText());
+//				remove.setText(removeMenu.getText());
+//				contextMenu.show(this, this.getBoundsInParent().getMinX(), this.getBoundsInParent().getMinY());
+//			});
 
 			this.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
@@ -692,7 +704,7 @@ public class Controller {
 				System.err.println("DraggableImage could not be created");
 				e.printStackTrace();
 			}
-			
+						
 			this.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2) {
 					Alert a = new Alert(AlertType.INFORMATION);
@@ -1265,18 +1277,21 @@ public class Controller {
 	}
 
 	@FXML
-	private void clearDiagram() {
+	private void removeSelectedItems() {
+		String message = selectedItems.size() == 1 ? "Remove Selected Item from Diagram" : "Remove Selected Items from Diagram";
 		List<Action> actionList= new ArrayList<Action>();
-		for (DraggableItem d : itemsInDiagram) {
+		for (DraggableItem d : selectedItems) {
 			actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 			if (d != null) {
 				itemsList.getItems().add(d.getText());
 				frameRect.getChildren().remove(d); 
+				if (imagesInDiagram.contains(d.getText())) {
+					imagesInDiagram.remove(d.getText());
+				}
 			}
 		}
-		itemsInDiagram.clear();
-		imagesInDiagram.clear();
-		changesMade(new ActionGroup(actionList, "Clear Diagram"));
+		removeFocus();
+		changesMade(new ActionGroup(actionList, message));
 	}
 	
 	private void removeOrphanedImages() {
@@ -2461,7 +2476,6 @@ public class Controller {
 		for (DraggableItem d : itemsInDiagram) {
 			multiSelect = true;
 			d.requestFocus();
-			selectedItems.add(d);
 		}
 		multiSelect = false;
 	}
@@ -2673,7 +2687,7 @@ public class Controller {
 			if (!title.textProperty().getValueSafe().contentEquals(titleText)) {
 				String newText = title.textProperty().getValueSafe();
 				if (newText.length() <= 30) {
-					changesMade(new ChangedTitleAction(title, titleText, newText));
+					changesMade(new TypeInFieldAction(title, titleText, newText));
 					titleText = newText;
 				} else {
 					int pos = title.getCaretPosition();
@@ -2693,7 +2707,7 @@ public class Controller {
 			if (!circleLeftTitle.textProperty().getValueSafe().contentEquals(leftText)) {
 				String newText = circleLeftTitle.textProperty().getValueSafe();
 				if (newText.length() <= 26) {
-					changesMade(new ChangedTitleAction(circleLeftTitle, leftText, newText));
+					changesMade(new TypeInFieldAction(circleLeftTitle, leftText, newText));
 					leftText = newText;
 				} else {
 					int pos = circleLeftTitle.getCaretPosition();
@@ -2713,7 +2727,7 @@ public class Controller {
 			if (!circleRightTitle.textProperty().getValueSafe().contentEquals(rightText)) {
 				String newText = circleRightTitle.textProperty().getValueSafe();
 				if (newText.length() <= 26) {
-					changesMade(new ChangedTitleAction(circleRightTitle, rightText, newText));
+					changesMade(new TypeInFieldAction(circleRightTitle, rightText, newText));
 					rightText = newText;
 				} else {
 					int pos = circleRightTitle.getCaretPosition();
@@ -2734,7 +2748,7 @@ public class Controller {
 		addItemField.setOnKeyReleased(event -> {
 			if (!addItemField.textProperty().getValueSafe().contentEquals(addFieldText)) {
 				String newText = addItemField.textProperty().getValueSafe();
-				changesMade(new ChangedTitleAction(addItemField, addFieldText, newText));
+				changesMade(new TypeInFieldAction(addItemField, addFieldText, newText));
 				addFieldText = newText;
 			}
 		});
@@ -2746,7 +2760,7 @@ public class Controller {
 						Math.max(frameRect.getBoundsInParent().getMaxY(), newBounds.getHeight()));
 			}
 		});
-		
+				
 		leftSizeSlider.setOnMouseClicked(event -> {
 			leftScale = circleLeft.getScaleX();
 			Controller.trackChanges = false;
@@ -2769,6 +2783,69 @@ public class Controller {
 			changeSizeRight();
 			changesMade(new ChangeCircleSizeAction(circleRight, rightScale, rightSizeSlider, rightSizeField));
 			rightScale = rightSizeSlider.getValue() / 100;
+		});
+		
+		selectedItems.addListener(new ListChangeListener<DraggableItem>() {
+	        @Override
+	        public void onChanged(ListChangeListener.Change<? extends DraggableItem> c) {
+//	            System.out.println("Changed on " + c);
+//	            if(c.next()){
+//	                System.out.println(c.getFrom());
+//	            }
+	        	if (selectedItems.size() == 1) {
+					removeMenu.setText("Remove Selected Item from Diagram");
+					removeButton.setTooltip(new Tooltip("Remove Selected Item from Diagram"));
+	        	} else {
+					removeMenu.setText("Remove Selected Items from Diagram");
+					removeButton.setTooltip(new Tooltip("Remove Selected Items from Diagram"));
+	        	}
+	        	if (selectedItems.size() < 1) {
+	        		removeButton.setDisable(true);
+	        		removeMenu.setDisable(true);
+	        	} else {
+	        		removeButton.setDisable(false);
+	        		removeMenu.setDisable(false);
+	        	}
+        		if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() == 1) {
+					deleteMenu.setText("Delete Selected Item");
+					deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
+        		} else {
+					deleteMenu.setText("Delete Selected Items");
+					deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
+        		}
+	        	if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() < 1) {
+	        		deleteButton.setDisable(true);
+	        		deleteMenu.setDisable(true);
+	        	} else {
+	        		deleteButton.setDisable(false);
+	        		deleteMenu.setDisable(false);
+	        	}
+	        }
+	    });
+		
+		itemsList.getSelectionModel().selectedIndexProperty().addListener(listener -> {
+    		if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() == 1) {
+				deleteMenu.setText("Delete Selected Item");
+				deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
+    		} else {
+				deleteMenu.setText("Delete Selected Items");
+				deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
+    		}
+        	if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() < 1) {
+        		deleteButton.setDisable(true);
+        		deleteMenu.setDisable(true);
+        	} else {
+        		deleteButton.setDisable(false);
+        		deleteMenu.setDisable(false);
+        	}
+		});		
+		
+		addItemField.focusedProperty().addListener(listener -> {
+			itemsList.getSelectionModel().clearSelection();
+		});
+		
+		addItemField.textProperty().addListener(listener -> {
+			
 		});
 
 		for (Node n : pane.getChildren()) {
