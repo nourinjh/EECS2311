@@ -155,7 +155,7 @@
           </Menu>
         </menus>
       </MenuBar>
-      <ScrollPane fx:id="scrollPane" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
+      <ScrollPane fx:id="scrollPane" hvalue="0.5" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" vvalue="0.5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
          <content>
             <StackPane fx:id="scrollContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="730.0" prefWidth="870.0">
                <children>
