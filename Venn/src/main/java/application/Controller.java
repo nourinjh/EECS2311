@@ -62,11 +62,9 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.SelectionMode;
@@ -2632,6 +2630,7 @@ public class Controller {
 						Main.primaryStage.close();
 					}
 				});
+				
 								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
 				double width = Math.min(Toolkit.getDefaultToolkit().getScreenSize().width - 100, Main.primaryStage.getMaxWidth());
