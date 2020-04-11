@@ -201,7 +201,7 @@ public class Controller {
 	private ToolBar toolBar;
 
 	@FXML
-	private Pane frameRect;
+	private Pane diagram;
 
 	@FXML
 	private ColorPicker colorBackground;
@@ -590,7 +590,7 @@ public class Controller {
 									} else {
 										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
 									}
-									frameRect.getChildren().remove(selectedItems.get(i));
+									diagram.getChildren().remove(selectedItems.get(i));
 									itemsInDiagram.remove(selectedItems.get(i));
 									itemsList.getItems().add(selectedItems.get(i).getText());
 								}
@@ -610,7 +610,7 @@ public class Controller {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {
+				diagram.setOnMouseClicked(mouseEvent2 -> {
 				});
 				pane.setOnMouseClicked(mouseEvent2 -> {
 				});
@@ -620,7 +620,7 @@ public class Controller {
 					getScene().setCursor(Cursor.DEFAULT);
 				mouseEvent.consume();
 
-				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				diagram.setOnMouseClicked(mouseEvent2 -> removeFocus());
 				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
 			});
 		}
@@ -903,7 +903,7 @@ public class Controller {
 									} else {
 										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
 									}
-									frameRect.getChildren().remove(selectedItems.get(i));
+									diagram.getChildren().remove(selectedItems.get(i));
 									itemsInDiagram.remove(selectedItems.get(i));
 									itemsList.getItems().add(selectedItems.get(i).getText());
 								}
@@ -924,7 +924,7 @@ public class Controller {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
+				diagram.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
 				pane.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
 			});
 			setOnMouseExited(mouseEvent -> {
@@ -932,7 +932,7 @@ public class Controller {
 					getScene().setCursor(Cursor.DEFAULT);
 				mouseEvent.consume();
 
-				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				diagram.setOnMouseClicked(mouseEvent2 -> removeFocus());
 				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
 			});
 		}
@@ -1009,14 +1009,14 @@ public class Controller {
 
 	@FXML
 	private void zoomIn() {
-		if (frameRect.getScaleX() < 1) {
-			frameRect.setScaleX(frameRect.getScaleX() + 0.1);
-			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
+		if (diagram.getScaleX() < 1) {
+			diagram.setScaleX(diagram.getScaleX() + 0.1);
+			diagram.setScaleY(diagram.getScaleY() + 0.1);
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
-					frameRect.setLayoutX(frameRect.getLayoutX() + frameRect.getScaleX() * 100);
-					frameRect.setLayoutY(frameRect.getLayoutY() + frameRect.getScaleY() * 100);
+					diagram.setLayoutX(diagram.getLayoutX() + diagram.getScaleX() * 100);
+					diagram.setLayoutY(diagram.getLayoutY() + diagram.getScaleY() * 100);
 					scrollContent.setPrefSize(
 							Math.max(scrollContent.getBoundsInParent().getMaxX(),
 									scrollPane.getViewportBounds().getWidth()),
@@ -1029,9 +1029,9 @@ public class Controller {
 
 	@FXML
 	private void zoomOut() {
-		if (frameRect.getScaleX() > 0.5) {
-			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
-			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
+		if (diagram.getScaleX() > 0.5) {
+			diagram.setScaleX(diagram.getScaleX() - 0.1);
+			diagram.setScaleY(diagram.getScaleY() - 0.1);
 			Platform.runLater(new Runnable() {
 				@Override
 				public void run() {
@@ -1047,8 +1047,8 @@ public class Controller {
 		
 	@FXML
 	private void zoomActualSize() {
-		frameRect.setScaleX(1);
-		frameRect.setScaleY(1);
+		diagram.setScaleX(1);
+		diagram.setScaleY(1);
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -1066,7 +1066,7 @@ public class Controller {
 			itemsList.getItems().add(newItem);
 		}
 		addItemField.setText("");
-		changesMade(new AddItemToListAction(newItem, itemsList, addItemField));
+		changesMade(new AddToListAction(newItem, itemsList, addItemField));
 	}
 
 	@FXML
@@ -1126,7 +1126,7 @@ public class Controller {
 					((DraggableImage) d).deleteImage();
 					imagesInDiagram.remove(d.getText());
 				}
-				frameRect.getChildren().remove(d);
+				diagram.getChildren().remove(d);
 				itemsInDiagram.remove(d);
 			}
 			String message = selectedItems.size() == 1 ? "Delete Item" : "Delete Items";
@@ -1216,11 +1216,11 @@ public class Controller {
 		String mainTitle = title.getText();
 		String leftTitle = circleLeftTitle.getText();
 		String rightTitle = circleRightTitle.getText();
-		double scale = frameRect.getScaleX();
+		double scale = diagram.getScaleX();
 		try {
 			// Set scale to 1 temporarily so screenshot is right resolution
-			frameRect.setScaleX(1);
-			frameRect.setScaleY(1);
+			diagram.setScaleX(1);
+			diagram.setScaleY(1);
 			// If the diagram has a title, make that the default title of the image
 			String name = title.getText();
 			if (name.contentEquals("")) {
@@ -1242,11 +1242,11 @@ public class Controller {
 			name += ".png";
 			// Do the snapshot
 			double pixelScale = 2.0;
-		    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*frameRect.getWidth()), (int)Math.rint(pixelScale*frameRect.getHeight()));
+		    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*diagram.getWidth()), (int)Math.rint(pixelScale*diagram.getHeight()));
 		    SnapshotParameters spa = new SnapshotParameters();
 		    spa.setFill(colorBackground.getValue());
 		    spa.setTransform(Transform.scale(pixelScale, pixelScale));
-		    WritableImage capture = frameRect.snapshot(spa, writableImage); 
+		    WritableImage capture = diagram.snapshot(spa, writableImage); 
 		    // Select the file location, and save the file
 		    FileChooser fc = new FileChooser();
 		    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files (*.png)", "*.png"));
@@ -1266,8 +1266,8 @@ public class Controller {
 			a.show();
 		}
 		// Put scale, titles, and change state back to the way they were before taking the screenshot
-		frameRect.setScaleX(scale);
-		frameRect.setScaleY(scale);
+		diagram.setScaleX(scale);
+		diagram.setScaleY(scale);
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
@@ -1282,7 +1282,7 @@ public class Controller {
 			actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 			if (d != null) {
 				itemsList.getItems().add(d.getText());
-				frameRect.getChildren().remove(d); 
+				diagram.getChildren().remove(d); 
 				if (imagesInDiagram.contains(d.getText())) {
 					imagesInDiagram.remove(d.getText());
 				}
@@ -1639,8 +1639,8 @@ public class Controller {
 			this.rightScale = rightScale;
 			this.itemsList.getItems().clear();
 			this.itemsList.getItems().addAll(unassignedItems);
-			this.frameRect.getChildren().removeAll(this.itemsInDiagram);
-			this.frameRect.getChildren().addAll(inDiagram);
+			this.diagram.getChildren().removeAll(this.itemsInDiagram);
+			this.diagram.getChildren().addAll(inDiagram);
 			this.itemsInDiagram.clear();
 			this.itemsInDiagram.addAll(inDiagram);
 			this.imagesInDiagram.clear();
@@ -1765,7 +1765,7 @@ public class Controller {
 		changeSizeRight();
 		leftScale = 1;
 		rightScale = 1;
-		frameRect.getChildren().removeAll(itemsInDiagram);
+		diagram.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
 		imagesInDiagram.clear();
 		for (File f : itemImages) {
@@ -2008,7 +2008,7 @@ public class Controller {
 	}
 	
 	private void doTheImageImport(File file) {
-		doTheImageImport(file, frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 + 50);
+		doTheImageImport(file, diagram.getWidth()/2 - 50, diagram.getHeight()/2 + 50);
 		changesMade(new ImportImageAction());
 	}
 	
@@ -2378,7 +2378,7 @@ public class Controller {
 		itemsList.getItems().addAll(addedItems);
 		List<Action> actionList = new ArrayList<Action>();
 		for (String s : addedItems) {
-			Action a = new AddItemToListAction(s, itemsList, null);
+			Action a = new AddToListAction(s, itemsList, null);
 			actionList.add(a);
 		}
 		changesMade(new ActionGroup(actionList, "Import CSV File"));
@@ -2443,10 +2443,10 @@ public class Controller {
 			// Otherwise just add the text to the diagram
 			a = new DraggableItem(x, y, text);
 			if (a.checkBounds()) {
-				frameRect.getChildren().add(a);
+				diagram.getChildren().add(a);
 				itemsInDiagram.add(a);
 				a.toFront();
-				changesMade(new AddItemToDiagramAction(a, x, y, itemsInDiagram, itemsList));
+				changesMade(new AddItemAction(a, x, y, itemsInDiagram, itemsList));
 				return true;
 			} else {
 				return false;
@@ -2458,11 +2458,11 @@ public class Controller {
 		// Returns true if item was added, false otherwise
 		DraggableImage a = new DraggableImage(x, y, title, imageFile);
 		if (a.checkBounds()) {
-			frameRect.getChildren().add(a);
+			diagram.getChildren().add(a);
 			itemsInDiagram.add(a);
 			imagesInDiagram.add(title);
 			a.toFront();
-			changesMade(new AddItemToDiagramAction(a, x, y, itemsInDiagram, itemsList, imagesInDiagram));
+			changesMade(new AddItemAction(a, x, y, itemsInDiagram, itemsList, imagesInDiagram));
 			return true;
 		} else {
 			return false;
@@ -2594,11 +2594,11 @@ public class Controller {
 				doTheNew();
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
-				frameRect.setOnMouseReleased(mouseEvent -> {
-					frameRect.getScene().setCursor(Cursor.DEFAULT);
+				diagram.setOnMouseReleased(mouseEvent -> {
+					diagram.getScene().setCursor(Cursor.DEFAULT);
 					mouseEvent.consume();
 				});
-				
+								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
 				pane.getScene().getWindow().setOnCloseRequest(event -> {
 					if (changesMade) {
@@ -2755,8 +2755,8 @@ public class Controller {
 		scrollPane.viewportBoundsProperty().addListener(new ChangeListener<Bounds>() {
 			@Override
 			public void changed(ObservableValue<? extends Bounds> observableValue, Bounds oldBounds, Bounds newBounds) {
-				scrollContent.setPrefSize(Math.max(frameRect.getBoundsInParent().getMaxX(), newBounds.getWidth()),
-						Math.max(frameRect.getBoundsInParent().getMaxY(), newBounds.getHeight()));
+				scrollContent.setPrefSize(Math.max(diagram.getBoundsInParent().getMaxX(), newBounds.getWidth()),
+						Math.max(diagram.getBoundsInParent().getMaxY(), newBounds.getHeight()));
 			}
 		});
 				
@@ -2850,7 +2850,7 @@ public class Controller {
 		for (Node n : pane.getChildren()) {
 			n.setFocusTraversable(false);
 		}
-		for (Node n : frameRect.getChildren()) {
+		for (Node n : diagram.getChildren()) {
 			n.setFocusTraversable(false);
 		}
 		

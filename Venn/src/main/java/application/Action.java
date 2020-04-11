@@ -1,5 +1,11 @@
 package application;
 
+/**
+ * 
+ * @author Andrew Hocking
+ * 
+ */
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +29,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public interface Action {
+interface Action {
 	
 	public boolean invert();
 	public String toString();
@@ -65,14 +71,14 @@ class ActionGroup implements Action {
 	}
 }
 
-class AddItemToDiagramAction extends RemoveItemAction implements Action {
+class AddItemAction extends RemoveItemAction implements Action {
 
-	public AddItemToDiagramAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
+	public AddItemAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList) {
 		this(item, x, y, itemsInDiagram, itemsList, null);
 	}
 	
-	public AddItemToDiagramAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
+	public AddItemAction(DraggableItem item, double x, double y, ObservableList<DraggableItem> itemsInDiagram,
 			ListView<String> itemsList, ObservableList<String> imagesInDiagram) {
 		super(item, x, y, itemsInDiagram, itemsList, imagesInDiagram);
 		inDiagram = true;
@@ -84,14 +90,14 @@ class AddItemToDiagramAction extends RemoveItemAction implements Action {
 	}
 }
 
-class AddItemToListAction implements Action {
+class AddToListAction implements Action {
 	
 	private String item;
 	private ListView<String> itemsList;
 	private TextField addItemField;
 	private boolean added;
 
-	public AddItemToListAction(String item, ListView<String> itemsList, TextField addItemField) {
+	public AddToListAction(String item, ListView<String> itemsList, TextField addItemField) {
 		this.item = item;
 		this.itemsList= itemsList;
 		this.addItemField = addItemField;

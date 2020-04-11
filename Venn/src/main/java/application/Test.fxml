@@ -159,7 +159,7 @@
          <content>
             <StackPane fx:id="scrollContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="730.0" prefWidth="870.0">
                <children>
-                  <Pane fx:id="frameRect" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
+                  <Pane fx:id="diagram" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
                      <children>
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="293.0" layoutY="436.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="592.0" layoutY="435.0" radius="230.0" strokeType="INSIDE" />
