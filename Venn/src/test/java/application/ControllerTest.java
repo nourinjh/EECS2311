@@ -205,6 +205,16 @@ public class ControllerTest extends ApplicationTest {
 	// test colour picker
 	@Test
 	public void testColourPickers() {
+		clickOn("#title");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("Title");
+		clickOn("#circleLeftTitle");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("Left");
+		clickOn("#circleRightTitle");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("Right");
+		WaitForAsyncUtils.waitForFxEvents();
 		
 		for (int i = 1; i <= 3; i++) {
 			clickOn("#addItemField");
@@ -221,16 +231,6 @@ public class ControllerTest extends ApplicationTest {
 		drag("Item 2").moveTo("#circleLeft").dropBy(((Circle)(find("#circleLeft"))).getBoundsInParent().getWidth() / 2 - 110, (Math.random() * 150) - 75);
 		WaitForAsyncUtils.waitForFxEvents();
 		drag("Item 3").moveTo("#circleRight").dropBy(-40, (Math.random() * 200) - 100);
-		WaitForAsyncUtils.waitForFxEvents();
-		clickOn("#title");
-		WaitForAsyncUtils.waitForFxEvents();
-		write("Title");
-		clickOn("#circleLeftTitle");
-		WaitForAsyncUtils.waitForFxEvents();
-		write("Left");
-		clickOn("#circleRightTitle");
-		WaitForAsyncUtils.waitForFxEvents();
-		write("Right");
 		WaitForAsyncUtils.waitForFxEvents();
 		clickOn("#settingsButton");
 		WaitForAsyncUtils.waitForFxEvents();
@@ -792,62 +792,82 @@ public class ControllerTest extends ApplicationTest {
 		Color lcrcl = (Color) ((Circle) find("#circleLeft")).getFill();
 		Color rcrcl = (Color) ((Circle) find("#circleRight")).getFill();
 		
-//		testColourPickers();
-//		WaitForAsyncUtils.waitForFxEvents();
-//		
-//		String bg2 = ((Pane) find("#pane")).getStyle();
-//		String ttl2 = ((TextField) find("#title")).getStyle();
-//		String lttl2 = ((TextField) find("#circleLeftTitle")).getStyle();
-//		String rttl2 = ((TextField) find("#circleRightTitle")).getStyle();
-//		Color lcrcl2 = (Color) ((Circle) find("#circleLeft")).getFill();
-//		Color rcrcl2 = (Color) ((Circle) find("#circleRight")).getFill();
-//		String ttl2txt = ((TextField) find("#title")).getText();
-//		String lttl2txt = ((TextField) find("#circleLeftTitle")).getText();
-//		String rttl2txt = ((TextField) find("#circleRightTitle")).getText();
-//		
-//		assertNotEquals(bg, bg2);
-//		assertNotEquals(ttl, ttl2);
-//		assertNotEquals(lttl, lttl2);
-//		assertNotEquals(rttl, rttl2);
-//		assertNotEquals(lcrcl, lcrcl2);
-//		assertNotEquals(rcrcl, rcrcl2);
-//		assertNotEquals("", ttl2txt);
-//		assertNotEquals("", lttl2txt);
-//		assertNotEquals("", rttl2txt);
-//		
-//		
-//		// INFINITE LOOP
-//		while (!((Button) find("#undoButton")).isDisabled()) {
+		testColourPickers();
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#settingsButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		testCircleSize();
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		String bg2 = ((Pane) find("#pane")).getStyle();
+		String ttl2 = ((TextField) find("#title")).getStyle();
+		String lttl2 = ((TextField) find("#circleLeftTitle")).getStyle();
+		String rttl2 = ((TextField) find("#circleRightTitle")).getStyle();
+		Color lcrcl2 = (Color) ((Circle) find("#circleLeft")).getFill();
+		Color rcrcl2 = (Color) ((Circle) find("#circleRight")).getFill();
+		String ttl2txt = ((TextField) find("#title")).getText();
+		String lttl2txt = ((TextField) find("#circleLeftTitle")).getText();
+		String rttl2txt = ((TextField) find("#circleRightTitle")).getText();
+		double lcs = ((Circle) find("#circleLeft")).getScaleX();
+		double rcs = ((Circle) find("#circleRight")).getScaleX();
+		
+		assertNotEquals(bg, bg2);
+		assertNotEquals(ttl, ttl2);
+		assertNotEquals(lttl, lttl2);
+		assertNotEquals(rttl, rttl2);
+		assertNotEquals(lcrcl, lcrcl2);
+		assertNotEquals(rcrcl, rcrcl2);
+		assertNotEquals("", ttl2txt);
+		assertNotEquals("", lttl2txt);
+		assertNotEquals("", rttl2txt);
+		assertNotEquals(1.0, lcs);
+		assertNotEquals(1.0, rcs);
+		
+//		int count = 0;
+//		while (!((TextField) find("#title")).getText().equals("")) {
 //			clickOn("#undoButton");
 //			WaitForAsyncUtils.waitForFxEvents();
+//			count++;
 //		}
-//		
-//		assertEquals(bg, ((Pane) find("#pane")).getStyle());
-//		assertEquals(ttl, ((TextField) find("#title")).getStyle());
-//		assertEquals(lttl, ((TextField) find("#circleLeftTitle")).getStyle());
-//		assertEquals(rttl, ((TextField) find("#circleRightTitle")).getStyle());
-//		assertEquals(lcrcl, (Color) ((Circle) find("#circleLeft")).getFill());
-//		assertEquals(rcrcl, (Color) ((Circle) find("#circleRight")).getFill());
-//		assertEquals("", ttl2txt);
-//		assertEquals("", lttl2txt);
-//		assertEquals("", rttl2txt);
-//		
-//		
-//		// INFINITE LOOP
-//		while (!((Button) find("#redoButton")).isDisabled()) {
-//			clickOn("#undoButton");
+		
+		while (!((Button) find("#undoButton")).isDisabled()) {
+			clickOn("#undoButton");
+			WaitForAsyncUtils.waitForFxEvents();
+		}
+		
+		assertEquals(bg, ((Pane) find("#pane")).getStyle());
+		assertEquals(ttl, ((TextField) find("#title")).getStyle());
+		assertEquals(lttl, ((TextField) find("#circleLeftTitle")).getStyle());
+		assertEquals(rttl, ((TextField) find("#circleRightTitle")).getStyle());
+		assertEquals(lcrcl, (Color) ((Circle) find("#circleLeft")).getFill());
+		assertEquals(rcrcl, (Color) ((Circle) find("#circleRight")).getFill());
+		assertEquals("", ((TextField) find("#title")).getText());
+		assertEquals("", ((TextField) find("#circleLeftTitle")).getText());
+		assertEquals("", ((TextField) find("#circleRightTitle")).getText());
+		assertEquals(1.0, ((Circle) find("#circleLeft")).getScaleX(), 0.01);
+		assertEquals(1.0, ((Circle) find("#circleRight")).getScaleX(), 0.01);
+		
+//		for (int i = 0; i < count; i++) {
+//			clickOn("#redoButton");
 //			WaitForAsyncUtils.waitForFxEvents();
 //		}
-//		
-//		assertEquals(bg2, ((Pane) find("#pane")).getStyle());
-//		assertEquals(ttl2, ((TextField) find("#title")).getStyle());
-//		assertEquals(lttl2, ((TextField) find("#circleLeftTitle")).getStyle());
-//		assertEquals(rttl2, ((TextField) find("#circleRightTitle")).getStyle());
-//		assertEquals(lcrcl2, (Color) ((Circle) find("#circleLeft")).getFill());
-//		assertEquals(rcrcl2, (Color) ((Circle) find("#circleRight")).getFill());
-//		assertEquals(ttl2txt, ((TextField) find("#title")).getText());
-//		assertEquals(lttl2txt, ((TextField) find("#circleLeftTitle")).getText());
-//		assertEquals(rttl2txt, ((TextField) find("#circleRightTitle")).getText());
+		
+		while (!((Button) find("#redoButton")).isDisabled()) {
+			clickOn("#redoButton");
+			WaitForAsyncUtils.waitForFxEvents();
+		}
+		
+		assertEquals(bg2, ((Pane) find("#pane")).getStyle());
+		assertEquals(ttl2, ((TextField) find("#title")).getStyle());
+		assertEquals(lttl2, ((TextField) find("#circleLeftTitle")).getStyle());
+		assertEquals(rttl2, ((TextField) find("#circleRightTitle")).getStyle());
+		assertEquals(lcrcl2, (Color) ((Circle) find("#circleLeft")).getFill());
+		assertEquals(rcrcl2, (Color) ((Circle) find("#circleRight")).getFill());
+		assertEquals(ttl2txt, ((TextField) find("#title")).getText());
+		assertEquals(lttl2txt, ((TextField) find("#circleLeftTitle")).getText());
+		assertEquals(rttl2txt, ((TextField) find("#circleRightTitle")).getText());
+		assertEquals(lcs, ((Circle) find("#circleLeft")).getScaleX(), 0.01);
+		assertEquals(rcs, ((Circle) find("#circleRight")).getScaleX(), 0.01);
 	}
 	
 	private void sleep() {
