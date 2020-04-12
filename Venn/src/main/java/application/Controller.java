@@ -110,11 +110,11 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class Controller {
 
 	private final String VERSION = "1.3";
+//	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
 	private final String DEFAULT_TITLE_COLOR = "0xffffff";
 	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
 	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
-//	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
@@ -139,6 +139,7 @@ public class Controller {
 	@FXML
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
 	private ObservableList<String> imagesInDiagram = FXCollections.observableArrayList();
+	@FXML
 	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList();
 	private List<File> itemImages = new ArrayList<File>();
 
@@ -150,10 +151,10 @@ public class Controller {
 	private Stack<Action> undoStack = new Stack<Action>();
 	private Stack<Action> redoStack = new Stack<Action>();
 
-	private Color backgroundColor = Color.web(DEFAULT_BACKGROUND_COLOR);
-	private Color titleColor = Color.web(DEFAULT_TITLE_COLOR);
 //	private Color leftBackgroundColor = Color.web(DEFAULT_LEFT_COLOR);
 //	private Color rightBackgroundColor = Color.web(DEFAULT_RIGHT_COLOR);
+	private Color backgroundColor = Color.web(DEFAULT_BACKGROUND_COLOR);
+	private Color titleColor = Color.web(DEFAULT_TITLE_COLOR);
 	private Color leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
 	private Color rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
 	private Color intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
@@ -190,10 +191,10 @@ public class Controller {
 	private Slider rightSizeSlider;
 	@FXML
 	private TextField rightSizeField;
-//	@FXML
-//	private ColorPicker colorIntersection;
 	@FXML
 	private ColorPicker colorIntersectionItems;
+//	@FXML
+//	private ColorPicker colorIntersection;
 
 	@FXML
 	private MenuBar menuBar;
@@ -425,11 +426,13 @@ public class Controller {
 
 					TextField textField = new TextField(this.getText());
 					textField.setPromptText("Enter a title for this item");
+					textField.setId("itemTitle");
 
 					TextArea textArea = new TextArea(description);
 					textArea.setPromptText("Enter a description for this item");
 					textArea.setEditable(true);
 					textArea.setWrapText(true);
+					textArea.setId("itemDescription");
 
 					textArea.setMaxWidth(Double.MAX_VALUE);
 					textArea.setMaxHeight(Double.MAX_VALUE);
@@ -583,7 +586,6 @@ public class Controller {
 							for (int i = selectedItems.size() - 1; i >= 0; i--) {
 								if (!removed.contains(selectedItems.get(i).getText())) {
 									removed.add(selectedItems.get(i).getText());
-									System.out.println("Remove \"" + selectedItems.get(i).getText() + "\"");
 									if (selectedItems.get(i) instanceof DraggableImage) {
 										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
 										imagesInDiagram.remove(selectedItems.get(i).getText());
@@ -891,15 +893,9 @@ public class Controller {
 							for (int i = selectedItems.size() - 1; i >= 0; i--) {
 								if (!removed.contains(selectedItems.get(i).getText())) {
 									removed.add(selectedItems.get(i).getText());
-									System.out.println("Remove \"" + selectedItems.get(i).getText() + "\"");
 									if (selectedItems.get(i) instanceof DraggableImage) {
 										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
-										System.out.print("Before:\n(");
-										imagesInDiagram.forEach(each -> System.out.print(each + ","));
-										System.out.print(")\n\nAfter:\n(");
 										imagesInDiagram.remove(selectedItems.get(i).getText());
-										imagesInDiagram.forEach(each -> System.out.print(each + ","));
-										System.out.println(")");
 									} else {
 										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
 									}
@@ -952,6 +948,14 @@ public class Controller {
 
 	}
 	
+	public void changeWindowTitle(String title) {
+		try {
+			Main.primaryStage.setTitle(title);
+		} catch (Exception e) {
+			System.err.println("Main.primaryStage not found");
+		}
+	}
+	
 	private void changesMade(Action action) {
 		if (Controller.trackChanges) {
 			redoStack.clear();
@@ -961,7 +965,7 @@ public class Controller {
 			undoMenu.setText("Undo " + action.toString());
 			if (!changesMade && openFile != null)
 	//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-				Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+				 changeWindowTitle(openFile.getName() + " (Edited) - Venn");
 			changesMade = true;
 		}
 	}
@@ -983,7 +987,7 @@ public class Controller {
 			pushMenu.setText(pushString + " " + action.toString());
 			if (!changesMade && openFile != null)
 	//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-				Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
+				 changeWindowTitle(openFile.getName() + " (Edited) - Venn");
 			changesMade = true;
 			if (popStack.isEmpty()) {
 				popMenu.setDisable(true);
@@ -1423,7 +1427,7 @@ public class Controller {
 
 			openFile = selectedFile;
 //			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
+			 changeWindowTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1661,7 +1665,7 @@ public class Controller {
 			this.changesMade = false;
 			Controller.openFile = file;
 //			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
+			 changeWindowTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
 			removeOrphanedImages();
@@ -1758,6 +1762,8 @@ public class Controller {
 		leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
 		rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
 		intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
+		addItemField.setText("");
+		addFieldText = "";
 		updateTitleColors();
 		updateItemColors();
 		updateBackgroundColor();
@@ -1775,7 +1781,7 @@ public class Controller {
 		
 		openFile = null;
 //		XXX: Crashes JUnit test because there's no real "window" with TestFX
-		Main.primaryStage.setTitle("Venn");
+		 changeWindowTitle("Venn");
 		changesMade = false;
 		undoStack.clear();
 		redoStack.clear();
@@ -2616,29 +2622,44 @@ public class Controller {
 						Optional<ButtonType> result = a.showAndWait();
 						if (result.get().equals(dontSaveButton)) {
 							event.consume();
-							Main.primaryStage.close();
+							try {
+								Main.primaryStage.close();
+							} catch (Exception e) {
+								System.err.println("Main.primaryStage not found");
+							}
 						} else if (result.get().equals(saveButton)) {
 							save();
 							event.consume();
-							Main.primaryStage.close();
+							try {
+								Main.primaryStage.close();
+							} catch (Exception e) {
+								System.err.println("Main.primaryStage not found");
+							}
 						} else {
 							event.consume();
 						}
 						a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
 					} else {
 						event.consume();
-						Main.primaryStage.close();
+						try {
+							Main.primaryStage.close();
+						} catch (Exception e) {
+							System.err.println("Main.primaryStage not found");
+						}
 					}
 				});
 				
 								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
-				double width = Math.min(Toolkit.getDefaultToolkit().getScreenSize().width - 100, Main.primaryStage.getMaxWidth());
-				double height = Math.min(Toolkit.getDefaultToolkit().getScreenSize().height - 100, Main.primaryStage.getMaxHeight());
-				Main.primaryStage.setWidth(width);
-				Main.primaryStage.setHeight(height);
-				Main.primaryStage.getScene().getWindow().centerOnScreen();
-
+				try {
+					double width = Math.min(Toolkit.getDefaultToolkit().getScreenSize().width - 100, Main.primaryStage.getMaxWidth());
+					double height = Math.min(Toolkit.getDefaultToolkit().getScreenSize().height - 100, Main.primaryStage.getMaxHeight());
+					Main.primaryStage.setWidth(width);
+					Main.primaryStage.setHeight(height);
+					Main.primaryStage.getScene().getWindow().centerOnScreen();
+				} catch (Exception e) {
+					System.err.println("Main.primaryStage not found");
+				}
 			}
 		});
 		
@@ -2787,10 +2808,6 @@ public class Controller {
 		selectedItems.addListener(new ListChangeListener<DraggableItem>() {
 	        @Override
 	        public void onChanged(ListChangeListener.Change<? extends DraggableItem> c) {
-//	            System.out.println("Changed on " + c);
-//	            if(c.next()){
-//	                System.out.println(c.getFrom());
-//	            }
 	        	if (selectedItems.size() == 1) {
 					removeMenu.setText("Remove Selected Item from Diagram");
 					removeButton.setTooltip(new Tooltip("Remove Selected Item from Diagram"));
@@ -2854,11 +2871,15 @@ public class Controller {
 			n.setFocusTraversable(false);
 		}
 		
+		try {
 //		XXX: Crashes JUnit test because there's no real "window" with TestFX
-		Main.primaryStage.setMinWidth(800);
-		Main.primaryStage.setMinHeight(400);
-		Main.primaryStage.setMaxWidth(1280);
-		Main.primaryStage.setMaxHeight(822);
+			 Main.primaryStage.setMinWidth(800);
+			 Main.primaryStage.setMinHeight(400);
+			 Main.primaryStage.setMaxWidth(1280);
+			 Main.primaryStage.setMaxHeight(822);
+		} catch (Exception e) {
+			System.err.println("Main.primaryStage not found");
+		}
 		
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);
