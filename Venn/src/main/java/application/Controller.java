@@ -770,6 +770,7 @@ public class Controller {
 								textField.setText(textField.getText() + getImageExtension());
 							}
 							changesMade(new ChangeItemDetailsAction(this, this.getText(), this.getDescription(), textField.getText(), textArea.getText(), imagesInDiagram, itemImages, tempPath));
+							imagesInDiagram.remove(this.getText());
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
 							File newImageFile = new File(tempPath + "imgs" + File.separatorChar + textField.getText());
@@ -777,6 +778,7 @@ public class Controller {
 							this.imageFile = newImageFile;
 							this.imageFile.deleteOnExit();
 							itemImages.add(this.imageFile);
+							imagesInDiagram.add(this.getText());
 						}
 						setDescription(textArea.getText());
 						e.consume();
