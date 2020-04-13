@@ -147,6 +147,7 @@ public class Controller {
 	private List<String> rightItemsAnswers = new ArrayList<String>();
 	private List<String> intersectionItemsAnswers = new ArrayList<String>();
 	private List<String> unassignedItemsAnswers = new ArrayList<String>();
+	private List<String> acceptedImageTypes = new ArrayList<String>();
 	
 	private Stack<Action> undoStack = new Stack<Action>();
 	private Stack<Action> redoStack = new Stack<Action>();
@@ -678,6 +679,7 @@ public class Controller {
 		private ImageView image = new ImageView();
 		private File imageFile;
 		private final double MAX_WIDTH = 100;
+		private String extension;
 		
 		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
@@ -699,6 +701,7 @@ public class Controller {
 				this.text.setWrapText(false);
 				this.getChildren().add(this.image);
 				this.answerImage.toFront();
+				this.extension = this.getText().substring(this.getText().lastIndexOf('.'));
 				enableDrag();
 			} catch (Exception e) {
 				System.err.println("DraggableImage could not be created");
@@ -750,7 +753,7 @@ public class Controller {
 							save.setDisable(true);
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
-							String name = textField.getText().endsWith(".png") ? textField.getText() : textField.getText() + ".png";
+							String name = textField.getText().endsWith(getImageExtension()) ? textField.getText() : textField.getText() + getImageExtension();
 							if (!name.contentEquals(this.getText()) && new File(tempPath + "imgs" + File.separatorChar + name).exists()) {
 								save.setDisable(true);
 								a.headerTextProperty().setValue("An image called \"" + textField.getText() + "\" already exists");
@@ -763,8 +766,8 @@ public class Controller {
 					});
 					save.setOnAction(e -> {
 						if (!textField.getText().contentEquals(this.getText())) {
-							if (!textField.getText().endsWith(".png")) {
-								textField.setText(textField.getText() + ".png");
+							if (!textField.getText().endsWith(getImageExtension())) {
+								textField.setText(textField.getText() + getImageExtension());
 							}
 							changesMade(new ChangeItemDetailsAction(this, this.getText(), this.getDescription(), textField.getText(), textArea.getText(), imagesInDiagram, itemImages, tempPath));
 							this.text.setText(textField.getText());
@@ -944,6 +947,10 @@ public class Controller {
 		
 		public void setImageFile(File imageFile) {
 			this.imageFile = imageFile;
+		}
+		
+		public String getImageExtension() {
+			return this.extension;
 		}
 
 	}
@@ -1189,7 +1196,7 @@ public class Controller {
 					}
 				} else if (file.getName().endsWith(".vansr")) {
 					doTheAnswerImport(file);
-				} else if (file.getName().endsWith(".png")) {
+				} else if (acceptedImageTypes.contains(file.getName().substring(file.getName().lastIndexOf(".")))) {
 					doTheImageImport(file);
 				}
 			}
@@ -1961,14 +1968,19 @@ public class Controller {
 	private void importFile(String type) {
 		try {
 			FileChooser fc = new FileChooser();
-//			List<String> extensions = new ArrayList<String>();
-//			extensions.add("*.png");
-//			extensions.add("*.jpg");
-//			extensions.add("*.jpeg");
-
+			List<String> imgExtensions = new ArrayList<String>();
+			StringBuilder imageFilesString = new StringBuilder("Image files (");
+			for (int i = 0; i < acceptedImageTypes.size(); i++) {
+				imgExtensions.add("*" + acceptedImageTypes.get(i));
+				imageFilesString.append("*");
+				imageFilesString.append(acceptedImageTypes.get(i));
+				if (i < acceptedImageTypes.size() - 1)
+					imageFilesString.append(", ");
+			}
+			imageFilesString.append(")");
 			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
 			ExtensionFilter ansFilter = new ExtensionFilter("Venn Answer Key files (*.vansr)", "*.vansr");
-			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png)", "*.png");
+			ExtensionFilter imgFilter = new ExtensionFilter(imageFilesString.toString(), imgExtensions);
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
 			fc.getExtensionFilters().add(ansFilter);
@@ -2421,7 +2433,7 @@ public class Controller {
 						}
 					} else if (file.getName().endsWith(".vansr")) {
 						doTheAnswerImport(file);
-					} else if (file.getName().endsWith(".png")) {
+					} else if (acceptedImageTypes.contains(file.getName().substring(file.getName().lastIndexOf(".")))) {
 						doTheImageImport(file, event.getX(), event.getY());
 					}
 				}
@@ -2660,9 +2672,14 @@ public class Controller {
 				} catch (Exception e) {
 					System.err.println("Main.primaryStage not found");
 				}
+				acceptedImageTypes.add(".png");
+				acceptedImageTypes.add(".jpg");
+				acceptedImageTypes.add(".jpeg");
+				acceptedImageTypes.add(".gif");
+				acceptedImageTypes.add(".bmp");
 			}
 		});
-		
+				
 		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 			if (!hasFocus.booleanValue()) {
 				try {
