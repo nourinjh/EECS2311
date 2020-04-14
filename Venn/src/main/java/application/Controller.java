@@ -225,6 +225,15 @@ public class Controller {
 	private Button redoButton;
 	
 	@FXML
+	private MenuItem zoomInMenu;
+	@FXML
+	private MenuItem zoomOutMenu;
+	@FXML
+	private Button zoomInButton;
+	@FXML
+	private Button zoomOutButton;
+	
+	@FXML
 	private MenuItem removeMenu;
 	@FXML
 	private Button removeButton;
@@ -1038,6 +1047,12 @@ public class Controller {
 				}
 			});
 		}
+		if (diagram.getScaleX() >= 1){
+			zoomInButton.setDisable(true);
+			zoomInMenu.setDisable(true);
+		}
+		zoomOutButton.setDisable(false);
+		zoomOutMenu.setDisable(false);
 	}
 
 	@FXML
@@ -1056,6 +1071,12 @@ public class Controller {
 				}
 			});
 		}
+		if (diagram.getScaleX() <= 0.5){
+			zoomOutButton.setDisable(true);
+			zoomOutMenu.setDisable(true);
+		}
+		zoomInButton.setDisable(false);
+		zoomInMenu.setDisable(false);
 	}
 		
 	@FXML

@@ -120,7 +120,7 @@
           </Menu>
             <Menu mnemonicParsing="false" text="View">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
+                <MenuItem fx:id="zoomInMenu" disable="true" mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="PLUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -130,7 +130,7 @@
                         <KeyCodeCombination alt="UP" code="EQUALS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
+                  <MenuItem fx:id="zoomOutMenu" mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="MINUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -280,6 +280,41 @@
                   <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/redo.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Redo" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL" prefHeight="30.0">
+               <padding>
+                  <Insets left="3.0" />
+               </padding>
+            </Separator>
+            <Button fx:id="zoomOutButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomOut" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomOut.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Undo" />
+               </tooltip>
+            </Button>
+            <Button fx:id="zoomInButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomIn" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomIn.png" />
                      </image>
                      <viewport>
                         <Rectangle2D />
