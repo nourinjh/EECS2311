@@ -14,6 +14,7 @@
 
 package application;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -39,10 +41,14 @@ import java.util.zip.ZipOutputStream;
 import javax.imageio.ImageIO;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -104,26 +110,36 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class Controller {
 
 	private final String VERSION = "1.3";
+//	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_BACKGROUND_COLOR = "0x1d1d1d";
 	private final String DEFAULT_TITLE_COLOR = "0xffffff";
 	private final String DEFAULT_LEFT_COLOR = "0xb47a7a";
 	private final String DEFAULT_RIGHT_COLOR = "0xb4b162";
-//	private final String DEFAULT_INTERSECTION_COLOR = "0x4594e3";
 	private final String DEFAULT_LEFT_ITEM_COLOR = "0xffcccc";
 	private final String DEFAULT_RIGHT_ITEM_COLOR = "0xe6e6b3";
 	private final String DEFAULT_INTERSECTION_ITEM_COLOR = "0xffe699";
-	private final double DEFAULT_CIRCLE_OPACTIY = 0.8;
+	private final double DEFAULT_CIRCLE_OPACTIY = 0.75;
+	
+	private double leftScale = 1;
+	private double rightScale = 1;
+	
 	private String tempPath;
+	private String titleText = "";
+	private String leftText = "";
+	private String rightText = "";
+	private String addFieldText = "";
 
 	private boolean multiSelect = false;
 	private boolean changesMade = false;
 	private boolean answerKeyWasImported = false;
 	private boolean answersAreShowing = false;
+	static boolean trackChanges = true;
 
 	private ObservableList<String> items = FXCollections.observableArrayList();
 	@FXML
 	private ObservableList<DraggableItem> itemsInDiagram = FXCollections.observableArrayList();
 	private ObservableList<String> imagesInDiagram = FXCollections.observableArrayList();
+	@FXML
 	private static ObservableList<DraggableItem> selectedItems = FXCollections.observableArrayList();
 	private List<File> itemImages = new ArrayList<File>();
 
@@ -131,6 +147,18 @@ public class Controller {
 	private List<String> rightItemsAnswers = new ArrayList<String>();
 	private List<String> intersectionItemsAnswers = new ArrayList<String>();
 	private List<String> unassignedItemsAnswers = new ArrayList<String>();
+	private List<String> acceptedImageTypes = new ArrayList<String>();
+	
+	private Stack<Action> undoStack = new Stack<Action>();
+	private Stack<Action> redoStack = new Stack<Action>();
+
+//	private Color leftBackgroundColor = Color.web(DEFAULT_LEFT_COLOR);
+//	private Color rightBackgroundColor = Color.web(DEFAULT_RIGHT_COLOR);
+	private Color backgroundColor = Color.web(DEFAULT_BACKGROUND_COLOR);
+	private Color titleColor = Color.web(DEFAULT_TITLE_COLOR);
+	private Color leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
+	private Color rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
+	private Color intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
 
 	@FXML
 	private Circle circleLeft;
@@ -142,6 +170,8 @@ public class Controller {
 	private AnchorPane pane;
 	@FXML
 	private ScrollPane scrollPane;
+	@FXML
+	private StackPane scrollContent;
 
 	@FXML
 	private VBox floatingMenu;
@@ -162,10 +192,10 @@ public class Controller {
 	private Slider rightSizeSlider;
 	@FXML
 	private TextField rightSizeField;
-//	@FXML
-//	private ColorPicker colorIntersection;
 	@FXML
 	private ColorPicker colorIntersectionItems;
+//	@FXML
+//	private ColorPicker colorIntersection;
 
 	@FXML
 	private MenuBar menuBar;
@@ -173,7 +203,7 @@ public class Controller {
 	private ToolBar toolBar;
 
 	@FXML
-	private Pane frameRect;
+	private Pane diagram;
 
 	@FXML
 	private ColorPicker colorBackground;
@@ -181,12 +211,32 @@ public class Controller {
 	private ColorPicker colorTitles;
 
 	@FXML
-	private MenuItem deleteItemMenu;
+	private MenuItem deleteMenu;
 	@FXML
 	private Button deleteButton;
 	
 	@FXML
-	private Button clearButton;
+	private MenuItem undoMenu;
+	@FXML
+	private MenuItem redoMenu;
+	@FXML
+	private Button undoButton;
+	@FXML
+	private Button redoButton;
+	
+	@FXML
+	private MenuItem zoomInMenu;
+	@FXML
+	private MenuItem zoomOutMenu;
+	@FXML
+	private Button zoomInButton;
+	@FXML
+	private Button zoomOutButton;
+	
+	@FXML
+	private MenuItem removeMenu;
+	@FXML
+	private Button removeButton;
 	@FXML
 	private Button saveButton;
 	@FXML
@@ -209,8 +259,6 @@ public class Controller {
 	private Button hideAnswersButton;
 	@FXML
 	private ImageView hideAnswersButtonImage;
-	@FXML
-	private Button checkAnswersButton;
 
 	@FXML
 	private TextField addItemField;
@@ -226,7 +274,7 @@ public class Controller {
 	private URL location;
 
 	private static File openFile = null;
-
+	
 	class DraggableItem extends StackPane {
 		protected Label text = new Label();
 		protected String description = "";
@@ -234,6 +282,9 @@ public class Controller {
 		protected ImageView answerImage = new ImageView();
 		private final int MAX_WIDTH = 120;
 		protected char circle;
+		public double oldX, oldY;
+		protected List<Action> actionList = new ArrayList<Action>();
+
 
 		public DraggableItem(double x, double y) {
 			relocate(x - 5, y - 5);
@@ -250,8 +301,7 @@ public class Controller {
 
 			this.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 				try {
-					if (!hasFocus.booleanValue()
-							&& (this.getScene().getFocusOwner().getClass() != this.getClass() || !multiSelect)) {
+					if (!hasFocus.booleanValue() &&  !multiSelect) {
 						for (DraggableItem d : selectedItems) {
 							d.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
 									new CornerRadii(1), new BorderWidths(5), new Insets(0))));
@@ -271,33 +321,111 @@ public class Controller {
 						this.setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.SOLID,
 								new CornerRadii(1), new BorderWidths(5), new Insets(0))));
 					}
-					if (selectedItems.size() != 1) {
-						deleteItemMenu.setText("Delete Selected Items");
-						deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
-					} else {
-						deleteItemMenu.setText("Delete Selected Item");
-						deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
-					}
 				} catch (Exception e) {
 					removeFocus();
 				}
 			});
+			
+//			ContextMenu contextMenu = new ContextMenu();
+//			MenuItem delete = new MenuItem();
+//			delete.setOnAction(event -> deleteMenu.fire());
+//			MenuItem remove = new MenuItem();
+//			remove.setOnAction(event -> removeMenu.fire());
+//			contextMenu.getItems().add(delete);
+//			contextMenu.getItems().add(remove);
+//			
+//			this.setOnContextMenuRequested(event -> {
+//				delete.setText(deleteMenu.getText());
+//				remove.setText(removeMenu.getText());
+//				contextMenu.show(this, this.getBoundsInParent().getMinX(), this.getBoundsInParent().getMinY());
+//			});
 
 			this.setOnKeyPressed(keyEvent -> {
 				if (keyEvent.getCode() == KeyCode.DELETE || keyEvent.getCode() == KeyCode.BACK_SPACE) {
 					deleteItem();
 				}
 				if (keyEvent.getCode() == KeyCode.ESCAPE) {
-					pane.requestFocus();
+					removeFocus();
 				}
 				if (keyEvent.getCode() == KeyCode.SHIFT) {
 					multiSelect = true;
+				}
+				if (keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
+					removeFocus();
+				}
+				if (keyEvent.getCode() == KeyCode.UP) {
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
+					for (DraggableItem d : selectedItems) {
+						double y1 = d.getLayoutY();
+						d.setLayoutY(y1 - distance);
+						if (!d.checkBounds()) {
+							d.setLayoutY(y1);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
+							moved.add(d);
+						}
+					}
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.UP, distance));
+				}
+				if (keyEvent.getCode() == KeyCode.DOWN) {
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
+					for (DraggableItem d : selectedItems) {
+						double y1 = d.getLayoutY();
+						d.setLayoutY(y1 + distance);
+						if (!d.checkBounds()) {
+							d.setLayoutY(y1);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
+							moved.add(d);
+						}
+					}
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.DOWN, distance));
+				}
+				if (keyEvent.getCode() == KeyCode.LEFT) {
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
+					for (DraggableItem d : selectedItems) {
+						double x1 = d.getLayoutX();
+						d.setLayoutX(x1 - distance);
+						if (!d.checkBounds()) {
+							d.setLayoutX(x1);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
+							moved.add(d);
+						}
+					}
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.LEFT, distance));
+				}
+				if (keyEvent.getCode() == KeyCode.RIGHT) {
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
+					for (DraggableItem d : selectedItems) {
+						double x1 = d.getLayoutX();
+						d.setLayoutX(x1 + distance);
+						if (!d.checkBounds()) {
+							d.setLayoutX(x1);
+							d.checkBounds();
+							d.setBackground(null);
+						} else {
+							moved.add(d);
+						}
+					}
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.RIGHT, distance));
 				}
 				keyEvent.consume();
 			});
 
 			this.setOnKeyReleased(keyEvent -> {
-				if (keyEvent.getCode() == KeyCode.SHIFT) {
+				if (keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.COMMAND || keyEvent.getCode() == KeyCode.SHORTCUT) {
 					multiSelect = false;
 				}
 				keyEvent.consume();
@@ -305,15 +433,20 @@ public class Controller {
 			
 			this.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2) {
+					String oldText = this.getText();
+					String oldDesc = this.getDescription();
+					
 					Alert a = new Alert(AlertType.INFORMATION);
 
 					TextField textField = new TextField(this.getText());
 					textField.setPromptText("Enter a title for this item");
+					textField.setId("itemTitle");
 
 					TextArea textArea = new TextArea(description);
 					textArea.setPromptText("Enter a description for this item");
 					textArea.setEditable(true);
 					textArea.setWrapText(true);
+					textArea.setId("itemDescription");
 
 					textArea.setMaxWidth(Double.MAX_VALUE);
 					textArea.setMaxHeight(Double.MAX_VALUE);
@@ -346,14 +479,12 @@ public class Controller {
 						}
 					});
 					save.setOnAction(e -> {
-						imagesInDiagram.remove(this.getText());
 						this.text.setText(textField.getText());
 						setDescription(textArea.getText());
-						imagesInDiagram.add(this.getText());
 						e.consume();
 						a.close();
 						event.consume();
-						changesMade();
+						changesMade(new ChangeItemDetailsAction(this, oldText, oldDesc, this.getText(), this.getDescription()));
 					});
 					cancel.setOnAction(e -> {
 						a.close();
@@ -384,11 +515,10 @@ public class Controller {
 		public String toString() {
 			return this.getText();
 		}
-
+		
 		public void setColor(Color c) {
 			this.text.setTextFill(c);
 			this.color = c;
-			changesMade();
 		}
 
 		public Color getColor() {
@@ -405,24 +535,26 @@ public class Controller {
 
 		public void setDescription(String desc) {
 			this.description = desc;
-			changesMade();
 		}
 
 		public String getDescription() {
 			return this.description;
 		}
-
+		
 		protected void enableDrag() {
 			Delta dragDelta = new Delta();
 			setOnMousePressed(mouseEvent -> {
 				toFront();
-
 				dragDelta.x = mouseEvent.getX();
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
 				requestFocus();
-
+				for (DraggableItem d : selectedItems) {
+					d.oldX = d.getLayoutX();
+					d.oldY = d.getLayoutY();
+				}
 				mouseEvent.consume();
+				this.actionList.clear();
 			});
 			setOnMouseReleased(mouseEvent -> {
 				getScene().setCursor(Cursor.HAND);
@@ -430,47 +562,76 @@ public class Controller {
 				mouseEvent.consume();
 			});
 			setOnMouseDragged(mouseEvent -> {
+				List<Action> actionList = new ArrayList<Action>();
+				removeFocus();
+				this.requestFocus();
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
 						hideAnswers();
 					}
 					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
 					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
-					d.setLayoutX(newX);
-					d.setLayoutY(newY);
-					if (d.checkBounds()) {
-						setOnMouseReleased(mouseEvent2 -> {
-							d.getScene().setCursor(Cursor.HAND);
-							d.checkBounds();
-							mouseEvent.consume();
-						});
-						d.setBackground(null);
-						d.getLabel().setTextFill(d.getColor());
-						d.getScene().setCursor(Cursor.CLOSED_HAND);
-					} else {
-						setOnMouseReleased(mouseEvent2 -> {
-							d.getScene().setCursor(Cursor.DEFAULT);
-							selectedItems.forEach(each -> {
-								frameRect.getChildren().remove(each);
-								itemsInDiagram.remove(each);
-								itemsList.getItems().add(each.getText());
+					if (Math.abs(newX - oldX) > 2 || Math.abs(newY - oldY) > 2) {
+						d.setLayoutX(newX);
+						d.setLayoutY(newY);
+						if (d.checkBounds()) {
+							d.setBackground(null);
+							d.getLabel().setTextFill(d.getColor());
+							d.getScene().setCursor(Cursor.CLOSED_HAND);
+							setOnMouseReleased(mouseEvent2 -> {
+								for (DraggableItem i : selectedItems) {
+									actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+									i.getScene().setCursor(Cursor.HAND);
+									i.checkBounds();
+									mouseEvent.consume();
+									mouseEvent2.consume();
+								}
+								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+								changesMade(new ActionGroup(actionList, message));
+								mouseEvent.consume();
+								mouseEvent2.consume();
 							});
-							selectedItems.clear();
-						});
-						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
-						d.getLabel().setTextFill(Color.WHITE);
-						d.getScene().setCursor(Cursor.DISAPPEAR);
+						} else {
+							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+							setOnMouseReleased(mouseEvent2 -> {
+								String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+								List<String> removed = new ArrayList<String>();
+								for (int i = selectedItems.size() - 1; i >= 0; i--) {
+									if (!removed.contains(selectedItems.get(i).getText())) {
+										removed.add(selectedItems.get(i).getText());
+										if (selectedItems.get(i) instanceof DraggableImage) {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+											imagesInDiagram.remove(selectedItems.get(i).getText());
+										} else {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+										}
+										diagram.getChildren().remove(selectedItems.get(i));
+										itemsInDiagram.remove(selectedItems.get(i));
+										itemsList.getItems().add(selectedItems.get(i).getText());
+									}
+									selectedItems.remove(i);
+								}
+								pane.getScene().setCursor(Cursor.DEFAULT);
+								changesMade(new ActionGroup(actionList, message));
+								mouseEvent.consume();
+								mouseEvent2.consume();
+							});
+						}
+					} else {
+						d.setLayoutX(oldX);
+						d.setLayoutY(oldY);
 					}
 				}
 				mouseEvent.consume();
-				changesMade();
 			});
 			setOnMouseEntered(mouseEvent -> {
 				if (!mouseEvent.isPrimaryButtonDown()) {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {
+				diagram.setOnMouseClicked(mouseEvent2 -> {
 				});
 				pane.setOnMouseClicked(mouseEvent2 -> {
 				});
@@ -480,13 +641,12 @@ public class Controller {
 					getScene().setCursor(Cursor.DEFAULT);
 				mouseEvent.consume();
 
-				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				diagram.setOnMouseClicked(mouseEvent2 -> removeFocus());
 				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
 			});
 		}
 
 		public boolean checkBounds() {
-			changesMade();
 			Point2D centreLeft = new Point2D(
 					(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX()) / 2,
 					(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY()) / 2);
@@ -537,6 +697,7 @@ public class Controller {
 		private ImageView image = new ImageView();
 		private File imageFile;
 		private final double MAX_WIDTH = 100;
+		private String extension;
 		
 		public DraggableImage (double x, double y, String title, File imageFile) {
 			super(x, y, title);
@@ -558,12 +719,13 @@ public class Controller {
 				this.text.setWrapText(false);
 				this.getChildren().add(this.image);
 				this.answerImage.toFront();
+				this.extension = this.getText().substring(this.getText().lastIndexOf('.'));
 				enableDrag();
 			} catch (Exception e) {
 				System.err.println("DraggableImage could not be created");
 				e.printStackTrace();
 			}
-			
+						
 			this.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2) {
 					Alert a = new Alert(AlertType.INFORMATION);
@@ -609,7 +771,7 @@ public class Controller {
 							save.setDisable(true);
 							a.headerTextProperty().setValue("Title field cannot be blank");
 						} else {
-							String name = textField.getText().endsWith(".png") ? textField.getText() : textField.getText() + ".png";
+							String name = textField.getText().endsWith(getImageExtension()) ? textField.getText() : textField.getText() + getImageExtension();
 							if (!name.contentEquals(this.getText()) && new File(tempPath + "imgs" + File.separatorChar + name).exists()) {
 								save.setDisable(true);
 								a.headerTextProperty().setValue("An image called \"" + textField.getText() + "\" already exists");
@@ -622,9 +784,11 @@ public class Controller {
 					});
 					save.setOnAction(e -> {
 						if (!textField.getText().contentEquals(this.getText())) {
-							if (!textField.getText().endsWith(".png")) {
-								textField.setText(textField.getText() + ".png");
+							if (!textField.getText().endsWith(getImageExtension())) {
+								textField.setText(textField.getText() + getImageExtension());
 							}
+							changesMade(new ChangeItemDetailsAction(this, this.getText(), this.getDescription(), textField.getText(), textArea.getText(), imagesInDiagram, itemImages, tempPath));
+							imagesInDiagram.remove(this.getText());
 							this.text.setText(textField.getText());
 							itemImages.remove(this.imageFile);
 							File newImageFile = new File(tempPath + "imgs" + File.separatorChar + textField.getText());
@@ -632,12 +796,12 @@ public class Controller {
 							this.imageFile = newImageFile;
 							this.imageFile.deleteOnExit();
 							itemImages.add(this.imageFile);
+							imagesInDiagram.add(this.getText());
 						}
 						setDescription(textArea.getText());
 						e.consume();
 						a.close();
 						event.consume();
-						changesMade();
 					});
 					cancel.setOnAction(e -> {
 						a.close();
@@ -651,7 +815,6 @@ public class Controller {
 		
 		@Override
 		public boolean checkBounds() {
-			changesMade();
 			Point2D centreLeft = new Point2D(
 					(circleLeft.getBoundsInParent().getMinX() + circleLeft.getBoundsInParent().getMaxX()) / 2,
 					(circleLeft.getBoundsInParent().getMinY() + circleLeft.getBoundsInParent().getMaxY()) / 2);
@@ -690,32 +853,32 @@ public class Controller {
 			}
 			return result;
 		}
-		
-		public void scaleImage(double value) {
-			this.image.setFitWidth(this.image.getImage().getWidth() * value);
-			this.image.autosize();
-		}
-		
+				
 		@Override
 		protected void enableDrag() {
 			Delta dragDelta = new Delta();
 			setOnMousePressed(mouseEvent -> {
 				toFront();
-
+				this.actionList.clear();
 				this.setBackground(new Background(new BackgroundFill(this.getColor(), new CornerRadii(5), new Insets(-5))));
 				dragDelta.x = mouseEvent.getX();
 				dragDelta.y = mouseEvent.getY();
 				getScene().setCursor(Cursor.CLOSED_HAND);
 				requestFocus();
-
+				for (DraggableItem d : selectedItems) {
+					d.oldX = d.getLayoutX();
+					d.oldY = d.getLayoutY();
+				}
 				mouseEvent.consume();
 			});
+			
 			setOnMouseReleased(mouseEvent -> {
-				this.setBackground(null);
 				getScene().setCursor(Cursor.HAND);
 				checkBounds();
+				this.setBackground(null);
 				mouseEvent.consume();
 			});
+			
 			setOnMouseDragged(mouseEvent -> {
 				for (DraggableItem d : selectedItems) {
 					if (answersAreShowing) {
@@ -723,35 +886,61 @@ public class Controller {
 					}
 					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
 					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
-					d.setLayoutX(newX);
-					d.setLayoutY(newY);
-					if (d.checkBounds()) {
-						setOnMouseReleased(mouseEvent2 -> {
-							d.getScene().setCursor(Cursor.HAND);
-							d.checkBounds();
-							mouseEvent.consume();
-						});
-						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
-						d.getLabel().setTextFill(d.getColor());
-						d.getScene().setCursor(Cursor.CLOSED_HAND);
-					} else {
-						setOnMouseReleased(mouseEvent2 -> {
-							d.getScene().setCursor(Cursor.DEFAULT);
-							selectedItems.forEach(each -> {
-								frameRect.getChildren().remove(each);
-								itemsInDiagram.remove(each);
-								itemsList.getItems().add(each.getText());
+					if (Math.abs(newX - oldX) > 2 || Math.abs(newY - oldY) > 2) {
+						d.setLayoutX(newX);
+						d.setLayoutY(newY);
+						if (d.checkBounds()) {
+							setOnMouseReleased(mouseEvent2 -> {
+								for (DraggableItem i : selectedItems) {
+									actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+									i.getScene().setCursor(Cursor.HAND);
+									i.checkBounds();
+									i.setBackground(null);
+									mouseEvent.consume();
+									mouseEvent2.consume();
+									String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+									changesMade(new ActionGroup(actionList, message));
+								}
+								mouseEvent.consume();
+								mouseEvent2.consume();
 							});
-							selectedItems.clear();
-						});
-						d.setBackground(
-								new Background(new BackgroundFill(Color.RED, new CornerRadii(5), new Insets(-5))));
-						d.getLabel().setTextFill(Color.WHITE);
-						d.getScene().setCursor(Cursor.DISAPPEAR);
+							d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
+							d.getLabel().setTextFill(d.getColor());
+							d.getScene().setCursor(Cursor.CLOSED_HAND);
+						} else {
+							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+							setOnMouseReleased(mouseEvent2 -> {
+								String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+								List<String> removed = new ArrayList<String>();
+								for (int i = selectedItems.size() - 1; i >= 0; i--) {
+									if (!removed.contains(selectedItems.get(i).getText())) {
+										removed.add(selectedItems.get(i).getText());
+										if (selectedItems.get(i) instanceof DraggableImage) {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+											imagesInDiagram.remove(selectedItems.get(i).getText());
+										} else {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+										}
+										diagram.getChildren().remove(selectedItems.get(i));
+										itemsInDiagram.remove(selectedItems.get(i));
+										itemsList.getItems().add(selectedItems.get(i).getText());
+									}
+									selectedItems.remove(i);
+								}
+								pane.getScene().setCursor(Cursor.DEFAULT);
+								changesMade(new ActionGroup(actionList, message));
+								mouseEvent.consume();
+								mouseEvent2.consume();
+							});
+						}
+					} else {
+						d.setLayoutX(oldX);
+						d.setLayoutY(oldY);
 					}
 				}
 				mouseEvent.consume();
-				changesMade();
 			});
 
 			setOnMouseEntered(mouseEvent -> {
@@ -759,7 +948,7 @@ public class Controller {
 					getScene().setCursor(Cursor.HAND);
 					mouseEvent.consume();
 				}
-				frameRect.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
+				diagram.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
 				pane.setOnMouseClicked(mouseEvent2 -> {/* Do nothing */});
 			});
 			setOnMouseExited(mouseEvent -> {
@@ -767,7 +956,7 @@ public class Controller {
 					getScene().setCursor(Cursor.DEFAULT);
 				mouseEvent.consume();
 
-				frameRect.setOnMouseClicked(mouseEvent2 -> removeFocus());
+				diagram.setOnMouseClicked(mouseEvent2 -> removeFocus());
 				pane.setOnMouseClicked(mouseEvent2 -> removeFocus());
 			});
 		}
@@ -776,85 +965,146 @@ public class Controller {
 			this.imageFile.delete();
 			itemImages.remove(this.imageFile);
 		}
+		
+		public File getImageFile() {
+			return this.imageFile;
+		}
+		
+		public void setImageFile(File imageFile) {
+			this.imageFile = imageFile;
+		}
+		
+		public String getImageExtension() {
+			return this.extension;
+		}
 
 	}
 	
-	private void changesMade() {
-		if (!changesMade && openFile != null)
-//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
-		changesMade = true;
-//		redoStack.clear();
+	public void changeWindowTitle(String title) {
+		try {
+			Main.primaryStage.setTitle(title);
+		} catch (Exception e) {
+			System.err.println("Main.primaryStage not found");
+		}
+	}
+	
+	private void changesMade(Action action) {
+		if (Controller.trackChanges) {
+			redoStack.clear();
+			undoStack.add(action);
+			undoMenu.setDisable(false);
+			undoButton.setDisable(false);
+			undoMenu.setText("Undo " + action.toString());
+			if (!changesMade && openFile != null)
+	//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+				 changeWindowTitle(openFile.getName() + " (Edited) - Venn");
+			changesMade = true;
+		}
+	}
+	
+	private void moveActionStacks(Stack<Action> popStack, MenuItem popMenu, Button popButton, String popString, Stack<Action> pushStack, MenuItem pushMenu, Button pushButton, String pushString) {
+		if (!popStack.isEmpty()) {
+			Action action = popStack.pop();
+			// FIXME: HACK
+			if (action instanceof ImportImageAction) {
+				List<String> list = new ArrayList<String>(items);
+				moveActionStacks(popStack, popMenu, popButton, popString, pushStack, pushMenu, pushButton, pushString);
+				itemsList.getItems().clear();
+				itemsList.getItems().addAll(list);
+			}
+			action.invert();
+			pushStack.push(action);
+			pushMenu.setDisable(false);
+			pushButton.setDisable(false);
+			pushMenu.setText(pushString + " " + action.toString());
+			if (!changesMade && openFile != null)
+	//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+				 changeWindowTitle(openFile.getName() + " (Edited) - Venn");
+			changesMade = true;
+			if (popStack.isEmpty()) {
+				popMenu.setDisable(true);
+				popButton.setDisable(true);
+				popMenu.setText(popString);
+			} else {
+				popMenu.setDisable(false);
+				popButton.setDisable(false);
+				popMenu.setText(popString + " " + popStack.peek().toString());
+			}
+		}
 	}
 
 	@FXML
 	private void undo() {
-		System.out.println("Undo");
-		if (!changesMade && openFile != null)
-//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
-		changesMade = true;
+		moveActionStacks(undoStack, undoMenu, undoButton, "Undo", redoStack, redoMenu, redoButton, "Redo");
 	}
 
 	@FXML
 	private void redo() {
-		System.out.println("Redo");
-		if (!changesMade && openFile != null)
-//			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(openFile.getName() + " (Edited) - Venn");
-		changesMade = true;
+		moveActionStacks(redoStack, redoMenu, redoButton, "Redo", undoStack, undoMenu, undoButton, "Undo");
 	}
 
 	@FXML
 	private void zoomIn() {
-		if (frameRect.getScaleX() < 2) {
-			frameRect.setScaleX(frameRect.getScaleX() + 0.1);
-			frameRect.setScaleY(frameRect.getScaleY() + 0.1);
-			scrollPane.setVvalue(scrollPane.getVmax()/2.0 + 0.05);
-			scrollPane.setHvalue(scrollPane.getHmax()/2.0);
-			// updateIntersection();
+		if (diagram.getScaleX() < 1) {
+			diagram.setScaleX(diagram.getScaleX() + 0.1);
+			diagram.setScaleY(diagram.getScaleY() + 0.1);
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					diagram.setLayoutX(diagram.getLayoutX() + diagram.getScaleX() * 100);
+					diagram.setLayoutY(diagram.getLayoutY() + diagram.getScaleY() * 100);
+					scrollContent.setPrefSize(
+							Math.max(scrollContent.getBoundsInParent().getMaxX(),
+									scrollPane.getViewportBounds().getWidth()),
+							Math.max(scrollContent.getBoundsInParent().getMaxY(),
+									scrollPane.getViewportBounds().getHeight()));
+				}
+			});
 		}
+		if (diagram.getScaleX() >= 1){
+			zoomInButton.setDisable(true);
+			zoomInMenu.setDisable(true);
+		}
+		zoomOutButton.setDisable(false);
+		zoomOutMenu.setDisable(false);
 	}
 
 	@FXML
 	private void zoomOut() {
-		if (frameRect.getScaleX() > 0.5) {
-			frameRect.setScaleX(frameRect.getScaleX() - 0.1);
-			frameRect.setScaleY(frameRect.getScaleY() - 0.1);
-			// updateIntersection();
+		if (diagram.getScaleX() > 0.5) {
+			diagram.setScaleX(diagram.getScaleX() - 0.1);
+			diagram.setScaleY(diagram.getScaleY() - 0.1);
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					scrollContent.setPrefSize(
+							Math.max(scrollContent.getBoundsInParent().getMaxX(),
+									scrollPane.getViewportBounds().getWidth()),
+							Math.max(scrollContent.getBoundsInParent().getMaxY(),
+									scrollPane.getViewportBounds().getHeight()));
+				}
+			});
 		}
+		if (diagram.getScaleX() <= 0.5){
+			zoomOutButton.setDisable(true);
+			zoomOutMenu.setDisable(true);
+		}
+		zoomInButton.setDisable(false);
+		zoomInMenu.setDisable(false);
 	}
-	
-	private boolean rectTooBig() {
-		double width = pane.getScene().getWindow().getWidth();
-		double height = pane.getScene().getWindow().getHeight();
-		return (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-				|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50);
-	}
-	
-	private boolean rectTooSmall() {
-		double width = pane.getScene().getWindow().getWidth();
-		double height = pane.getScene().getWindow().getHeight();
-		return (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-				|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50);
-	}
-	
+		
 	@FXML
 	private void zoomActualSize() {
-		frameRect.setScaleX(1);
-		frameRect.setScaleY(1);
-		if (rectTooBig()) {
-			while (rectTooBig()) {
-				zoomOut();
-				frameRect.setLayoutX(frameRect.getLayoutX() + 200);
+		diagram.setScaleX(1);
+		diagram.setScaleY(1);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				scrollContent.setPrefSize(
+						scrollPane.getViewportBounds().getWidth(),
+						scrollPane.getViewportBounds().getHeight());
 			}
-		}
-		else if (rectTooSmall()) {
-			while (rectTooSmall()) {
-				zoomIn();
-				frameRect.setLayoutX(frameRect.getLayoutX() - 200);
-			}
-		}
+		});
 	}
 
 	@FXML
@@ -864,15 +1114,7 @@ public class Controller {
 			itemsList.getItems().add(newItem);
 		}
 		addItemField.setText("");
-		changesMade();
-	}
-
-	@FXML
-	private void addItemWithEnter(KeyEvent event) {
-		if (event.getCode() == KeyCode.ENTER) {
-			addItemToList();
-		}
-		changesMade();
+		changesMade(new AddToListAction(newItem, itemsList, addItemField));
 	}
 
 	@FXML
@@ -914,39 +1156,32 @@ public class Controller {
 			dragBoard.setDragView(tempLabel.snapshot(null, null), tempLabel.getWidth() / 2, -tempLabel.getHeight() / 2);
 			pane.getChildren().remove(tempLabel);
 		}
-		changesMade();
 	}
 
 	@FXML
 	private void deleteItem() {
 		if (itemsList.isFocused()) {
+			changesMade(new DeleteFromListAction(itemsList, (List<String>)(itemsList.getSelectionModel().getSelectedItems())));
 			itemsList.getItems().removeAll(itemsList.getSelectionModel().getSelectedItems());
 			if (itemsList.getItems().isEmpty()) {
 				addItemField.requestFocus();
 			}
 		} else {
+			List<Action> actionList= new ArrayList<Action>();
 			for (DraggableItem d : selectedItems) {
+				actionList.add(new DeleteItemAction(d, d.oldX, d.oldY, itemsInDiagram, imagesInDiagram));
 				if (d instanceof DraggableImage) {
 					((DraggableImage) d).deleteImage();
 					imagesInDiagram.remove(d.getText());
 				}
-				frameRect.getChildren().remove(d);
+				diagram.getChildren().remove(d);
 				itemsInDiagram.remove(d);
 			}
+			String message = selectedItems.size() == 1 ? "Delete Item" : "Delete Items";
+			changesMade(new ActionGroup(actionList, message));
 			selectedItems.clear();
 		}
 		removeFocus();
-		changesMade();
-	}
-
-	@FXML
-	private void keyPressOnList(KeyEvent event) {
-		if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
-			deleteItem();
-		}
-		if (event.getCode() == KeyCode.ESCAPE) {
-			pane.requestFocus();
-		}
 	}
 
 	@FXML
@@ -972,7 +1207,7 @@ public class Controller {
 			List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
 			for (File file : dragged) {
 				if (file.getName().endsWith(".csv")) {
-					itemsList.getItems().addAll(doTheCSV(file));
+					doTheCSVImport(file);
 				} else if (file.getName().endsWith(".venn")) {
 					if (changesMade) {
 						Alert a = new Alert(AlertType.CONFIRMATION);
@@ -988,7 +1223,7 @@ public class Controller {
 					}
 				} else if (file.getName().endsWith(".vansr")) {
 					doTheAnswerImport(file);
-				} else if (file.getName().endsWith(".png")) {
+				} else if (acceptedImageTypes.contains(file.getName().substring(file.getName().lastIndexOf(".")))) {
 					doTheImageImport(file);
 				}
 			}
@@ -1019,11 +1254,11 @@ public class Controller {
 		String mainTitle = title.getText();
 		String leftTitle = circleLeftTitle.getText();
 		String rightTitle = circleRightTitle.getText();
-		double scale = frameRect.getScaleX();
+		double scale = diagram.getScaleX();
 		try {
 			// Set scale to 1 temporarily so screenshot is right resolution
-			frameRect.setScaleX(1);
-			frameRect.setScaleY(1);
+			diagram.setScaleX(1);
+			diagram.setScaleY(1);
 			// If the diagram has a title, make that the default title of the image
 			String name = title.getText();
 			if (name.contentEquals("")) {
@@ -1045,11 +1280,11 @@ public class Controller {
 			name += ".png";
 			// Do the snapshot
 			double pixelScale = 2.0;
-		    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*frameRect.getWidth()), (int)Math.rint(pixelScale*frameRect.getHeight()));
+		    WritableImage writableImage = new WritableImage((int)Math.rint(pixelScale*diagram.getWidth()), (int)Math.rint(pixelScale*diagram.getHeight()));
 		    SnapshotParameters spa = new SnapshotParameters();
 		    spa.setFill(colorBackground.getValue());
 		    spa.setTransform(Transform.scale(pixelScale, pixelScale));
-		    WritableImage capture = frameRect.snapshot(spa, writableImage); 
+		    WritableImage capture = diagram.snapshot(spa, writableImage); 
 		    // Select the file location, and save the file
 		    FileChooser fc = new FileChooser();
 		    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG files (*.png)", "*.png"));
@@ -1069,8 +1304,8 @@ public class Controller {
 			a.show();
 		}
 		// Put scale, titles, and change state back to the way they were before taking the screenshot
-		frameRect.setScaleX(scale);
-		frameRect.setScaleY(scale);
+		diagram.setScaleX(scale);
+		diagram.setScaleY(scale);
 		title.setText(mainTitle);
 		circleLeftTitle.setText(leftTitle);
 		circleRightTitle.setText(rightTitle);
@@ -1078,16 +1313,29 @@ public class Controller {
 	}
 
 	@FXML
-	private void clearDiagram() {
-		for (DraggableItem d : itemsInDiagram) {
+	private void removeSelectedItems() {
+		String message = selectedItems.size() == 1 ? "Remove Selected Item from Diagram" : "Remove Selected Items from Diagram";
+		List<Action> actionList= new ArrayList<Action>();
+		for (DraggableItem d : selectedItems) {
+			actionList.add(new RemoveItemAction(d, d.oldX, d.oldY, itemsInDiagram, itemsList));
 			if (d != null) {
 				itemsList.getItems().add(d.getText());
-				frameRect.getChildren().remove(d); 
+				diagram.getChildren().remove(d); 
+				if (imagesInDiagram.contains(d.getText())) {
+					imagesInDiagram.remove(d.getText());
+				}
 			}
 		}
-		itemsInDiagram.clear();
-		imagesInDiagram.clear();
-		changesMade();
+		removeFocus();
+		changesMade(new ActionGroup(actionList, message));
+	}
+	
+	private void removeOrphanedImages() {
+		for (File f : itemImages) {
+			if (!(imagesInDiagram.contains(f.getName()) || itemsList.getItems().contains(f.getName()))) {
+				f.delete();
+			}
+		}
 	}
 
 	private void doTheSave(File selectedFile) {
@@ -1120,7 +1368,7 @@ public class Controller {
 					+ "𔓱" + colorLeftItems.getValue().toString() + "\n");
 			sb.append(circleRightTitle.getText() + "𔓱" + colorRight.getValue().toString() + "𔓱"
 					+ circleRight.getScaleX() + "𔓱" + colorRightItems.getValue().toString() + "\n");
-			sb.append(/*colorIntersection.getValue().toString()*/ "INTERSECTIONCOLOUR𔓱" + colorIntersectionItems.getValue().toString());
+			sb.append(/*colorIntersection.getValue().toString()*/ "HappySpelunking𔓱" + colorIntersectionItems.getValue().toString());
 			BufferedWriter bw = new BufferedWriter(new FileWriter(config));
 			bw.write(sb.toString());
 			bw.close();
@@ -1142,14 +1390,15 @@ public class Controller {
 			}
 			bw.close();
 			
+			removeOrphanedImages();
 			File imagesList = new File(tempPath + "Images.csv");
 			sb = new StringBuilder();
 			bw = new BufferedWriter(new FileWriter(imagesList));
-			if (!itemImages.isEmpty()) {
-				bw.write("\"" + itemImages.get(0).getName() + "\"");
-				if (itemImages.size() > 1) {
-					for (int i = 1; i < itemImages.size(); i++) {
-						bw.append("\n\"" + itemImages.get(i).getName() + "\"");
+			if (!imagesInDiagram.isEmpty()) {
+				bw.write("\"" + imagesInDiagram.get(0) + "\"");
+				if (imagesInDiagram.size() > 1) {
+					for (int i = 1; i < imagesInDiagram.size(); i++) {
+						bw.append("\n\"" + imagesInDiagram.get(i) + "\"");
 					}
 				}
 			}
@@ -1212,7 +1461,7 @@ public class Controller {
 
 			openFile = selectedFile;
 //			XXX: Crashes JUnit test because there's no real "window" with TestFX
-			Main.primaryStage.setTitle(selectedFile.getName() + " - Venn");
+			 changeWindowTitle(selectedFile.getName() + " - Venn");
 			changesMade = false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1278,7 +1527,6 @@ public class Controller {
 			list.add(line);
 		}
 		br.close();
-		changesMade();
 		return list;
 	}
 	
@@ -1308,6 +1556,7 @@ public class Controller {
 		// ... imgs: (Directory)
 		// ..... Image files
 
+		Controller.trackChanges = false;
 		try {
 			String line, title, leftTitle, rightTitle, elements[];
 			Color bgColor, leftColor, rightColor, /*intersectionColor,*/ titleColor, leftTextColor, rightTextColor,
@@ -1411,23 +1660,25 @@ public class Controller {
 			this.circleLeftTitle.setText(leftTitle);
 			this.circleRightTitle.setText(rightTitle);
 			this.colorBackground.setValue(bgColor);
-			this.changeColorBackground();
+			this.updateBackgroundColor();
 			this.colorLeft.setValue(leftColor);
-			this.changeColorLeft();
+			this.updateLeftCircleColor();
 			this.colorRight.setValue(rightColor);
-			this.changeColorRight();
+			this.updateRightCircleColor();
 //			this.colorIntersection.setValue(intersectionColor);
 //			this.updateIntersection();
 			this.colorTitles.setValue(titleColor);
-			this.changeColorTitles();
+			this.updateTitleColors();
 			this.leftSizeSlider.setValue(leftScale * 100);
 			this.changeSizeLeft();
 			this.rightSizeSlider.setValue(rightScale * 100);
 			this.changeSizeRight();
+			this.leftScale = leftScale;
+			this.rightScale = rightScale;
 			this.itemsList.getItems().clear();
 			this.itemsList.getItems().addAll(unassignedItems);
-			this.frameRect.getChildren().removeAll(this.itemsInDiagram);
-			this.frameRect.getChildren().addAll(inDiagram);
+			this.diagram.getChildren().removeAll(this.itemsInDiagram);
+			this.diagram.getChildren().addAll(inDiagram);
 			this.itemsInDiagram.clear();
 			this.itemsInDiagram.addAll(inDiagram);
 			this.imagesInDiagram.clear();
@@ -1435,14 +1686,23 @@ public class Controller {
 			this.colorLeftItems.setValue(leftTextColor);
 			this.colorRightItems.setValue(rightTextColor);
 			this.colorIntersectionItems.setValue(intersectionTextColor);
+			this.leftItemColor = leftTextColor;
+			this.rightItemColor = rightTextColor;
+			this.intersectionItemColor = intersectionTextColor;
 			this.itemImages = images;
-
-			openFile = file;
-			changesMade = false;
-			// FIXME: Crashes the JUnit tests because they don't have a title bar on the window to change
-			Main.primaryStage.setTitle(openFile.getName() + " - Venn");
+			this.undoStack.clear();
+			this.redoStack.clear();
+			this.undoMenu.setDisable(true);
+			this.undoButton.setDisable(true);
+			this.redoMenu.setDisable(true);
+			this.redoButton.setDisable(true);
+			this.changesMade = false;
+			Controller.openFile = file;
+//			XXX: Crashes JUnit test because there's no real "window" with TestFX
+			 changeWindowTitle(openFile.getName() + " - Venn");
 			hideAnswers();
 			clearAnswerKey();
+			removeOrphanedImages();
 			multiSelect = false;
 		} catch (Exception e) {
 			if (file != null) {
@@ -1454,6 +1714,7 @@ public class Controller {
 				a.show();
 			}
 		}
+		Controller.trackChanges = true;
 	}
 
 	@FXML
@@ -1505,6 +1766,7 @@ public class Controller {
 
 	@FXML
 	private void doTheNew() {
+		Controller.trackChanges = false;
 		clearAnswerKey();
 		title.setText("");
 		circleLeftTitle.setText("");
@@ -1521,14 +1783,32 @@ public class Controller {
 		colorLeftItems.setValue(Color.web(DEFAULT_LEFT_ITEM_COLOR));
 		colorRightItems.setValue(Color.web(DEFAULT_RIGHT_ITEM_COLOR));
 		colorIntersectionItems.setValue(Color.web(DEFAULT_INTERSECTION_ITEM_COLOR));
+		leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
+		rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
+		intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
 //		colorIntersection.setValue(Color.web(DEFAULT_INTERSECTION_COLOR));
 		rightSizeSlider.setValue(100);
 		leftSizeSlider.setValue(100);
-		changeColorItems();
-		changeColorBackground();
+		titleColor = Color.web(DEFAULT_TITLE_COLOR);
+		backgroundColor = Color.web(DEFAULT_BACKGROUND_COLOR);
+//		leftBackgroundColor = Color.web(DEFAULT_LEFT_COLOR);
+//		rightBackgroundColor = Color.web(DEFAULT_RIGHT_COLOR);
+		leftItemColor = Color.web(DEFAULT_LEFT_ITEM_COLOR);
+		rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
+		intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
+		addItemField.setText("");
+		titleText = "";
+		leftText = "";
+		rightText = "";
+		addFieldText = "";
+		updateTitleColors();
+		updateItemColors();
+		updateBackgroundColor();
 		changeSizeLeft();
 		changeSizeRight();
-		frameRect.getChildren().removeAll(itemsInDiagram);
+		leftScale = 1;
+		rightScale = 1;
+		diagram.getChildren().removeAll(itemsInDiagram);
 		itemsInDiagram.clear();
 		imagesInDiagram.clear();
 		for (File f : itemImages) {
@@ -1537,10 +1817,18 @@ public class Controller {
 		itemImages.clear();
 		
 		openFile = null;
-		// XXX: Crashes the JUnit tests because they don't have a title bar on the window to change
-		Main.primaryStage.setTitle("Venn");
+//		XXX: Crashes JUnit test because there's no real "window" with TestFX
+		 changeWindowTitle("Venn");
 		changesMade = false;
-//		redoStack.clear();
+		undoStack.clear();
+		redoStack.clear();
+		undoMenu.setDisable(true);
+		undoButton.setDisable(true);
+		undoMenu.setText("Undo");
+		redoMenu.setDisable(true);
+		redoButton.setDisable(true);
+		redoMenu.setText("Redo");
+		Controller.trackChanges = true;
 	}
 
 	@FXML
@@ -1558,136 +1846,137 @@ public class Controller {
 	}
 
 	@FXML
-	private void changeColorLeft() {
+	private void updateLeftCircleColor() {
+		changesMade(new ChangeCircleColorAction(circleLeft, colorLeft));
 		circleLeft.setFill(colorLeft.getValue());
 		circleLeft.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-		changesMade();
 	}
 
 	@FXML
-	private void changeColorItems() {
+	private void updateItemColors() {
+		List<Action> actionList = new ArrayList<Action>();
+		actionList.add(new ChangeItemColorAction(leftItemColor, colorLeftItems, itemsInDiagram));
+		actionList.add(new ChangeItemColorAction(rightItemColor, colorRightItems, itemsInDiagram));
+		actionList.add(new ChangeItemColorAction(intersectionItemColor, colorIntersectionItems, itemsInDiagram));
+		leftItemColor = colorLeftItems.getValue();
+		rightItemColor = colorRightItems.getValue();
+		intersectionItemColor = colorIntersectionItems.getValue();
+		changesMade(new ActionGroup(actionList, "Change Text Colour"));
 		for (DraggableItem d : itemsInDiagram) {
 			d.checkBounds();
 		}
-		changesMade();
 	}
 
 	@FXML
-	private void changeColorRight() {
+	private void updateRightCircleColor() {
+		changesMade(new ChangeCircleColorAction(circleRight, colorRight));
 		circleRight.setFill(colorRight.getValue());
 		circleRight.setOpacity(DEFAULT_CIRCLE_OPACTIY);
-		changesMade();
 	}
 
 	@FXML
-	private void changeColorBackground() {
-		pane.setStyle("-fx-background-color: #"
+	private void updateBackgroundColor() {
+		String newStyle = "-fx-background-color: #"
 				+ colorBackground.getValue().toString().substring(2, colorBackground.getValue().toString().length() - 2)
-				+ ";");
-		changeColorTitles();
-		changesMade();
+				+ ";";
+		changesMade(new ChangeBackgroundColorAction(pane, backgroundColor, colorBackground));
+		pane.setStyle(newStyle);
+		backgroundColor = colorBackground.getValue();
 	}
 
 	@FXML
-	private void changeColorTitles() {
-		title.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
-		circleLeftTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
-		circleRightTitle.setStyle("-fx-background-color: transparent;\n-fx-text-fill: #"
-				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";");
-		changesMade();
+	private void updateTitleColors() {
+		String titleStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
+		String leftStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
+		String rightStyle = "-fx-background-color: transparent;\n-fx-text-fill: #"
+				+ colorTitles.getValue().toString().substring(2, colorTitles.getValue().toString().length() - 2) + ";";
+		List<Action> actionList = new ArrayList<Action>();
+		actionList.add(new ChangeTitleColorAction(title, titleColor, colorTitles));
+		actionList.add(new ChangeTitleColorAction(circleLeftTitle, titleColor, colorTitles));
+		actionList.add(new ChangeTitleColorAction(circleRightTitle, titleColor, colorTitles));
+		changesMade(new ActionGroup(actionList, "Change Text Colour"));
+
+		title.setStyle(titleStyle);
+		circleLeftTitle.setStyle(leftStyle);
+		circleRightTitle.setStyle(rightStyle);
+		titleColor = colorTitles.getValue();
 	}
 
 	@FXML
 	private void changeSizeLeft() {
-		circleLeft.setScaleX(leftSizeSlider.getValue() / 100.0);
-		circleLeft.setScaleY(leftSizeSlider.getValue() / 100.0);
-		leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
-		// updateIntersection();
-		changeColorItems();
-		changesMade();
+		changeSizeSlider(leftSizeSlider, leftSizeField, circleLeft);
 	}
 		
-/*
-	private void updateIntersection() {
-		frameRect.getChildren().remove(circleIntersection);
-		circleIntersection = Shape.intersect(circleLeft, circleRight);
-		circleIntersection.setFill(colorIntersection.getValue());
-		circleIntersection.setOnDragDropped(event -> {
-			dropItem(event);
-		});
-		circleIntersection.mouseTransparentProperty().set(true);
-		circleIntersection.setLayoutX(circleLeft.getCenterX() - 408);
-		circleIntersection.setLayoutY(circleLeft.getCenterY() - 103);
-		circleIntersection.setOpacity(0.8);
-		frameRect.getChildren().add(circleIntersection);
-		for (DraggableItem d : itemsInDiagram) {
-			d.toFront();
-		}
-		changeColorItems();
-		changesMade();
-	}*/
+//	@FXML
+//	private void updateIntersection() {
+//		frameRect.getChildren().remove(circleIntersection);
+//		circleIntersection = Shape.intersect(circleLeft, circleRight);
+//		circleIntersection.setFill(colorIntersection.getValue());
+//		circleIntersection.setOnDragDropped(event -> {
+//			dropItem(event);
+//		});
+//		circleIntersection.mouseTransparentProperty().set(true);
+//		circleIntersection.setLayoutX(circleLeft.getCenterX() - 391);
+//		circleIntersection.setLayoutY(circleLeft.getCenterY() - 69);
+//		circleIntersection.setOpacity(0.8);
+//		frameRect.getChildren().add(circleIntersection);
+//		for (DraggableItem d : itemsInDiagram) {
+//			d.toFront();
+//		}
+//		updateItemColors();
+////		changesMade();
+//	}
 
 	@FXML
 	private void changeSizeLeftField(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			double size;
 			try {
-				size = Double.parseDouble(leftSizeField.getText());
-				if (size < 50) {
-					size = 50;
-					leftSizeField.setText("50");
+				double d = Double.parseDouble(leftSizeField.getText());
+				if (d / 100 != leftScale) {
+					d = d < 75 ? 75 : d > 120 ? 120 : d;
+					leftSizeSlider.setValue(d);
+					changeSizeLeft();
+					changesMade(new ChangeCircleSizeAction(circleLeft, leftScale, leftSizeSlider, leftSizeField));
+					leftScale = leftSizeSlider.getValue() / 100;
 				}
-				if (size > 120) {
-					size = 120;
-					leftSizeField.setText("120");
-				}
-				circleLeft.setScaleX(size / 100.0);
-				circleLeft.setScaleY(size / 100.0);
-				leftSizeSlider.setValue(size);
 			} catch (Exception e) {
 				leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
 			}
-			// updateIntersection();
-			changeColorItems();
-			changesMade();
 		}
 	}
 
 	@FXML
 	private void changeSizeRight() {
-		circleRight.setScaleX(rightSizeSlider.getValue() / 100.0);
-		circleRight.setScaleY(rightSizeSlider.getValue() / 100.0);
-		rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
-		// updateIntersection();
-		changeColorItems();
-		changesMade();
+		changeSizeSlider(rightSizeSlider, rightSizeField, circleRight);
 	}
-
+	
+	private void changeSizeSlider(Slider slider, TextField field, Circle circle) {
+		circle.setScaleX(slider.getValue() / 100.0);
+		circle.setScaleY(slider.getValue() / 100.0);
+		field.setText(String.format("%.0f", slider.getValue()));
+//		updateIntersection();
+		Controller.trackChanges = false;
+		updateItemColors();
+		Controller.trackChanges = true;
+	}
+	
 	@FXML
 	private void changeSizeRightField(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			double size;
 			try {
-				size = Double.parseDouble(rightSizeField.getText());
-				if (size < 50) {
-					size = 50;
-					rightSizeField.setText("50");
+				double d = Double.parseDouble(rightSizeField.getText());
+				if (d / 100 != rightScale) {
+					d = d < 75 ? 75 : d > 120 ? 120 : d;
+					rightSizeSlider.setValue(d);
+					changeSizeRight();
+					changesMade(new ChangeCircleSizeAction(circleRight, rightScale, rightSizeSlider, rightSizeField));
+					rightScale = rightSizeSlider.getValue() / 100;
 				}
-				if (size > 120) {
-					size = 120;
-					rightSizeField.setText("120");
-				}
-				circleRight.setScaleX(size / 100.0);
-				circleRight.setScaleY(size / 100.0);
-				rightSizeSlider.setValue(size);
 			} catch (Exception e) {
 				rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
 			}
-			// updateIntersection();
-			changeColorItems();
-			changesMade();
 		}
 	}
 
@@ -1709,14 +1998,19 @@ public class Controller {
 	private void importFile(String type) {
 		try {
 			FileChooser fc = new FileChooser();
-//			List<String> extensions = new ArrayList<String>();
-//			extensions.add("*.png");
-//			extensions.add("*.jpg");
-//			extensions.add("*.jpeg");
-
+			List<String> imgExtensions = new ArrayList<String>();
+			StringBuilder imageFilesString = new StringBuilder("Image files (");
+			for (int i = 0; i < acceptedImageTypes.size(); i++) {
+				imgExtensions.add("*" + acceptedImageTypes.get(i));
+				imageFilesString.append("*");
+				imageFilesString.append(acceptedImageTypes.get(i));
+				if (i < acceptedImageTypes.size() - 1)
+					imageFilesString.append(", ");
+			}
+			imageFilesString.append(")");
 			ExtensionFilter csvFilter = new ExtensionFilter("CSV files (*.csv)", "*.csv");
 			ExtensionFilter ansFilter = new ExtensionFilter("Venn Answer Key files (*.vansr)", "*.vansr");
-			ExtensionFilter imgFilter = new ExtensionFilter("Image files (*.png)", "*.png");
+			ExtensionFilter imgFilter = new ExtensionFilter(imageFilesString.toString(), imgExtensions);
 			fc.getExtensionFilters().add(csvFilter);
 			fc.getExtensionFilters().add(imgFilter);
 			fc.getExtensionFilters().add(ansFilter);
@@ -1732,7 +2026,7 @@ public class Controller {
 			File file = fc.showOpenDialog(pane.getScene().getWindow());
 			
 			if (fc.getSelectedExtensionFilter().equals(csvFilter)) {
-				itemsList.getItems().addAll(doTheCSV(file));
+				doTheCSVImport(file);
 			}
 			
 			else if (fc.getSelectedExtensionFilter().equals(imgFilter)) {
@@ -1742,7 +2036,6 @@ public class Controller {
 			else if (fc.getSelectedExtensionFilter().equals(ansFilter)) {
 				doTheAnswerImport(file);
 			}
-			changesMade();
 		} catch (NullPointerException e) {
 			// If the user cancels the save dialogue, then file will be null, which will throw
 			// a NullPointerException from all the doThe*(...) methods. Don't react, because
@@ -1759,10 +2052,12 @@ public class Controller {
 	private void doTheImageImport(File file, double x, double y) {
 		String imgName = tempPath + "imgs" + File.separatorChar + incrementImageNameIfExists(file.getName());
 		addImageToDiagram(x, y, imgName.substring(tempPath.length() + 5), file);
+		changesMade(new ImportImageAction());
 	}
 	
 	private void doTheImageImport(File file) {
-		doTheImageImport(file, frameRect.getWidth()/2 - 50, frameRect.getHeight()/2 - 50);
+		doTheImageImport(file, diagram.getWidth()/2 - 50, diagram.getHeight()/2 + 50);
+		changesMade(new ImportImageAction());
 	}
 	
 	private String incrementImageNameIfExists(String imgName) {
@@ -2116,17 +2411,25 @@ public class Controller {
 	}
 
 	@FXML
-	private void removeFocusEnter(KeyEvent event) {
-		if (event.getCode() == KeyCode.ENTER) {
-			removeFocus();
-		}
-	}
-
-	@FXML
 	private void removeFocus() {
 		pane.requestFocus();
 		itemsList.getSelectionModel().clearSelection();
-		selectedItems.clear();
+		for (int i = selectedItems.size() - 1; i >= 0; i--) {
+			selectedItems.get(i).setBorder(new Border(new BorderStroke(Color.DEEPSKYBLUE, BorderStrokeStyle.NONE,
+					new CornerRadii(1), new BorderWidths(5), new Insets(0))));
+			selectedItems.remove(i);
+		}
+	}
+	
+	private void doTheCSVImport(File file) throws Exception {
+		List<String> addedItems = doTheCSV(file);
+		itemsList.getItems().addAll(addedItems);
+		List<Action> actionList = new ArrayList<Action>();
+		for (String s : addedItems) {
+			Action a = new AddToListAction(s, itemsList, null);
+			actionList.add(a);
+		}
+		changesMade(new ActionGroup(actionList, "Import CSV File"));
 	}
 
 	@FXML
@@ -2144,7 +2447,7 @@ public class Controller {
 				List<File> dragged = (ArrayList<File>) event.getDragboard().getContent(DataFormat.FILES);
 				for (File file : dragged) {
 					if (file.getName().endsWith(".csv")) {
-						itemsList.getItems().addAll(doTheCSV(file));
+						doTheCSVImport(file);
 					} else if (file.getName().endsWith(".venn")) {
 						if (changesMade) {
 							Alert a = new Alert(AlertType.CONFIRMATION);
@@ -2160,7 +2463,7 @@ public class Controller {
 						}
 					} else if (file.getName().endsWith(".vansr")) {
 						doTheAnswerImport(file);
-					} else if (file.getName().endsWith(".png")) {
+					} else if (acceptedImageTypes.contains(file.getName().substring(file.getName().lastIndexOf(".")))) {
 						doTheImageImport(file, event.getX(), event.getY());
 					}
 				}
@@ -2175,7 +2478,6 @@ public class Controller {
 			}
 			event.setDropCompleted(true);
 			event.consume();
-			changesMade();
 		}
 	}
 
@@ -2189,10 +2491,10 @@ public class Controller {
 			// Otherwise just add the text to the diagram
 			a = new DraggableItem(x, y, text);
 			if (a.checkBounds()) {
-				frameRect.getChildren().add(a);
+				diagram.getChildren().add(a);
 				itemsInDiagram.add(a);
 				a.toFront();
-				changesMade();
+				changesMade(new AddItemAction(a, x, y, itemsInDiagram, itemsList));
 				return true;
 			} else {
 				return false;
@@ -2204,11 +2506,11 @@ public class Controller {
 		// Returns true if item was added, false otherwise
 		DraggableImage a = new DraggableImage(x, y, title, imageFile);
 		if (a.checkBounds()) {
-			frameRect.getChildren().add(a);
+			diagram.getChildren().add(a);
 			itemsInDiagram.add(a);
 			imagesInDiagram.add(title);
 			a.toFront();
-			changesMade();
+			changesMade(new AddItemAction(a, x, y, itemsInDiagram, itemsList, imagesInDiagram));
 			return true;
 		} else {
 			return false;
@@ -2217,12 +2519,9 @@ public class Controller {
 
 	@FXML
 	private void selectAll() {
-		// FIXME
 		for (DraggableItem d : itemsInDiagram) {
-			System.out.println(d.getText());
 			multiSelect = true;
 			d.requestFocus();
-			selectedItems.add(d);
 		}
 		multiSelect = false;
 	}
@@ -2237,17 +2536,6 @@ public class Controller {
 		credits.setScaleX(1.2);
 		credits.setScaleY(1.2);
 		credits.setPadding(new Insets(0, 0, 7, 4));
-		Label leadDev = new Label("Lead Developer:");
-		Label me1 = new Label("  Andrew Hocking");
-		Label assistDev = new Label("Assistant Developer:");
-		Label nourin = new Label("  Nourin Abd El Hadi");
-		Label docs = new Label("Documentation:");
-		Label others = new Label("  Nabi Khalid and Anika Prova");
-		Label unitTesting = new Label("Unit testing:");
-		Label me2 = new Label("  Andrew Hocking");
-		Label icon = new Label("App icon:");
-		Label me3 = new Label("  Andrew Hocking");
-		Label imgs = new Label("Toolbar icon images:");
 		Hyperlink thoseicons = new Hyperlink("ThoseIcons on FlatIcon.com");
 		
 		// For the record, I put this in here over two weeks before handing in this project.
@@ -2256,29 +2544,29 @@ public class Controller {
 		// Absolutely not. So do I feel guilty? Absolutely not. They earned their F's.
 		// So now they're getting credit where credit is due.
 		GridPane pettiness = new GridPane();
-		Label petty1 = new Label(" Corrected Documentation:");
-		Label petty2 = new Label("\t\tNourin Abd El Hadi and Andrew Hocking");
-		Label petty3 = new Label(" Zero Usable Code:");
-		Label petty4 = new Label("\t\tNabi Khalid and Anika Prova");
 		for (Node n : pettiness.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
 
 		GridPane content = new GridPane();
 		content.add(credits, 0, 0);
-		content.add(leadDev, 0, 1);		content.add(me1, 1, 1);
-		content.add(assistDev, 0, 2);	content.add(nourin, 1, 2);
-		content.add(docs, 0, 3);		content.add(others, 1, 3);
-		content.add(unitTesting, 0, 4);	content.add(me2, 1, 4);
-		content.add(icon, 0, 5);		content.add(me3, 1, 5);
-		content.add(imgs, 0, 6);		content.add(thoseicons, 1, 6);
+		content.add(new Label("Lead Developer:"), 0, 1);		content.add(new Label("  Andrew Hocking"), 1, 1);
+		content.add(new Label("Assistant Developer:"), 0, 2);	content.add(new Label("  Nourin Abd El Hadi"), 1, 2);
+		content.add(new Label("Documentation:"), 0, 3);			content.add(new Label("  Nabi Khalid"), 1, 3);
+																content.add(new Label("  Anika Prova"), 1, 4);
+		content.add(new Label("Unit testing:"), 0, 5);			content.add(new Label("  Andrew Hocking"), 1, 5);
+		content.add(new Label("App icon:"), 0, 6);				content.add(new Label("  Andrew Hocking"), 1, 6);
+		content.add(new Label("Toolbar icon images:"), 0, 7);	content.add(thoseicons, 1, 7);
+																content.add(new Label("  Andrew Hocking"), 1, 8);
 		for (Node n : content.getChildren()) {
 			GridPane.setHgrow(n, Priority.SOMETIMES);
 		}
 		
 		a.getDialogPane().setContent(content);
-		pettiness.add(petty1, 0, 0);	pettiness.add(petty2, 1, 0);
-		pettiness.add(petty3, 0, 1);	pettiness.add(petty4, 1, 1);
+		pettiness.add(new Label(" Corrected Documentation:"), 0, 0);	pettiness.add(new Label("\t\tNourin Abd El Hadi"), 1, 0);
+																		pettiness.add(new Label("\t\tAndrew Hocking"), 1, 1);
+		pettiness.add(new Label(" Zero Usable Code:"), 0, 2);			pettiness.add(new Label("\t\tNabi Khalid"), 1, 2);
+																		pettiness.add(new Label("\t\tAnika Prova"), 1, 3);
 		a.getDialogPane().setExpandableContent(pettiness);
 		a.getDialogPane().setExpanded(false);
 		
@@ -2329,24 +2617,36 @@ public class Controller {
 		a.show();
 		a.setResizable(false);
 	}
-
+	
 	// This method is called by the FXMLLoader when initialization is complete
 	@FXML
 	private void initialize() {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
+				try {
+					File temp = File.createTempFile("venn", null);
+					tempPath = temp.getParent() + File.separatorChar;
+					temp.delete();
+					File f = new File(tempPath + "imgs" + File.separatorChar);
+					f.mkdir();
+					f.deleteOnExit();
+				} catch (IOException e) {
+					System.err.println("Temp directory could not be created. Using current directory instead.");
+					tempPath = "";
+					e.printStackTrace();
+				}
 				pane.requestFocus();
 				toolBar.toFront();
 				menuBar.toFront();
 				doTheNew();
 				leftSizeField.setAlignment(Pos.CENTER);
 				rightSizeField.setAlignment(Pos.CENTER);
-				frameRect.setOnMouseReleased(mouseEvent -> {
-					frameRect.getScene().setCursor(Cursor.DEFAULT);
+				diagram.setOnMouseReleased(mouseEvent -> {
+					diagram.getScene().setCursor(Cursor.DEFAULT);
 					mouseEvent.consume();
 				});
-				
+								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
 				pane.getScene().getWindow().setOnCloseRequest(event -> {
 					if (changesMade) {
@@ -2364,101 +2664,278 @@ public class Controller {
 						Optional<ButtonType> result = a.showAndWait();
 						if (result.get().equals(dontSaveButton)) {
 							event.consume();
-							Main.primaryStage.close();
+							try {
+								Main.primaryStage.close();
+							} catch (Exception e) {
+								System.err.println("Main.primaryStage not found");
+							}
 						} else if (result.get().equals(saveButton)) {
 							save();
 							event.consume();
-							Main.primaryStage.close();
+							try {
+								Main.primaryStage.close();
+							} catch (Exception e) {
+								System.err.println("Main.primaryStage not found");
+							}
 						} else {
 							event.consume();
 						}
 						a.getButtonTypes().removeAll(saveButton, dontSaveButton, cancelButton);
 					} else {
 						event.consume();
-						Main.primaryStage.close();
+						try {
+							Main.primaryStage.close();
+						} catch (Exception e) {
+							System.err.println("Main.primaryStage not found");
+						}
 					}
 				});
 				
-				/*
-				Main.primaryStage.widthProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						// updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						// updateIntersection();
-					}
-				});
-				Main.primaryStage.heightProperty().addListener(listener -> {
-					double width = Main.primaryStage.getWidth();
-					double height = Main.primaryStage.getHeight();
-					if (width < floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height < menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomOut();
-//						frameRect.relocate(frameRect.getLayoutX() + 300, frameRect.getLayoutY() + 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() * 0.9, frameRect.getHeight() * 0.9);
-						// updateIntersection();
-					}
-					else if (width > floatingMenu.getBoundsInParent().getWidth() + frameRect.getBoundsInParent().getWidth() + 50
-							|| height > menuBar.getBoundsInParent().getHeight() + toolBar.getBoundsInParent().getHeight() + frameRect.getBoundsInParent().getHeight() + 50) {
-						zoomIn();
-//						frameRect.relocate(frameRect.getLayoutX() - 300, frameRect.getLayoutY() - 300);
-//						frameRect.resizeRelocate(frameRect.getLayoutX() - 100, frameRect.getLayoutY() - 100, frameRect.getWidth() / 0.9, frameRect.getHeight() / 0.9);
-						// updateIntersection();
-					}
-				}); */
-				
+								
 //				XXX: Crashes JUnit test because there's no real "window" with TestFX
-				Main.primaryStage.getScene().getWindow().centerOnScreen();
-				
 				try {
-					File temp = File.createTempFile("venn", null);
-					tempPath = temp.getParent() + File.separatorChar;
-					temp.delete();
-					File f = new File(tempPath + "imgs" + File.separatorChar);
-					f.mkdir();
-					f.deleteOnExit();
-				} catch (IOException e) {
-					System.err.println("Temp directory could not be created. Using current directory instead.");
-					tempPath = "";
-					e.printStackTrace();
+					double width = Math.min(Toolkit.getDefaultToolkit().getScreenSize().width - 100, Main.primaryStage.getMaxWidth());
+					double height = Math.min(Toolkit.getDefaultToolkit().getScreenSize().height - 100, Main.primaryStage.getMaxHeight());
+					Main.primaryStage.setWidth(width);
+					Main.primaryStage.setHeight(height);
+					Main.primaryStage.getScene().getWindow().centerOnScreen();
+				} catch (Exception e) {
+					System.err.println("Main.primaryStage not found");
+				}
+				acceptedImageTypes.add(".png");
+				acceptedImageTypes.add(".jpg");
+				acceptedImageTypes.add(".jpeg");
+				acceptedImageTypes.add(".gif");
+				acceptedImageTypes.add(".bmp");
+			}
+		});
+				
+		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
+			if (!hasFocus.booleanValue()) {
+				try {
+					double d = Double.parseDouble(leftSizeField.getText());
+					if (d / 100 != leftScale) {
+						d = d < 75 ? 75 : d > 120 ? 120 : d;
+						leftSizeSlider.setValue(d);
+						changeSizeLeft();
+						changesMade(new ChangeCircleSizeAction(circleLeft, leftScale, leftSizeSlider, leftSizeField));
+						leftScale = leftSizeSlider.getValue() / 100;
+					}
+				} catch (Exception e) {
+					leftSizeField.setText(String.format("%.0f", leftSizeSlider.getValue()));
 				}
 			}
 		});
-		leftSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
+		
+		rightSizeField.focusedProperty().addListener((observable, hadFocus, hasFocus) -> {
 			if (!hasFocus.booleanValue()) {
-				changeSizeLeftField(new KeyEvent(null, null, null, KeyCode.ENTER, true, true, true, true));
+				try {
+					double d = Double.parseDouble(rightSizeField.getText());
+					if (d / 100 != rightScale) {
+						d = d < 75 ? 75 : d > 120 ? 120 : d;
+						rightSizeSlider.setValue(d);
+						changeSizeRight();
+						changesMade(new ChangeCircleSizeAction(circleRight, rightScale, rightSizeSlider, rightSizeField));
+						rightScale = rightSizeSlider.getValue() / 100;
+					}
+				} catch (Exception e) {
+					rightSizeField.setText(String.format("%.0f", rightSizeSlider.getValue()));
+				}
+			}
+		});
+				
+		title.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
 			}
 		});
 		
-		title.textProperty().addListener(changed -> {
-			changesMade();
+		title.setOnKeyReleased(event -> {
+			if (!title.textProperty().getValueSafe().contentEquals(titleText)) {
+				String newText = title.textProperty().getValueSafe();
+				if (newText.length() <= 30) {
+					changesMade(new TypeInFieldAction(title, titleText, newText));
+					titleText = newText;
+				} else {
+					int pos = title.getCaretPosition();
+					title.setText(titleText);
+					title.positionCaret(pos - 1);
+				}
+			}
 		});
-		circleLeftTitle.textProperty().addListener(changed -> {
-			changesMade();
+		
+		circleLeftTitle.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			}
 		});
-		circleRightTitle.textProperty().addListener(changed -> {
-			changesMade();
+		
+		circleLeftTitle.setOnKeyReleased(event -> {
+			if (!circleLeftTitle.textProperty().getValueSafe().contentEquals(leftText)) {
+				String newText = circleLeftTitle.textProperty().getValueSafe();
+				if (newText.length() <= 26) {
+					changesMade(new TypeInFieldAction(circleLeftTitle, leftText, newText));
+					leftText = newText;
+				} else {
+					int pos = circleLeftTitle.getCaretPosition();
+					circleLeftTitle.setText(leftText);
+					circleLeftTitle.positionCaret(pos - 1);
+				}
+			}
+		});
+		
+		circleRightTitle.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			}
+		});
+		
+		circleRightTitle.setOnKeyReleased(event -> {
+			if (!circleRightTitle.textProperty().getValueSafe().contentEquals(rightText)) {
+				String newText = circleRightTitle.textProperty().getValueSafe();
+				if (newText.length() <= 26) {
+					changesMade(new TypeInFieldAction(circleRightTitle, rightText, newText));
+					rightText = newText;
+				} else {
+					int pos = circleRightTitle.getCaretPosition();
+					circleRightTitle.setText(rightText);
+					circleRightTitle.positionCaret(pos - 1);
+				}
+			}
+		});
+		
+		addItemField.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.SHORTCUT || event.getCode() == KeyCode.ESCAPE || event.getCode() == KeyCode.CONTROL || event.getCode() == KeyCode.COMMAND) {
+				removeFocus();
+			} else if (event.getCode() == KeyCode.ENTER) {
+				addItemToList();
+			}
+		});
+		
+		addItemField.setOnKeyReleased(event -> {
+			if (!addItemField.textProperty().getValueSafe().contentEquals(addFieldText)) {
+				String newText = addItemField.textProperty().getValueSafe();
+				changesMade(new TypeInFieldAction(addItemField, addFieldText, newText));
+				addFieldText = newText;
+			}
+		});
+		
+		itemsList.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+				deleteItem();
+			}
+			if (event.getCode() == KeyCode.ESCAPE) {
+				pane.requestFocus();
+			}
+		});
+		
+		scrollPane.viewportBoundsProperty().addListener(new ChangeListener<Bounds>() {
+			@Override
+			public void changed(ObservableValue<? extends Bounds> observableValue, Bounds oldBounds, Bounds newBounds) {
+				scrollContent.setPrefSize(Math.max(diagram.getBoundsInParent().getMaxX(), newBounds.getWidth()),
+						Math.max(diagram.getBoundsInParent().getMaxY(), newBounds.getHeight()));
+			}
+		});
+				
+		leftSizeSlider.setOnMouseClicked(event -> {
+			leftScale = circleLeft.getScaleX();
+			Controller.trackChanges = false;
+		});
+		
+		rightSizeSlider.setOnMouseClicked(event -> {
+			rightScale = circleRight.getScaleX();
+			Controller.trackChanges = false;
+		});
+		
+		leftSizeSlider.setOnMouseReleased(event -> {
+			Controller.trackChanges = true;
+			changeSizeLeft();
+			changesMade(new ChangeCircleSizeAction(circleLeft, leftScale, leftSizeSlider, leftSizeField));
+			leftScale = leftSizeSlider.getValue() / 100;
+		});
+		
+		rightSizeSlider.setOnMouseReleased(event -> {
+			Controller.trackChanges = true;
+			changeSizeRight();
+			changesMade(new ChangeCircleSizeAction(circleRight, rightScale, rightSizeSlider, rightSizeField));
+			rightScale = rightSizeSlider.getValue() / 100;
+		});
+		
+		selectedItems.addListener(new ListChangeListener<DraggableItem>() {
+	        @Override
+	        public void onChanged(ListChangeListener.Change<? extends DraggableItem> c) {
+	        	if (selectedItems.size() == 1) {
+					removeMenu.setText("Remove Selected Item from Diagram");
+					removeButton.setTooltip(new Tooltip("Remove Selected Item from Diagram"));
+	        	} else {
+					removeMenu.setText("Remove Selected Items from Diagram");
+					removeButton.setTooltip(new Tooltip("Remove Selected Items from Diagram"));
+	        	}
+	        	if (selectedItems.size() < 1) {
+	        		removeButton.setDisable(true);
+	        		removeMenu.setDisable(true);
+	        	} else {
+	        		removeButton.setDisable(false);
+	        		removeMenu.setDisable(false);
+	        	}
+        		if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() == 1) {
+					deleteMenu.setText("Delete Selected Item");
+					deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
+        		} else {
+					deleteMenu.setText("Delete Selected Items");
+					deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
+        		}
+	        	if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() < 1) {
+	        		deleteButton.setDisable(true);
+	        		deleteMenu.setDisable(true);
+	        	} else {
+	        		deleteButton.setDisable(false);
+	        		deleteMenu.setDisable(false);
+	        	}
+	        }
+        });
+		
+		itemsList.getSelectionModel().selectedIndexProperty().addListener(listener -> {
+    		if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() == 1) {
+				deleteMenu.setText("Delete Selected Item");
+				deleteButton.setTooltip(new Tooltip("Delete Selected Item"));
+    		} else {
+				deleteMenu.setText("Delete Selected Items");
+				deleteButton.setTooltip(new Tooltip("Delete Selected Items"));
+    		}
+        	if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() < 1) {
+        		deleteButton.setDisable(true);
+        		deleteMenu.setDisable(true);
+        	} else {
+        		deleteButton.setDisable(false);
+        		deleteMenu.setDisable(false);
+        	}
+		});		
+		
+		addItemField.focusedProperty().addListener(listener -> {
+			itemsList.getSelectionModel().clearSelection();
+		});
+		
+		addItemField.textProperty().addListener(listener -> {
+			
 		});
 
 		for (Node n : pane.getChildren()) {
 			n.setFocusTraversable(false);
 		}
-		for (Node n : frameRect.getChildren()) {
+		for (Node n : diagram.getChildren()) {
 			n.setFocusTraversable(false);
 		}
 		
+		try {
 //		XXX: Crashes JUnit test because there's no real "window" with TestFX
-		Main.primaryStage.setMinWidth(800);
-		Main.primaryStage.setMinHeight(400);
+			 Main.primaryStage.setMinWidth(800);
+			 Main.primaryStage.setMinHeight(400);
+			 Main.primaryStage.setMaxWidth(1280);
+			 Main.primaryStage.setMaxHeight(822);
+		} catch (Exception e) {
+			System.err.println("Main.primaryStage not found");
+		}
 		
 		addItemButton.setFocusTraversable(false);
 		addItemField.setFocusTraversable(false);

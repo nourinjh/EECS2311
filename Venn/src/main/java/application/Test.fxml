@@ -5,7 +5,6 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ColorPicker?>
-<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -26,6 +25,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
@@ -37,7 +37,7 @@
          <children>
             <HBox prefHeight="27.0" prefWidth="240.0">
                <children>
-                  <TextField fx:id="addItemField" maxHeight="30.0" maxWidth="200.0" minHeight="25.0" minWidth="150.0" onKeyPressed="#addItemWithEnter" prefHeight="27.0" prefWidth="190.0" promptText="Add an item..." style="-fx-background-radius: 0;" />
+                  <TextField fx:id="addItemField" maxHeight="30.0" maxWidth="200.0" minHeight="25.0" minWidth="150.0" prefHeight="27.0" prefWidth="190.0" promptText="Add an item..." style="-fx-background-radius: 0;" />
                   <Button fx:id="addItemButton" blendMode="SCREEN" maxHeight="30.0" maxWidth="50.0" minHeight="25.0" minWidth="50.0" mnemonicParsing="false" onMouseClicked="#addItemToList" prefHeight="27.0" prefWidth="50.0" style="-fx-text-fill: black; -fx-background-radius: 0;" stylesheets="@application.css" text="Add">
                      <cursor>
                         <Cursor fx:constant="HAND" />
@@ -45,18 +45,10 @@
                   </Button>
                </children>
             </HBox>
-      
-                                          <ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefWidth="240.0" VBox.vgrow="ALWAYS">
+      		<ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefWidth="240.0" VBox.vgrow="ALWAYS">
                <cursor>
                   <Cursor fx:constant="OPEN_HAND" />
                </cursor>
-               <contextMenu>
-                  <ContextMenu>
-                    <items>
-                      <MenuItem mnemonicParsing="false" onAction="#deleteItem" text="Delete item" />
-                    </items>
-                  </ContextMenu>
-               </contextMenu>
             </ListView>
          </children>
       </VBox>
@@ -81,6 +73,13 @@
                         <MenuItem mnemonicParsing="false" onAction="#importAnswer" text="Answer Key" />
                     </items>
                   </Menu>
+                  <Menu mnemonicParsing="false" text="Export...">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Image" />
+                        <MenuItem mnemonicParsing="false" onAction="#exportCSV" text="CSV File" />
+                        <MenuItem mnemonicParsing="false" onAction="#exportAnswer" text="Answer Key" />
+                    </items>
+                  </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#save" text="Save">
                      <accelerator>
@@ -92,17 +91,15 @@
                         <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" onAction="#takeScreenshot" text="Export Venn Diagram as Image..." />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#undo" text="Undo">
+                  <MenuItem fx:id="undoMenu" disable="true" mnemonicParsing="false" onAction="#undo" text="Undo">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Z" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo">
+                  <MenuItem fx:id="redoMenu" disable="true" mnemonicParsing="false" onAction="#redo" text="Redo">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="Y" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator></MenuItem>
@@ -117,13 +114,13 @@
                         <KeyCodeCombination alt="UP" code="A" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem fx:id="deleteItemMenu" mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items" />
-                  <MenuItem mnemonicParsing="false" onAction="#clearDiagram" text="Clear Venn Diagram" />
+              <MenuItem fx:id="deleteMenu" disable="true" mnemonicParsing="false" onAction="#deleteItem" text="Delete Selected Items" />
+                  <MenuItem fx:id="removeMenu" disable="true" mnemonicParsing="false" onAction="#removeSelectedItems" text="Remove Selected Items from Diagram" />
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="View">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
+                <MenuItem fx:id="zoomInMenu" disable="true" mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="PLUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -133,7 +130,7 @@
                         <KeyCodeCombination alt="UP" code="EQUALS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
+                  <MenuItem fx:id="zoomOutMenu" mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="MINUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -158,30 +155,30 @@
           </Menu>
         </menus>
       </MenuBar>
-      <ScrollPane fx:id="scrollPane" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
+      <ScrollPane fx:id="scrollPane" hvalue="0.5" layoutX="397.0" layoutY="68.0" pannable="true" prefHeight="731.0" prefWidth="872.0" stylesheets="@application.css" vvalue="0.5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="390.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="68.0">
          <content>
-            <AnchorPane prefHeight="730.0" prefWidth="888.0">
+            <StackPane fx:id="scrollContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="730.0" prefWidth="870.0">
                <children>
-                  <Pane fx:id="frameRect" layoutX="24.0" layoutY="34.0" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="18.0">
+                  <Pane fx:id="diagram" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
                      <children>
-                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="253.0" layoutY="406.0" radius="229.0" strokeType="INSIDE" />
-                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="552.0" layoutY="405.0" radius="230.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="293.0" layoutY="436.0" radius="229.0" strokeType="INSIDE" />
+                  		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="592.0" layoutY="435.0" radius="230.0" strokeType="INSIDE" />
                   
-                                                                                    <TextField fx:id="title" alignment="CENTER" layoutX="1.0" layoutY="1.0" onKeyPressed="#removeFocusEnter" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
+                                                                                          <TextField fx:id="title" alignment="CENTER" layoutX="41.0" layoutY="31.0" prefHeight="86.0" prefWidth="804.0" promptText="Title of Venn Diagram" style="-fx-background-color: transparent; -fx-text-fill: white;" styleClass="text-field" stylesheets="@application.css">
                   
-                                                                                       <font>
+                                                                                             <font>
                               <Font name="Arial" size="32.0" />
                            </font>
                            <cursor>
                               <Cursor fx:constant="TEXT" />
                            </cursor>
                         </TextField>
-                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="113.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleLeftTitle" alignment="CENTER" layoutX="153.0" layoutY="99.0" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
                         </TextField>
-                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="412.0" layoutY="69.0" onKeyPressed="#removeFocusEnter" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
+                        <TextField fx:id="circleRightTitle" alignment="CENTER" layoutX="452.0" layoutY="99.0" prefHeight="94.0" prefWidth="280.0" promptText="Enter Title " style="-fx-text-fill: white; -fx-background-color: transparent;">
                            <font>
                               <Font name="Arial" size="18.0" />
                            </font>
@@ -192,7 +189,7 @@
                      </opaqueInsets>
                   </Pane>
                </children>
-            </AnchorPane>
+            </StackPane>
          </content>
       </ScrollPane>
       <ToolBar fx:id="toolBar" layoutX="483.0" layoutY="27.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="27.0">
@@ -263,16 +260,98 @@
                   <Insets left="3.0" />
                </padding>
             </Separator>
-            <Button fx:id="checkAnswersButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#importAnswer" prefHeight="30.0">
+            <Button fx:id="undoButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#undo" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/undo.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Undo" />
+               </tooltip>
+            </Button>
+            <Button fx:id="redoButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/redo.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Redo" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL" prefHeight="30.0">
+               <padding>
+                  <Insets left="3.0" />
+               </padding>
+            </Separator>
+            <Button fx:id="zoomOutButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomOut" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomOut.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Undo" />
+               </tooltip>
+            </Button>
+            <Button fx:id="zoomInButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomIn" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomIn.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Redo" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL" prefHeight="30.0">
+               <padding>
+                  <Insets left="3.0" />
+               </padding>
+            </Separator>
+            <Button fx:id="deleteButton" disable="true" focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="30.0">
                <graphic>
                   <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@images/correct.png" />
+                        <Image url="@images/trash.png" />
                      </image>
                   </ImageView>
                </graphic>
                <tooltip>
-                  <Tooltip text="Check Answers" />
+                  <Tooltip text="Delete Selected Items" />
+               </tooltip>
+            </Button>
+            <Button fx:id="removeButton" disable="true" focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#removeSelectedItems" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/eraser.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Remove Selected Items from Diagram" />
                </tooltip>
             </Button>
             <Button fx:id="hideAnswersButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#hideAnswers" prefHeight="30.0">
@@ -285,35 +364,6 @@
                </graphic>
                <tooltip>
                   <Tooltip text="Hide Answers" />
-               </tooltip>
-            </Button>
-            <Separator orientation="VERTICAL" prefHeight="30.0">
-               <padding>
-                  <Insets left="3.0" />
-               </padding>
-            </Separator>
-            <Button fx:id="deleteButton" focusTraversable="false" layoutX="136.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#deleteItem" prefHeight="30.0">
-               <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@images/trash.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-               <tooltip>
-                  <Tooltip text="Delete Selected Items" />
-               </tooltip>
-            </Button>
-            <Button fx:id="clearButton" focusTraversable="false" layoutX="178.0" layoutY="5.0" mnemonicParsing="false" onMouseClicked="#clearDiagram" prefHeight="30.0">
-               <graphic>
-                  <ImageView fitHeight="17.0" fitWidth="17.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@images/eraser.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-               <tooltip>
-                  <Tooltip text="Clear Diagram" />
                </tooltip>
             </Button>
             <Separator orientation="VERTICAL" prefHeight="30.0">
@@ -347,7 +397,7 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorBackground" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorBackground" prefWidth="125.0" promptText="Background Colour" />
+                              <ColorPicker fx:id="colorBackground" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateBackgroundColor" prefWidth="125.0" promptText="Background Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -364,7 +414,7 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorTitles" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorTitles" prefWidth="125.0" promptText="Title Text Colour" />
+                              <ColorPicker fx:id="colorTitles" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateTitleColors" prefWidth="125.0" promptText="Title Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -416,7 +466,7 @@
                                     <Insets left="10.0" right="10.0" top="6.0" />
                                  </padding>
                               </Label>
-                              <ColorPicker fx:id="colorLeft" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorLeft" prefWidth="125.0" promptText="Colour" />
+                              <ColorPicker fx:id="colorLeft" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateLeftCircleColor" prefWidth="125.0" promptText="Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -433,7 +483,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorLeftItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Colour" />
+                              <ColorPicker fx:id="colorLeftItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -484,7 +534,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorRight" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorRight" prefWidth="125.0" promptText="Colour" />
+                              <ColorPicker fx:id="colorRight" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateRightCircleColor" prefWidth="125.0" promptText="Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -501,7 +551,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorRightItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Item Text Colour" />
+                              <ColorPicker fx:id="colorRightItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Item Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -511,23 +561,6 @@
                      <graphic>
                         <Label text="Intersection" />
                      </graphic></MenuItem>
-                  <CustomMenuItem disable="true" hideOnClick="false" mnemonicParsing="false" text="Color" visible="false">
-                     <content>
-                        <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                           <children>
-                              <Label focusTraversable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="150.0" text="Background Colour">
-                                 <font>
-                                    <Font size="11.0" />
-                                 </font>
-                                 <padding>
-                                    <Insets left="10.0" right="10.0" top="6.0" />
-                                 </padding>
-                              </Label>
-<!--                               <ColorPicker fx:id="colorIntersection" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateIntersection" prefWidth="125.0" promptText="Background Colour" />
- -->                           </children>
-                        </HBox>
-                     </content>
-                  </CustomMenuItem>
                   <CustomMenuItem hideOnClick="false" mnemonicParsing="false" text="Text">
                      <content>
                         <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
@@ -540,7 +573,7 @@
                                     <Font size="11.0" />
                                  </font>
                               </Label>
-                              <ColorPicker fx:id="colorIntersectionItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#changeColorItems" prefWidth="125.0" promptText="Item Text Colour" />
+                              <ColorPicker fx:id="colorIntersectionItems" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#updateItemColors" prefWidth="125.0" promptText="Item Text Colour" />
                            </children>
                         </HBox>
                      </content>
@@ -555,7 +588,5 @@
             <Insets />
          </opaqueInsets>
       </ToolBar>
-
-
 	</children>
 </AnchorPane>
