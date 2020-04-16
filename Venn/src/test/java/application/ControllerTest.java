@@ -7,16 +7,13 @@ import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.service.query.EmptyNodeQueryException;
 import org.testfx.util.WaitForAsyncUtils;
 
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -99,6 +96,7 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(((DraggableItem)(find("Item 7").getParent())).getCircle(), 'l');
 		assertEquals(((DraggableItem)(find("Item 8").getParent())).getCircle(), 'i');
 		assertEquals(((DraggableItem)(find("Item 9").getParent())).getCircle(), 'r');
+		assertTrue(((ListView<String>)(find("#itemsList"))).getItems().contains("Item 10"));
 	}
 
 	// test input text
@@ -127,43 +125,48 @@ public class ControllerTest extends ApplicationTest {
 
 		WaitForAsyncUtils.waitForFxEvents();
 
-		final int length = ((ListView<String>) (find("#itemsList"))).getItems().size();
-
 		clickOn("Item 1");
 		clickOn("#deleteButton");
 		clickOn("#itemsList");
-		drag("Item 2").moveTo("#circleLeft").dropBy(-100, 0);
-		drag("Item 3").moveTo("#circleRight").dropBy(-40, 0);
-		clickOn("Item 2");
-		clickOn("#deleteButton");
-		clickOn("Item 3");
-		clickOn("#deleteButton");
-
 		WaitForAsyncUtils.waitForFxEvents();
-
 		try {
 			find("Item 1");
 			fail();
 		} catch (EmptyNodeQueryException e) {
-			try {
-				find("Item 2");
-				fail();
-			} catch (EmptyNodeQueryException f) {
-				try {
-					find("Item 3");
-					fail();
-				} catch (EmptyNodeQueryException g) {
-				}
-			}
+			// Item successfully deleted
 		}
-		assertEquals(length - 3, ((ListView<String>) (find("#itemsList"))).getItems().size());
-
+		drag("Item 2").moveTo("#circleLeft").dropBy(-100, 0);
+		WaitForAsyncUtils.waitForFxEvents();
+		drag("Item 3").moveTo("#circleRight").dropBy(-40, 0);
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		clickOn("Item 2");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#deleteButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		try {
+			find("Item 2");
+			fail();
+		} catch (EmptyNodeQueryException f) {
+			// Item successfully deleted
+		}
+		
+		clickOn("Item 3");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#deleteButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		try {
+			find("Item 3");
+			fail();
+		} catch (EmptyNodeQueryException g) {
+			// Item successfully deleted
+		}
 	}
 
 	// clear button
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testClearButton() {
+	public void testRemoveButton() {
 		final int ITEMS = 5;
 		for (int i = 1; i <= ITEMS; i++) {
 			clickOn("#addItemField").write("Item " + i);
@@ -224,11 +227,15 @@ public class ControllerTest extends ApplicationTest {
 			clickOn("#addItemButton");
 			WaitForAsyncUtils.waitForFxEvents();
 		}
-		clickOn("#itemsList");
+		clickOn("Item 1");
 		WaitForAsyncUtils.waitForFxEvents();
 		drag("Item 1").moveTo("#circleLeft").dropBy(-100, (Math.random() * 200) - 100);
 		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("Item 2");
+		WaitForAsyncUtils.waitForFxEvents();
 		drag("Item 2").moveTo("#circleLeft").dropBy(((Circle)(find("#circleLeft"))).getBoundsInParent().getWidth() / 2 - 110, (Math.random() * 150) - 75);
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("Item 3");
 		WaitForAsyncUtils.waitForFxEvents();
 		drag("Item 3").moveTo("#circleRight").dropBy(-40, (Math.random() * 200) - 100);
 		WaitForAsyncUtils.waitForFxEvents();
@@ -397,6 +404,14 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(75, ((Slider) (find("#leftSizeSlider"))).getValue(), 0.001);
 		assertEquals("75", ((TextField) (find("#leftSizeField"))).getText());
 		assertEquals(75, ((Circle) (find("#circleLeft"))).getScaleX() * 100, 0.001);
+		
+		doubleClickOn("#leftSizeField").write("hello");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.ENTER);
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(75, ((Slider) (find("#leftSizeSlider"))).getValue(), 0.001);
+		assertEquals("75", ((TextField) (find("#leftSizeField"))).getText());
+		assertEquals(75, ((Circle) (find("#circleLeft"))).getScaleX() * 100, 0.001);
 
 		s1 = ((Slider) (find("#rightSizeSlider"))).getValue();
 		f1 = ((TextField) (find("#rightSizeField"))).getText();
@@ -440,6 +455,14 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(120, ((Circle) (find("#circleRight"))).getScaleX() * 100, 0.001);
 		
 		doubleClickOn("#rightSizeField").write("0");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.ENTER);
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(75, ((Slider) (find("#rightSizeSlider"))).getValue(), 0.001);
+		assertEquals("75", ((TextField) (find("#rightSizeField"))).getText());
+		assertEquals(75, ((Circle) (find("#circleRight"))).getScaleX() * 100, 0.001);
+		
+		doubleClickOn("#rightSizeField").write("hello");
 		WaitForAsyncUtils.waitForFxEvents();
 		type(KeyCode.ENTER);
 		WaitForAsyncUtils.waitForFxEvents();
@@ -515,6 +538,7 @@ public class ControllerTest extends ApplicationTest {
 	}
 	
 	// move item
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testMovingItems() {
 		clickOn("#addItemField");
@@ -534,6 +558,9 @@ public class ControllerTest extends ApplicationTest {
 		drag("Test").dropTo("#circleRight");
 		WaitForAsyncUtils.waitForFxEvents();
 		assertEquals('r', ((DraggableItem) (find("Test").getParent())).getCircle());
+		drag("Test").dropTo("#itemsList");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertTrue(((ListView<String>) find("#itemsList")).getItems().contains("Test"));
 	}
 	
 	// keyboard shortcuts
@@ -670,8 +697,22 @@ public class ControllerTest extends ApplicationTest {
 		WaitForAsyncUtils.waitForFxEvents();
 		clickOn("#addItemButton");
 		WaitForAsyncUtils.waitForFxEvents();
-		clickOn("#itemsList");
+		doubleClickOn("Test");
 		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#deleteButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertFalse(((ListView<String>) find("#itemsList")).getItems().contains("Test"));
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertTrue(((ListView<String>) find("#itemsList")).getItems().contains("Test"));
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertFalse(((ListView<String>) find("#itemsList")).getItems().contains("Test"));
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("Test");
+		WaitForAsyncUtils.waitForFxEvents();
+		
 		drag("Test").dropTo("#circleLeft");
 		WaitForAsyncUtils.waitForFxEvents();
 		double x1 = ((Label) find("Test")).getParent().getLayoutX();
@@ -734,15 +775,13 @@ public class ControllerTest extends ApplicationTest {
 		clickOn("#deleteButton");
 		WaitForAsyncUtils.waitForFxEvents();
 		try {
-			Label l = find("Test");
+			find("Test");
 			fail();
 		} catch (Exception e) {}
 		WaitForAsyncUtils.waitForFxEvents();
 		clickOn("#undoButton");
 		WaitForAsyncUtils.waitForFxEvents();
 		try {
-			Label l = find("Test");
-			WaitForAsyncUtils.waitForFxEvents();
 			assertEquals(x3, ((Label) find("Test")).getParent().getLayoutX(), 10);
 			assertEquals(y3, ((Label) find("Test")).getParent().getLayoutY(), 10);
 		} catch (Exception e) {
@@ -751,7 +790,7 @@ public class ControllerTest extends ApplicationTest {
 		clickOn("#redoButton");
 		WaitForAsyncUtils.waitForFxEvents();
 		try {
-			Label l = find("Test");
+			find("Test");
 			fail();
 		} catch (Exception e) {}
 		clickOn("#undoButton");
@@ -766,8 +805,6 @@ public class ControllerTest extends ApplicationTest {
 		clickOn("#undoButton");
 		WaitForAsyncUtils.waitForFxEvents();
 		try {
-			Label l = find("Test");
-			WaitForAsyncUtils.waitForFxEvents();
 			assertEquals(x3, ((Label) find("Test")).getParent().getLayoutX(), 10);
 			assertEquals(y3, ((Label) find("Test")).getParent().getLayoutY(), 10);
 		} catch (Exception e) {
@@ -777,6 +814,114 @@ public class ControllerTest extends ApplicationTest {
 		WaitForAsyncUtils.waitForFxEvents();
 		assertTrue(((ListView<String>) find("#itemsList")).getItems().contains("Test"));
 		WaitForAsyncUtils.waitForFxEvents();
+
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		String text1 = ((DraggableItem) find("Test").getParent()).getText();
+		String desc1 = ((DraggableItem) find("Test").getParent()).getDescription();
+		
+		doubleClickOn("Test");
+		WaitForAsyncUtils.waitForFxEvents();
+		doubleClickOn("#itemTitle");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("New title");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#itemDescription");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("New description");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("Save");
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		String text2 = ((DraggableItem) find("New title").getParent()).getText();
+		String desc2 = ((DraggableItem) find("New title").getParent()).getDescription();
+		
+		assertNotEquals(text1, text2);
+		assertNotEquals(desc1, desc2);
+		
+		moveTo("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		assertEquals(text1, ((DraggableItem) find("Test").getParent()).getText());
+		assertEquals(desc1, ((DraggableItem) find("Test").getParent()).getDescription());
+		
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		
+		assertEquals(text2, ((DraggableItem) find("New title").getParent()).getText());
+		assertEquals(desc2, ((DraggableItem) find("New title").getParent()).getDescription());
+		
+		double keyX, keyY, keyX2, keyY2;
+		
+		keyX = find("New title").getLayoutX();
+		keyY = find("New title").getLayoutY();
+		clickOn("New title");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.UP);
+		WaitForAsyncUtils.waitForFxEvents();
+		keyX2 = find("New title").getLayoutX();
+		keyY2 = find("New title").getLayoutY();
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY, find("New title").getLayoutY(), 0.0001);
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX2, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY2, find("New title").getLayoutY(), 0.0001);
+		
+		keyX = find("New title").getLayoutX();
+		keyY = find("New title").getLayoutY();
+		clickOn("New title");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.DOWN);
+		WaitForAsyncUtils.waitForFxEvents();
+		keyX2 = find("New title").getLayoutX();
+		keyY2 = find("New title").getLayoutY();
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY, find("New title").getLayoutY(), 0.0001);
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX2, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY2, find("New title").getLayoutY(), 0.0001);
+		
+		keyX = find("New title").getLayoutX();
+		keyY = find("New title").getLayoutY();
+		clickOn("New title");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.LEFT);
+		WaitForAsyncUtils.waitForFxEvents();
+		keyX2 = find("New title").getLayoutX();
+		keyY2 = find("New title").getLayoutY();
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY, find("New title").getLayoutY(), 0.0001);
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX2, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY2, find("New title").getLayoutY(), 0.0001);
+		
+		keyX = find("New title").getLayoutX();
+		keyY = find("New title").getLayoutY();
+		clickOn("New title");
+		WaitForAsyncUtils.waitForFxEvents();
+		type(KeyCode.RIGHT);
+		WaitForAsyncUtils.waitForFxEvents();
+		keyX2 = find("New title").getLayoutX();
+		keyY2 = find("New title").getLayoutY();
+		clickOn("#undoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY, find("New title").getLayoutY(), 0.0001);
+		clickOn("#redoButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		assertEquals(keyX2, find("New title").getLayoutX(), 0.0001);
+		assertEquals(keyY2, find("New title").getLayoutY(), 0.0001);
 		
 		clickOn("File");
 		WaitForAsyncUtils.waitForFxEvents();
@@ -810,6 +955,9 @@ public class ControllerTest extends ApplicationTest {
 		String rttl2txt = ((TextField) find("#circleRightTitle")).getText();
 		double lcs = ((Circle) find("#circleLeft")).getScaleX();
 		double rcs = ((Circle) find("#circleRight")).getScaleX();
+		Color ltxt2 = (Color) ((Label) find("Item 1")).getTextFill();
+		Color itxt2 = (Color) ((Label) find("Item 2")).getTextFill();
+		Color rtxt2 = (Color) ((Label) find("Item 3")).getTextFill();
 		
 		assertNotEquals(bg, bg2);
 		assertNotEquals(ttl, ttl2);
@@ -822,13 +970,9 @@ public class ControllerTest extends ApplicationTest {
 		assertNotEquals("", rttl2txt);
 		assertNotEquals(1.0, lcs);
 		assertNotEquals(1.0, rcs);
-		
-//		int count = 0;
-//		while (!((TextField) find("#title")).getText().equals("")) {
-//			clickOn("#undoButton");
-//			WaitForAsyncUtils.waitForFxEvents();
-//			count++;
-//		}
+		assertNotEquals(ltxt, ltxt2);
+		assertNotEquals(itxt, itxt2);
+		assertNotEquals(rtxt, rtxt2);
 		
 		while (!((Button) find("#undoButton")).isDisabled()) {
 			clickOn("#undoButton");
@@ -847,11 +991,6 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(1.0, ((Circle) find("#circleLeft")).getScaleX(), 0.01);
 		assertEquals(1.0, ((Circle) find("#circleRight")).getScaleX(), 0.01);
 		
-//		for (int i = 0; i < count; i++) {
-//			clickOn("#redoButton");
-//			WaitForAsyncUtils.waitForFxEvents();
-//		}
-		
 		while (!((Button) find("#redoButton")).isDisabled()) {
 			clickOn("#redoButton");
 			WaitForAsyncUtils.waitForFxEvents();
@@ -868,11 +1007,34 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(rttl2txt, ((TextField) find("#circleRightTitle")).getText());
 		assertEquals(lcs, ((Circle) find("#circleLeft")).getScaleX(), 0.01);
 		assertEquals(rcs, ((Circle) find("#circleRight")).getScaleX(), 0.01);
-	}
-	
-	private void sleep() {
-		try {
-			Thread.sleep(500);
-		} catch (Exception e) {} 
+		assertEquals(ltxt2, (Color) ((Label) find("Item 1")).getTextFill());
+		assertEquals(itxt2, (Color) ((Label) find("Item 2")).getTextFill());
+		assertEquals(rtxt2, (Color) ((Label) find("Item 3")).getTextFill());
+		
+		while (!((Button) find("#undoButton")).isDisabled()) {
+			clickOn("#undoButton");
+			WaitForAsyncUtils.waitForFxEvents();
+		}
+		
+		clickOn("#addItemField");
+		WaitForAsyncUtils.waitForFxEvents();
+		write("Test");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#addItemButton");
+		WaitForAsyncUtils.waitForFxEvents();
+		clickOn("#itemsList");
+		WaitForAsyncUtils.waitForFxEvents();
+		drag("Test").dropTo("#circleLeft");
+		WaitForAsyncUtils.waitForFxEvents();
+		Color ltxt3 = (Color) ((Label) find("Test")).getTextFill();
+		drag("Test").moveTo("#circleLeft").dropBy(((Circle)(find("#circleLeft"))).getBoundsInParent().getWidth() / 2 - 110, 0);
+		WaitForAsyncUtils.waitForFxEvents();
+		Color itxt3 = (Color) ((Label) find("Test")).getTextFill();
+		drag("Test").dropTo("#circleRight");
+		WaitForAsyncUtils.waitForFxEvents();
+		Color rtxt3 = (Color) ((Label) find("Test")).getTextFill();
+		assertEquals(ltxt, ltxt3);
+		assertEquals(itxt, itxt3);
+		assertEquals(rtxt, rtxt3);
 	}
 }

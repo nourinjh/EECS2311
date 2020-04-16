@@ -45,7 +45,7 @@
                   </Button>
                </children>
             </HBox>
-      		<ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefWidth="240.0" VBox.vgrow="ALWAYS">
+      		<ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefWidth="240.0" VBox.vgrow="ALWAYS">
                <cursor>
                   <Cursor fx:constant="OPEN_HAND" />
                </cursor>

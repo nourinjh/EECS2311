@@ -354,68 +354,72 @@ public class Controller {
 					removeFocus();
 				}
 				if (keyEvent.getCode() == KeyCode.UP) {
-					this.actionList.clear();
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
 					for (DraggableItem d : selectedItems) {
-						d.setLayoutY(d.getLayoutY() - 10);
+						double y1 = d.getLayoutY();
+						d.setLayoutY(y1 - distance);
 						if (!d.checkBounds()) {
-							d.setLayoutY(d.getLayoutY() + 10);
+							d.setLayoutY(y1);
 							d.checkBounds();
 							d.setBackground(null);
 						} else {
-							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX(),
-									d.getLayoutY() - 10));
+							moved.add(d);
 						}
 					}
-					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-					changesMade(new ActionGroup(actionList, message));
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.UP, distance));
 				}
 				if (keyEvent.getCode() == KeyCode.DOWN) {
-					this.actionList.clear();
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
 					for (DraggableItem d : selectedItems) {
-						d.setLayoutY(d.getLayoutY() + 10);
+						double y1 = d.getLayoutY();
+						d.setLayoutY(y1 + distance);
 						if (!d.checkBounds()) {
-							d.setLayoutY(d.getLayoutY() - 10);
+							d.setLayoutY(y1);
 							d.checkBounds();
 							d.setBackground(null);
 						} else {
-							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX(),
-									d.getLayoutY() + 10));
+							moved.add(d);
 						}
 					}
-					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-					changesMade(new ActionGroup(actionList, message));
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.DOWN, distance));
 				}
 				if (keyEvent.getCode() == KeyCode.LEFT) {
-					this.actionList.clear();
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
 					for (DraggableItem d : selectedItems) {
-						d.setLayoutX(d.getLayoutX() - 10);
+						double x1 = d.getLayoutX();
+						d.setLayoutX(x1 - distance);
 						if (!d.checkBounds()) {
-							d.setLayoutX(d.getLayoutX() + 10);
+							d.setLayoutX(x1);
 							d.checkBounds();
 							d.setBackground(null);
 						} else {
-							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX() - 10,
-									d.getLayoutY()));
+							moved.add(d);
 						}
 					}
-					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-					changesMade(new ActionGroup(actionList, message));
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.LEFT, distance));
 				}
 				if (keyEvent.getCode() == KeyCode.RIGHT) {
-					this.actionList.clear();
+					double distance = 10;
+					List<DraggableItem> moved = new ArrayList<DraggableItem>();
 					for (DraggableItem d : selectedItems) {
-						d.setLayoutX(d.getLayoutX() + 10);
+						double x1 = d.getLayoutX();
+						d.setLayoutX(x1 + distance);
 						if (!d.checkBounds()) {
-							d.setLayoutX(d.getLayoutX() - 10);
+							d.setLayoutX(x1);
 							d.checkBounds();
 							d.setBackground(null);
 						} else {
-							actionList.add(new MoveItemAction(d, d.getLayoutX(), d.getLayoutY(), d.getLayoutX() + 10,
-									d.getLayoutY()));
+							moved.add(d);
 						}
 					}
-					String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-					changesMade(new ActionGroup(actionList, message));
+					if (!moved.isEmpty())
+						changesMade(new MoveItemsWithKeyboardAction(moved, KeyCode.RIGHT, distance));
 				}
 				keyEvent.consume();
 			});
@@ -567,52 +571,57 @@ public class Controller {
 					}
 					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
 					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
-					d.setLayoutX(newX);
-					d.setLayoutY(newY);
-					if (d.checkBounds()) {
-						d.setBackground(null);
-						d.getLabel().setTextFill(d.getColor());
-						d.getScene().setCursor(Cursor.CLOSED_HAND);
-						setOnMouseReleased(mouseEvent2 -> {
-							for (DraggableItem i : selectedItems) {
-								actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
-								i.getScene().setCursor(Cursor.HAND);
-								i.checkBounds();
-								mouseEvent.consume();
-								mouseEvent2.consume();
+					if (Math.abs(newX - oldX) > 2 || Math.abs(newY - oldY) > 2) {
+						d.setLayoutX(newX);
+						d.setLayoutY(newY);
+						if (d.checkBounds()) {
+							d.setBackground(null);
+							d.getLabel().setTextFill(d.getColor());
+							d.getScene().setCursor(Cursor.CLOSED_HAND);
+							setOnMouseReleased(mouseEvent2 -> {
+								for (DraggableItem i : selectedItems) {
+									actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+									i.getScene().setCursor(Cursor.HAND);
+									i.checkBounds();
+									mouseEvent.consume();
+									mouseEvent2.consume();
+								}
 								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
 								changesMade(new ActionGroup(actionList, message));
-							}
-							mouseEvent.consume();
-							mouseEvent2.consume();
-						});
-					} else {
-						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
-						d.getLabel().setTextFill(Color.WHITE);
-						d.getScene().setCursor(Cursor.DISAPPEAR);
-						setOnMouseReleased(mouseEvent2 -> {
-							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
-							List<String> removed = new ArrayList<String>();
-							for (int i = selectedItems.size() - 1; i >= 0; i--) {
-								if (!removed.contains(selectedItems.get(i).getText())) {
-									removed.add(selectedItems.get(i).getText());
-									if (selectedItems.get(i) instanceof DraggableImage) {
-										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
-										imagesInDiagram.remove(selectedItems.get(i).getText());
-									} else {
-										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+								mouseEvent.consume();
+								mouseEvent2.consume();
+							});
+						} else {
+							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+							setOnMouseReleased(mouseEvent2 -> {
+								String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+								List<String> removed = new ArrayList<String>();
+								for (int i = selectedItems.size() - 1; i >= 0; i--) {
+									if (!removed.contains(selectedItems.get(i).getText())) {
+										removed.add(selectedItems.get(i).getText());
+										if (selectedItems.get(i) instanceof DraggableImage) {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+											imagesInDiagram.remove(selectedItems.get(i).getText());
+										} else {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+										}
+										diagram.getChildren().remove(selectedItems.get(i));
+										itemsInDiagram.remove(selectedItems.get(i));
+										itemsList.getItems().add(selectedItems.get(i).getText());
 									}
-									diagram.getChildren().remove(selectedItems.get(i));
-									itemsInDiagram.remove(selectedItems.get(i));
-									itemsList.getItems().add(selectedItems.get(i).getText());
+									selectedItems.remove(i);
 								}
-								selectedItems.remove(i);
-							}
-							pane.getScene().setCursor(Cursor.DEFAULT);
-							changesMade(new ActionGroup(actionList, message));
-							mouseEvent.consume();
-							mouseEvent2.consume();
-						});
+								pane.getScene().setCursor(Cursor.DEFAULT);
+								changesMade(new ActionGroup(actionList, message));
+								mouseEvent.consume();
+								mouseEvent2.consume();
+							});
+						}
+					} else {
+						d.setLayoutX(oldX);
+						d.setLayoutY(oldY);
 					}
 				}
 				mouseEvent.consume();
@@ -877,53 +886,58 @@ public class Controller {
 					}
 					double newX = d.getLayoutX() + mouseEvent.getX() - dragDelta.x;
 					double newY = d.getLayoutY() + mouseEvent.getY() - dragDelta.y;
-					d.setLayoutX(newX);
-					d.setLayoutY(newY);
-					if (d.checkBounds()) {
-						setOnMouseReleased(mouseEvent2 -> {
-							for (DraggableItem i : selectedItems) {
-								actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
-								i.getScene().setCursor(Cursor.HAND);
-								i.checkBounds();
-								i.setBackground(null);
+					if (Math.abs(newX - oldX) > 2 || Math.abs(newY - oldY) > 2) {
+						d.setLayoutX(newX);
+						d.setLayoutY(newY);
+						if (d.checkBounds()) {
+							setOnMouseReleased(mouseEvent2 -> {
+								for (DraggableItem i : selectedItems) {
+									actionList.add(new MoveItemAction(i, i.oldX, i.oldY, newX, newY));
+									i.getScene().setCursor(Cursor.HAND);
+									i.checkBounds();
+									i.setBackground(null);
+									mouseEvent.consume();
+									mouseEvent2.consume();
+									String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
+									changesMade(new ActionGroup(actionList, message));
+								}
 								mouseEvent.consume();
 								mouseEvent2.consume();
-								String message = selectedItems.size() == 1 ? "Move Item" : "Move Items";
-								changesMade(new ActionGroup(actionList, message));
-							}
-							mouseEvent.consume();
-							mouseEvent2.consume();
-						});
-						d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
-						d.getLabel().setTextFill(d.getColor());
-						d.getScene().setCursor(Cursor.CLOSED_HAND);
-					} else {
-						d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
-						d.getLabel().setTextFill(Color.WHITE);
-						d.getScene().setCursor(Cursor.DISAPPEAR);
-						setOnMouseReleased(mouseEvent2 -> {
-							String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
-							List<String> removed = new ArrayList<String>();
-							for (int i = selectedItems.size() - 1; i >= 0; i--) {
-								if (!removed.contains(selectedItems.get(i).getText())) {
-									removed.add(selectedItems.get(i).getText());
-									if (selectedItems.get(i) instanceof DraggableImage) {
-										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
-										imagesInDiagram.remove(selectedItems.get(i).getText());
-									} else {
-										actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+							});
+							d.setBackground(new Background(new BackgroundFill(d.getColor(), new CornerRadii(5), new Insets(-5))));
+							d.getLabel().setTextFill(d.getColor());
+							d.getScene().setCursor(Cursor.CLOSED_HAND);
+						} else {
+							d.setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(-5))));
+							d.getLabel().setTextFill(Color.WHITE);
+							d.getScene().setCursor(Cursor.DISAPPEAR);
+							setOnMouseReleased(mouseEvent2 -> {
+								String message = selectedItems.size() == 1 ? "Remove Item from Diagram" : "Remove Items from Diagram";
+								List<String> removed = new ArrayList<String>();
+								for (int i = selectedItems.size() - 1; i >= 0; i--) {
+									if (!removed.contains(selectedItems.get(i).getText())) {
+										removed.add(selectedItems.get(i).getText());
+										if (selectedItems.get(i) instanceof DraggableImage) {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList, imagesInDiagram));
+											imagesInDiagram.remove(selectedItems.get(i).getText());
+										} else {
+											actionList.add(new RemoveItemAction(selectedItems.get(i), selectedItems.get(i).oldX, selectedItems.get(i).oldY, itemsInDiagram, itemsList));
+										}
+										diagram.getChildren().remove(selectedItems.get(i));
+										itemsInDiagram.remove(selectedItems.get(i));
+										itemsList.getItems().add(selectedItems.get(i).getText());
 									}
-									diagram.getChildren().remove(selectedItems.get(i));
-									itemsInDiagram.remove(selectedItems.get(i));
-									itemsList.getItems().add(selectedItems.get(i).getText());
+									selectedItems.remove(i);
 								}
-								selectedItems.remove(i);
-							}
-							pane.getScene().setCursor(Cursor.DEFAULT);
-							changesMade(new ActionGroup(actionList, message));
-							mouseEvent.consume();
-							mouseEvent2.consume();
-						});
+								pane.getScene().setCursor(Cursor.DEFAULT);
+								changesMade(new ActionGroup(actionList, message));
+								mouseEvent.consume();
+								mouseEvent2.consume();
+							});
+						}
+					} else {
+						d.setLayoutX(oldX);
+						d.setLayoutY(oldY);
 					}
 				}
 				mouseEvent.consume();
@@ -1168,16 +1182,6 @@ public class Controller {
 			selectedItems.clear();
 		}
 		removeFocus();
-	}
-
-	@FXML
-	private void keyPressOnList(KeyEvent event) {
-		if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
-			deleteItem();
-		}
-		if (event.getCode() == KeyCode.ESCAPE) {
-			pane.requestFocus();
-		}
 	}
 
 	@FXML
@@ -1793,6 +1797,9 @@ public class Controller {
 		rightItemColor = Color.web(DEFAULT_RIGHT_ITEM_COLOR);
 		intersectionItemColor = Color.web(DEFAULT_INTERSECTION_ITEM_COLOR);
 		addItemField.setText("");
+		titleText = "";
+		leftText = "";
+		rightText = "";
 		addFieldText = "";
 		updateTitleColors();
 		updateItemColors();
@@ -2813,6 +2820,15 @@ public class Controller {
 			}
 		});
 		
+		itemsList.setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+				deleteItem();
+			}
+			if (event.getCode() == KeyCode.ESCAPE) {
+				pane.requestFocus();
+			}
+		});
+		
 		scrollPane.viewportBoundsProperty().addListener(new ChangeListener<Bounds>() {
 			@Override
 			public void changed(ObservableValue<? extends Bounds> observableValue, Bounds oldBounds, Bounds newBounds) {
@@ -2877,7 +2893,7 @@ public class Controller {
 	        		deleteMenu.setDisable(false);
 	        	}
 	        }
-	    });
+        });
 		
 		itemsList.getSelectionModel().selectedIndexProperty().addListener(listener -> {
     		if (itemsList.getSelectionModel().getSelectedItems().size() + selectedItems.size() == 1) {

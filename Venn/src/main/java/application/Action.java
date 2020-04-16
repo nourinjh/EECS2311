@@ -20,6 +20,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -50,7 +51,8 @@ class ActionGroup implements Action {
 	public boolean invert() {
 		boolean success = true;
 		for (Action action : actionList) {
-			success = success && action.invert();
+			System.out.println(action);
+			action.invert();
 		}
 		return success;
 	}
@@ -58,16 +60,6 @@ class ActionGroup implements Action {
 	@Override
 	public String toString() {
 		return message;
-	}
-	
-	public String expandedToString() {
-		StringBuilder sb = new StringBuilder("Action Group:\n");
-		for(Action a : actionList) {
-			sb.append("   ");
-			sb.append(a.toString());
-			sb.append("\n");
-		}
-		return sb.toString();
 	}
 }
 
@@ -459,40 +451,82 @@ class MoveItemAction implements Action {
 		this.x2 = oldX;
 		this.y2 = oldY;
 	}
-	
-	Thread inversion = new Thread() {
-		public void run() {
-			double temp = x2;
-			x2 = x1;
-			x1 = temp;
-			temp = y2;
-			y2 = y1;
-			y1 = temp;
-
-			Platform.runLater(() -> {
-				item.relocate(x1, y1);
-				item.checkBounds();
-			});
-		}
-	};
-		
+			
 	@Override
 	public boolean invert() {
+		double temp = x2;
+		x2 = x1;
+		x1 = temp;
+		temp = y2;
+		y2 = y1;
+		y1 = temp;
 		
-
-	    if (Platform.isFxApplicationThread()) {
-	    	inversion.run();
-	    } else {
-			Platform.runLater(inversion);
-	    }
-
+		item.setLayoutX(x1);
+		item.setLayoutY(y1);
+		item.checkBounds();
 		
 		return item.getLayoutX() == x1 && item.getLayoutY() == y1;
 	}
 	
 	@Override
 	public String toString() {
-		return "Move Item from (" + x1 + "," + y1 + ") to (" + x2 + "," + y2 + ")";
+		return "Move \"" + item + "\" from (" + x2 + "," + y2 + ") to (" + x1 + "," + y1 + ")";
+	}
+}
+
+class MoveItemsWithKeyboardAction implements Action {
+	private List<DraggableItem> items;
+	private KeyCode direction;
+	private double distance;
+	
+	public MoveItemsWithKeyboardAction(List<DraggableItem> items, KeyCode direction, double distance) {
+		this.items = items;
+		this.direction = direction;
+		this.distance = distance;
+	}
+	
+	@Override
+	public boolean invert() {
+		final double moveX;
+		final double moveY;
+		final KeyCode newDirection;
+		
+		switch(direction) {
+			case UP:
+				moveX = 0;
+				moveY = distance;
+				newDirection = KeyCode.DOWN;
+				break;
+			case DOWN:
+				moveX = 0;
+				moveY = -distance;
+				newDirection = KeyCode.UP;
+				break;
+			case LEFT:
+				moveX = distance;
+				moveY = 0;
+				newDirection = KeyCode.RIGHT;
+				break;
+			case RIGHT:
+				moveX = -distance;
+				moveY = 0;
+				newDirection = KeyCode.LEFT;
+				break;
+			default:
+				return false;
+		}
+		items.forEach(each -> {
+			each.setLayoutX(each.getLayoutX() + moveX);
+			each.setLayoutY(each.getLayoutY() + moveY);
+		});
+		this.direction = newDirection;
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return items.size() == 1 ? "Move Item" : "Move Items";
+
 	}
 }
 
@@ -560,6 +594,6 @@ class TypeInFieldAction implements Action {
 	
 	@Override
 	public String toString() {
-		return "Change Title";
+		return "Typing";
 	}
 }
