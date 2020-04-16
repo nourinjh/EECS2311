@@ -111,7 +111,6 @@ public class ControllerTest extends ApplicationTest {
 		assertEquals(((TextField) (find("#circleRightTitle"))).getText(), "Right Circle");
 	}
 
-	@SuppressWarnings("unchecked")
 	// testing the delete button
 	@Test
 	public void testDeleteButton() {

@@ -12,7 +12,6 @@ import java.util.List;
 
 import application.Controller.DraggableImage;
 import application.Controller.DraggableItem;
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
