@@ -45,7 +45,7 @@
                   </Button>
                </children>
             </HBox>
-      		<ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" onKeyPressed="#keyPressOnList" prefWidth="240.0" VBox.vgrow="ALWAYS">
+      		<ListView fx:id="itemsList" maxHeight="1.7976931348623157E308" maxWidth="250.0" minHeight="70.0" minWidth="200.0" onDragDetected="#dragFromItemsList" onDragDropped="#dragDroppedOnItemsList" onDragEntered="#dragOntoItemsList" onDragExited="#dragExitedItemsList" onDragOver="#dragOverList" prefWidth="240.0" VBox.vgrow="ALWAYS">
                <cursor>
                   <Cursor fx:constant="OPEN_HAND" />
                </cursor>
@@ -120,7 +120,7 @@
           </Menu>
             <Menu mnemonicParsing="false" text="View">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
+                <MenuItem fx:id="zoomInMenu" disable="true" mnemonicParsing="false" onAction="#zoomIn" text="Zoom In">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="PLUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -130,7 +130,7 @@
                         <KeyCodeCombination alt="UP" code="EQUALS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
+                  <MenuItem fx:id="zoomOutMenu" mnemonicParsing="false" onAction="#zoomOut" text="Zoom Out">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="MINUS" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                      </accelerator>
@@ -159,7 +159,7 @@
          <content>
             <StackPane fx:id="scrollContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="730.0" prefWidth="870.0">
                <children>
-                  <Pane fx:id="frameRect" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
+                  <Pane fx:id="diagram" onDragDropped="#dropItem" onDragOver="#dragOverList" onMouseDragOver="#dragOverList" prefHeight="649.0" prefWidth="806.0">
                      <children>
                   		<Circle fx:id="circleLeft" fill="#f59f9f87" layoutX="293.0" layoutY="436.0" radius="229.0" strokeType="INSIDE" />
                   		<Circle fx:id="circleRight" fill="#ebe07191" layoutX="592.0" layoutY="435.0" radius="230.0" strokeType="INSIDE" />
@@ -280,6 +280,41 @@
                   <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@images/redo.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Redo" />
+               </tooltip>
+            </Button>
+            <Separator orientation="VERTICAL" prefHeight="30.0">
+               <padding>
+                  <Insets left="3.0" />
+               </padding>
+            </Separator>
+            <Button fx:id="zoomOutButton" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomOut" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomOut.png" />
+                     </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
+                  </ImageView>
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Undo" />
+               </tooltip>
+            </Button>
+            <Button fx:id="zoomInButton" disable="true" focusTraversable="false" mnemonicParsing="false" onMouseClicked="#zoomIn" prefHeight="30.0">
+               <graphic>
+                  <ImageView fitHeight="20.0" fitWidth="20.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@images/zoomIn.png" />
                      </image>
                      <viewport>
                         <Rectangle2D />
