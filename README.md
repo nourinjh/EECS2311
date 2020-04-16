@@ -35,9 +35,12 @@ The program allows the user to:
 ![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo1.gif)
 ![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo2.gif)
 
+### Undo/Redo
+![undo animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/undo.gif)
+
 **_Legend_**
 
-![venn](https://github.com/nourinjh/EECS2311/blob/master/Assets/venn.png)
+![venn](https://github.com/nourinjh/EECS2311/blob/master/Assets/venn1.png)
 
 A: Save
 * Saves progress as a .venn file
