@@ -16,70 +16,94 @@ The purpose of this project is to create a program that will allow users to crea
 
 The program allows the user to: 
 * Add a title to the diagram
-*	Add a title to each circle in the diagram
-*	Add text and upload images
-*	Drag and drop text and images into the circles
-*	Change the colours of the circles and the background
-*	Clear the Venn diagram to start over
-*	Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
-*	Save Venn diagram as an image
+* Add a title to each circle in the diagram
+* Add text and images
+* Drag and drop text and images into the circles
+* Change the colours of the circles, text and the background
+* Add descriptions to images and text
+* Clear the Venn diagram to start over
+* Delete selected text or image
+* Export Venn diagram as an answer key (.vansr)
+* Import an answer key 
+* Check if Venn diagram is correct by clicking the "Check Answer" button
+* Save Venn diagram as a .venn file so that it can be reopened in the future and edited again
+* Save Venn diagram as an image
+* Import Venn diagram as a CSV file
+* Export Venn diagram as a CSV file
 
 ## Demo
-![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo1.gif)
-![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Resources/demo2.gif)
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo1.gif)
+![demo 1 animation](https://github.com/nourinjh/EECS2311/blob/master/Assets/demo2.gif)
 
 **_Legend_**
 
-![venn](https://github.com/nourinjh/EECS2311/blob/master/Resources/venn.png)
+![venn](https://github.com/nourinjh/EECS2311/blob/master/Assets/venn.png)
 
-A: File menu
-* New - Opens a new, blank Venn diagram
-* Open... - Allows the user to open a previously saved .venn file
-* Save - Allows the user to save the Venn diagram as a .venn file for later editing
-* Export Venn Diagram as Image - Saves an image of the current Venn diagram
+A: Save
+* Saves progress as a .venn file
 
-B: Edit menu
-* Delete Item - Deletes the currently selected item from the Venn diagram
-* Clear Venn Diagram - Moves all items out of the diagram and into the item list (F)
+B: New File
+* Open a new file
 
-C: Help menu
-* View Manual - Opens a link to the online user manual
+C: Import...
+* Image
+* CSV File
+* Answer Key
 
-D: Add button
-* Adds the text in the item entry field (E) to the item list (F)
+D: Export as...
+* Image
+* CSV File
+* Answer Key
 	
-E: Item entry field
-* The user can type in a text item they would like to add to the Venn diagram. To add this item into the items list (F), click the Add button (D).
+E: Import Answer Key
+* Prompts the user to import a .vansr file to check their answers
 
-F: Items list
-* Every item the user adds (E) is added to this list. The items in this list can be clicked and dragged into the circles (P) to add them to the Venn diagram.
+F: View Answers
+* Shows the user if their answers are correct or not by placing either a green check mark or a red X
 
-G: Add Image button
-* In a future release, this button will allow the user to add an image file into the Venn diagram. This feature is not yet available.
+G: Delete Selected Item
+* Deletes selected image or text
 
-H: Export to Image button
-* Saves an image of the current Venn diagram
+H: Reset
+* Moves all items in Venn diagram to the text list
 
-I: Open button
-* Allows the user to open a previously saved .venn file
+I: Settings panel
+* Filled with customization options for the appearance of the Venn diagram
+* The user can:
+	* change the colour of the title text and the colour of the background of the application
+	* change the colour of the text and background inside each circle
+	* change the text colour of the intersection
+	* change the size of the circles 
 
-J: Settings panel
-* Click to open/close panel. Filled with customization options for the appearance of the Venn diagram
+J: File
+* New
+* Open
+* Import
+	* Image
+	* CSV File
+	* Answer Key
+* Save
+* Save As..
+* Export Venn Diagram as Image...
 
-K: Save button
-* Allows the user to save the Venn diagram as a .venn file for later editing
+K: Edit
+* Undo
+* Redo
+* Select All
+* Delete Selected Items
+* Clear Venn Diaggram
 
-L: Clear Diagram button
-* Moves all items out of the diagram and into the item list (F)
+L: View
+* Zoom In
+* Zoom Out
+* Actual Oranges
 
-M: Delete Item button
-* Deletes the currently selected item from the Venn diagram
+M: Help
+* View Manual 
+* About Venn
 
-N: Venn Diagram Title
-* The user can click this section and type in a custom title for the Venn diagram.
+N: Text Field
+* The user can input their text and press the "Add" button (O)
 
-O: Circle Titles
-* The user can click these sections and type in custom titles for the individual circles in the Venn diagram.
-
-P: Circles
-* Each circle represents one category or object of the two that are being compared. The user can drag things from the list on the left (F) into one or both of these circles. The centre section represents things shared by both circles.
+O: Add
+* Adds the text from the text field (N) to the list
