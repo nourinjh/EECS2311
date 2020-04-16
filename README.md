@@ -58,25 +58,16 @@ D: Export as...
 * CSV File
 * Answer Key
 	
-E: Import Answer Key
-* Prompts the user to import a .vansr file to check their answers
+E: Undo 
 
-F: View Answers
-* Shows the user if their answers are correct or not by placing either a green check mark or a red X
+F: Redo 
 
-G: Delete Selected Item
+G: Zoom In
+
+H: Zoom Out 
+
+I: Delete Selected Item
 * Deletes selected image or text
-
-H: Reset
-* Moves all items in Venn diagram to the text list
-
-I: Settings panel
-* Filled with customization options for the appearance of the Venn diagram
-* The user can:
-	* change the colour of the title text and the colour of the background of the application
-	* change the colour of the text and background inside each circle
-	* change the text colour of the intersection
-	* change the size of the circles 
 
 J: File
 * New
@@ -110,3 +101,17 @@ N: Text Field
 
 O: Add
 * Adds the text from the text field (N) to the list
+
+P: Reset
+* Moves all items in Venn diagram to the text list
+
+Q: Settings panel
+* Filled with customization options for the appearance of the Venn diagram
+* The user can:
+	* change the colour of the title text and the colour of the background of the application
+	* change the colour of the text and background inside each circle
+	* change the text colour of the intersection
+	* change the size of the circles 
+
+R: View Answers
+* Shows the user if their answers are correct or not by placing either a green check mark or a red X
